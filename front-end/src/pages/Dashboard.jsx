@@ -1,13 +1,129 @@
-import React from 'react'
+import React, { useRef } from 'react'
+import RecipeCard from '../components/RecipeCard'
 
-const Dashboard = ({ user }) => {
+const recommended = [
+  {
+    id: 1,
+    title: 'Caesar Salad',
+    time: '20 min',
+    categories: 'Mexican, Greens, Lunch',
+    rating: 3.8,
+    tags: ['Heart-healthy', 'Weight loss'],
+    image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=480&h=280&fit=crop',
+    accent: 'green',
+  },
+  {
+    id: 2,
+    title: 'Veggie Tacos',
+    time: '25 min',
+    categories: 'Mexican, Dinner',
+    rating: 4.2,
+    tags: ['Vegetarian'],
+    image: 'https://images.unsplash.com/photo-1565299585323-38174c0b5e14?w=480&h=280&fit=crop',
+    accent: 'orange',
+  },
+  {
+    id: 3,
+    title: 'Berry Smoothie Bowl',
+    time: '15 min',
+    categories: 'Breakfast, Healthy',
+    rating: 4.6,
+    tags: ['Weight loss'],
+    image: 'https://images.unsplash.com/photo-1490474504059-bf625f7d7033?w=480&h=280&fit=crop',
+    accent: 'pink',
+  },
+]
+
+const trending = [
+  {
+    id: 4,
+    title: 'Baked Chicken Breasts',
+    time: '40 min',
+    categories: 'Protein, Dinner',
+    rating: 4.7,
+    tags: ['High protein', 'Burn Fat'],
+    image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=480&h=280&fit=crop',
+    accent: 'orange',
+  },
+  {
+    id: 5,
+    title: 'Zucchini Lasagna',
+    time: '55 min',
+    categories: 'Italian, Comfort',
+    rating: 4.4,
+    tags: ['Low carb'],
+    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7497ad?w=480&h=280&fit=crop',
+    accent: 'yellow',
+  },
+  {
+    id: 6,
+    title: 'Keto Ice Cream',
+    time: '10 min',
+    categories: 'Dessert, Keto',
+    rating: 4.1,
+    tags: ['Keto'],
+    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=480&h=280&fit=crop',
+    accent: 'purple',
+  },
+]
+
+function RecipeRow({ title, subtitle, recipes }) {
+  const scrollerRef = useRef(null)
+
+  const scroll = (dir) => {
+    const el = scrollerRef.current
+    if (!el) return
+    const delta = dir === 'next' ? 320 : -320
+    el.scrollBy({ left: delta, behavior: 'smooth' })
+  }
+
   return (
-    <div className="container">
-      <div className="card">
-        <h1>Tableau de bord</h1>
-        <p>Bienvenue{user?.name ? `, ${user.name}` : ''}.</p>
-        <p>Utilisez le menu pour scanner votre frigo, consulter des recettes ou planifier vos repas.</p>
+    <section className="cookpal-section">
+      <div className="cookpal-section__head">
+        <div>
+          <h2 className="cookpal-section__title">{title}</h2>
+          {subtitle && <p className="cookpal-section__sub">{subtitle}</p>}
+        </div>
+        <div className="cookpal-section__arrows">
+          <button type="button" className="cookpal-arrow" onClick={() => scroll('prev')} aria-label="Previous">
+            ‹
+          </button>
+          <button type="button" className="cookpal-arrow" onClick={() => scroll('next')} aria-label="Next">
+            ›
+          </button>
+        </div>
       </div>
+      <div className="cookpal-recipe-scroller" ref={scrollerRef}>
+        {recipes.map((r) => (
+          <RecipeCard key={r.id} recipe={r} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+const Dashboard = () => {
+  return (
+    <div className="cookpal-home">
+      <div className="cookpal-search-row">
+        <div className="cookpal-search">
+          <span className="cookpal-search__icon" aria-hidden>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.3-4.3" />
+            </svg>
+          </span>
+          <input type="search" className="cookpal-search__input" placeholder="What do you want to cook today?" aria-label="Search recipes" />
+        </div>
+        <button type="button" className="cookpal-filter-btn" aria-label="Filters">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+            <path d="M4 6h16M8 12h8M10 18h4" />
+          </svg>
+        </button>
+      </div>
+
+      <RecipeRow title="Recommended Recipes" subtitle="Based on your preferences." recipes={recommended} />
+      <RecipeRow title="Trending Recipes" subtitle="" recipes={trending} />
     </div>
   )
 }

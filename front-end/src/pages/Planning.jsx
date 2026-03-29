@@ -2,10 +2,11 @@ import React from 'react'
 
 const Planning = () => {
   return (
-    <div className="container">
-      <div className="card">
-        <h2>Planning des repas</h2>
-        <p>Planifiez vos repas de la semaine ici (à connecter plus tard à votre backend).</p>
+    <div className="cookpal-page">
+      <h1 className="cookpal-page__title">Community</h1>
+      <p className="cookpal-page__lead">Plan meals with your household and share ideas.</p>
+      <div className="cookpal-help-card">
+        <p>Weekly meal planning will connect to your backend here. For now, use Explore to browse recipes.</p>
       </div>
     </div>
   )

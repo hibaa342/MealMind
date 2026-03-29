@@ -23,22 +23,22 @@ const Login = ({ onLogin }) => {
       
       // Simulation d'une connexion réussie
       setTimeout(() => {
-        const mockUser = { id: 1, email, name: 'Utilisateur' }
+        const mockUser = { id: 1, email, name: 'Gordon Ramsay', title: 'Professional Chef' }
         const mockToken = 'fake-jwt-token'
         onLogin(mockUser, mockToken)
         navigate('/dashboard')
         setLoading(false)
       }, 1000)
     } catch (err) {
-      setError('Erreur de connexion')
+      setError('Sign-in failed')
       setLoading(false)
     }
   }
 
   return (
-    <div className="container">
-      <div className="card" style={{ maxWidth: '400px', margin: '50px auto' }}>
-        <h2>Connexion</h2>
+    <div className="container auth-page">
+      <div className="card" style={{ maxWidth: '400px', margin: '32px auto' }}>
+        <h2 style={{ marginBottom: 8 }}>Log in</h2>
         {error && <div className="alert alert-error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">

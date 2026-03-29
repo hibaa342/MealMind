@@ -25,33 +25,38 @@ const Register = ({ onRegister }) => {
     setError('')
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas')
+      setError('Passwords do not match')
       setLoading(false)
       return
     }
 
     try {
       setTimeout(() => {
-        const mockUser = { id: 1, email: formData.email, name: formData.name }
+        const mockUser = {
+          id: 1,
+          email: formData.email,
+          name: formData.name || 'Cook',
+          title: 'Home cook',
+        }
         const mockToken = 'fake-jwt-token'
         onRegister(mockUser, mockToken)
         navigate('/dashboard')
         setLoading(false)
       }, 1000)
     } catch (err) {
-      setError("Erreur d'inscription")
+      setError('Registration failed')
       setLoading(false)
     }
   }
 
   return (
-    <div className="container">
-      <div className="card" style={{ maxWidth: '400px', margin: '50px auto' }}>
-        <h2>Inscription</h2>
+    <div className="container auth-page">
+      <div className="card" style={{ maxWidth: '400px', margin: '32px auto' }}>
+        <h2 style={{ marginBottom: 8 }}>Sign up</h2>
         {error && <div className="alert alert-error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Nom</label>
+            <label>Name</label>
             <input
               type="text"
               name="name"
@@ -71,7 +76,7 @@ const Register = ({ onRegister }) => {
             />
           </div>
           <div className="form-group">
-            <label>Mot de passe</label>
+            <label>Password</label>
             <input
               type="password"
               name="password"
@@ -81,7 +86,7 @@ const Register = ({ onRegister }) => {
             />
           </div>
           <div className="form-group">
-            <label>Confirmer le mot de passe</label>
+            <label>Confirm password</label>
             <input
               type="password"
               name="confirmPassword"
@@ -91,11 +96,11 @@ const Register = ({ onRegister }) => {
             />
           </div>
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Inscription...' : "S'inscrire"}
+            {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>
-        <p style={{ marginTop: '15px', textAlign: 'center' }}>
-          Déjà un compte ? <Link to="/login">Se connecter</Link>
+        <p style={{ marginTop: '15px', textAlign: 'center', color: 'var(--cookpal-text-muted)' }}>
+          Already have an account? <Link to="/login">Log in</Link>
         </p>
       </div>
     </div>

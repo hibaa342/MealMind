@@ -7,7 +7,10 @@ import Scanner from './pages/Scanner'
 import Recipes from './pages/Recipes'
 import Planning from './pages/Planning'
 import Profile from './pages/Profile'
+import Help from './pages/Help'
+import Favorites from './pages/Favorites'
 import SiteNavbar from './components/SiteNavbar'
+import CookPalLayout from './components/CookPalLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -15,7 +18,6 @@ function App() {
   const [user, setUser] = useState(null)
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté (localStorage ou token)
     const token = localStorage.getItem('token')
     const userData = localStorage.getItem('user')
     if (token && userData) {
@@ -40,48 +42,29 @@ function App() {
 
   return (
     <div className="app">
-      <SiteNavbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+      {!isAuthenticated && <SiteNavbar />}
       <Routes>
-        <Route path="/login" element={
-          !isAuthenticated ? 
-          <Login onLogin={handleLogin} /> : 
-          <Navigate to="/dashboard" />
-        } />
-        <Route path="/register" element={
-          !isAuthenticated ? 
-          <Register onRegister={handleLogin} /> : 
-          <Navigate to="/dashboard" />
-        } />
-        <Route path="/" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <Navigate to="/dashboard" />
-          </ProtectedRoute>
-        } />
-        <Route path="/dashboard" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <Dashboard user={user} />
-          </ProtectedRoute>
-        } />
-        <Route path="/scanner" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <Scanner user={user} />
-          </ProtectedRoute>
-        } />
-        <Route path="/recipes" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <Recipes user={user} />
-          </ProtectedRoute>
-        } />
-        <Route path="/planning" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <Planning user={user} />
-          </ProtectedRoute>
-        } />
-        <Route path="/profile" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <Profile user={user} />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/login"
+          element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" replace />}
+        />
+        <Route
+          path="/register"
+          element={!isAuthenticated ? <Register onRegister={handleLogin} /> : <Navigate to="/dashboard" replace />}
+        />
+        <Route path="/" element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
+          <Route element={<CookPalLayout user={user} onLogout={handleLogout} />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="scanner" element={<Scanner user={user} />} />
+            <Route path="recipes" element={<Recipes user={user} />} />
+            <Route path="planning" element={<Planning user={user} />} />
+            <Route path="profile" element={<Profile user={user} />} />
+            <Route path="help" element={<Help />} />
+            <Route path="favorites" element={<Favorites />} />
+          </Route>
+        </Route>
+        <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />} />
       </Routes>
     </div>
   )
