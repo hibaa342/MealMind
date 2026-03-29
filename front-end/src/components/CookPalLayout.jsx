@@ -12,6 +12,12 @@ const IconCamera = () => (
     <circle cx="12" cy="13" r="4" />
   </svg>
 )
+const IconRecipe = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5V4.5A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+)
 const IconCompass = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <circle cx="12" cy="12" r="9" />
@@ -52,7 +58,7 @@ const IconBag = () => (
 const navItems = [
   { to: '/dashboard', label: 'Home', Icon: IconHome },
   { to: '/scanner',   label: 'Scanner',   Icon: IconCamera  },
-  { to: '/recipes', label: 'Explore', Icon: IconCompass },
+  { to: '/recipes', label: 'Recipes', Icon: IconRecipe },
   { to: '/planning', label: 'Community', Icon: IconUsers },
   { to: '/favorites', label: 'Favorites', Icon: IconHeart },
   { to: '/help', label: 'Help', Icon: IconHelp },
