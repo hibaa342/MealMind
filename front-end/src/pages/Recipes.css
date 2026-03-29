@@ -1,0 +1,463 @@
+/* ─── Recipes Page ──────────────────────────────────────────────────────────── */
+
+.recipes-page {
+    max-width: 960px;
+  }
+  
+  .cookpal-recipe-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  /* ─── Top bar with scan info ────────────────────────────────────────────────── */
+  
+  .recipes-scan-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: var(--cookpal-white);
+    border-radius: var(--cookpal-radius);
+    padding: 16px 20px;
+    box-shadow: var(--cookpal-shadow);
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  
+  .recipes-scan-banner__left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .recipes-scan-banner__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cookpal-text-muted);
+    white-space: nowrap;
+  }
+  
+  .recipes-scan-banner__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .recipes-scan-banner__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--cookpal-green-soft);
+    border: 1px solid #c8e6c9;
+    color: var(--cookpal-green-dark);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  
+  .recipes-scan-banner__btn {
+    background: none;
+    border: 1px solid #d0d7de;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cookpal-text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  
+  .recipes-scan-banner__btn:hover {
+    border-color: var(--cookpal-green);
+    color: var(--cookpal-green);
+    background: var(--cookpal-green-soft);
+  }
+  
+  /* ─── Tab bar (AI generated / All recipes) ──────────────────────────────────── */
+  
+  .recipes-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--cookpal-white);
+    border-radius: 14px;
+    padding: 4px;
+    box-shadow: var(--cookpal-shadow);
+    margin-bottom: 28px;
+    width: fit-content;
+  }
+  
+  .recipes-tab {
+    padding: 9px 20px;
+    border-radius: 10px;
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cookpal-text-muted);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  
+  .recipes-tab--active {
+    background: var(--cookpal-green);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.35);
+  }
+  
+  .recipes-tab:hover:not(.recipes-tab--active) {
+    background: var(--cookpal-green-soft);
+    color: var(--cookpal-green-dark);
+  }
+  
+  /* ─── Recipe grid ───────────────────────────────────────────────────────────── */
+  
+  .recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  
+  /* ─── AI Recipe Card (extended RecipeCard) ──────────────────────────────────── */
+  
+  .recipes-ai-card {
+   
+    width: 100%;
+    height: 100%;
+  }
+  
+  .recipes-ai-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 40px rgba(44, 62, 80, 0.14);
+  }
+  
+  .recipes-ai-card__image-wrap {
+    position: relative;
+    width: 100%;
+    height: 180px; /* même rendu que dashboard */
+    overflow: hidden;
+  }
+  
+  .recipes-ai-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  
+  .recipes-ai-card__time {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cookpal-text);
+  }
+  
+  .recipes-ai-card__badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: var(--cookpal-green);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+  }
+  
+  .recipes-ai-card__heart {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--cookpal-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+  
+  .recipes-ai-card__heart:hover,
+  .recipes-ai-card__heart--on {
+    color: #e91e63;
+  }
+  
+  .recipes-ai-card__body {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .recipes-ai-card__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--cookpal-text);
+    margin: 0;
+    line-height: 1.3;
+  }
+  
+  .recipes-ai-card__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--cookpal-text-muted);
+  }
+  
+  .recipes-ai-card__meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  /* ─── Ingredient lists ──────────────────────────────────────────────────────── */
+  
+  .recipes-ai-card__ingredients {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .recipes-ai-card__ing-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--cookpal-text-muted);
+    margin-bottom: 2px;
+  }
+  
+  .recipes-ai-card__ing-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  
+  .recipes-ai-card__ing-chip {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  
+  .recipes-ai-card__ing-chip--have {
+    background: var(--cookpal-green-soft);
+    color: var(--cookpal-green-dark);
+    border: 1px solid #c8e6c9;
+  }
+  
+  .recipes-ai-card__ing-chip--missing {
+    background: #fde8e8;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+  }
+  
+  /* ─── Card action buttons ───────────────────────────────────────────────────── */
+  
+  .recipes-ai-card__actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 4px;
+  }
+  
+  .recipes-ai-card__btn-primary {
+    flex: 1;
+    padding: 9px 12px;
+    border: none;
+    border-radius: 10px;
+    background: var(--cookpal-green);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: filter 0.2s;
+  }
+  
+  .recipes-ai-card__btn-primary:hover {
+    filter: brightness(1.07);
+  }
+  
+  .recipes-ai-card__btn-secondary {
+    padding: 9px 12px;
+    border: 1px solid #d0d7de;
+    border-radius: 10px;
+    background: none;
+    color: var(--cookpal-text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  
+  .recipes-ai-card__btn-secondary:hover {
+    border-color: var(--cookpal-green);
+    color: var(--cookpal-green);
+    background: var(--cookpal-green-soft);
+  }
+  
+  /* ─── Bottom action row ─────────────────────────────────────────────────────── */
+  
+  .recipes-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 8px;
+  }
+  
+  .recipes-bottom__generate {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 14px;
+    background: var(--cookpal-green);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+    transition: filter 0.2s, transform 0.15s;
+  }
+  
+  .recipes-bottom__generate:hover {
+    filter: brightness(1.07);
+    transform: translateY(-1px);
+  }
+  
+  .recipes-bottom__generate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .recipes-bottom__scan {
+    padding: 12px 20px;
+    border: 1px solid #d0d7de;
+    border-radius: 14px;
+    background: var(--cookpal-white);
+    color: var(--cookpal-text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  
+  .recipes-bottom__scan:hover {
+    border-color: var(--cookpal-green);
+    color: var(--cookpal-green);
+    background: var(--cookpal-green-soft);
+  }
+  
+  /* ─── Loading state ─────────────────────────────────────────────────────────── */
+  
+  .recipes-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    gap: 16px;
+    background: var(--cookpal-white);
+    border-radius: var(--cookpal-radius);
+    box-shadow: var(--cookpal-shadow);
+  }
+  
+  .recipes-loading__icon {
+    font-size: 48px;
+    animation: recipes-spin 1.5s linear infinite;
+  }
+  
+  @keyframes recipes-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  
+  .recipes-loading__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cookpal-text);
+    margin: 0;
+  }
+  
+  .recipes-loading__sub {
+    font-size: 14px;
+    color: var(--cookpal-text-muted);
+    margin: 0;
+  }
+  
+  .recipes-loading__bar {
+    width: 100%;
+    max-width: 320px;
+    height: 6px;
+    border-radius: 99px;
+    background: #e0e4e8;
+    overflow: hidden;
+  }
+  
+  .recipes-loading__fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--cookpal-green), #81c784);
+    animation: recipes-progress 2s ease-in-out infinite;
+  }
+  
+  @keyframes recipes-progress {
+    0%   { width: 0%;   margin-left: 0; }
+    50%  { width: 70%;  margin-left: 0; }
+    100% { width: 0%;   margin-left: 100%; }
+  }
+  
+  /* ─── Empty state ───────────────────────────────────────────────────────────── */
+  
+  .recipes-empty {
+    text-align: center;
+    padding: 60px 24px;
+    background: var(--cookpal-white);
+    border-radius: var(--cookpal-radius);
+    box-shadow: var(--cookpal-shadow);
+  }
+  
+  .recipes-empty__icon {
+    font-size: 52px;
+    margin-bottom: 16px;
+  }
+  
+  .recipes-empty__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cookpal-text);
+    margin: 0 0 8px;
+  }
+  
+  .recipes-empty__sub {
+    font-size: 14px;
+    color: var(--cookpal-text-muted);
+    margin: 0 0 24px;
+  }
+  
