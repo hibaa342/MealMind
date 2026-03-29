@@ -1,7 +1,53 @@
 import React, { useState } from 'react'
 import RecipeCard from '../components/RecipeCard'
+import './Recipes.css'
 
-const samples = [
+// ─── Mock AI-generated recipes ───────────────────────────────────────────────
+// Replace this with a real Claude API call using the scanned ingredients
+const MOCK_AI_RECIPES = [
+  {
+    id: 'ai-1',
+    title: 'Omelette aux tomates et fromage',
+    time: '15 min',
+    categories: 'Petit-déjeuner, Rapide',
+    rating: 4.5,
+    tags: ['Végétarien', 'Protéiné'],
+    image: 'https://images.unsplash.com/photo-1510693206972-df098062cb71?w=480&h=280&fit=crop',
+    accent: 'yellow',
+    persons: 2,
+    haveIngredients: ['Œufs', 'Tomates', 'Fromage', 'Oignons'],
+    missingIngredients: ['Crème fraîche', 'Ciboulette'],
+  },
+  {
+    id: 'ai-2',
+    title: 'Soupe de carottes au lait',
+    time: '25 min',
+    categories: 'Dîner, Soupe',
+    rating: 4.2,
+    tags: ['Végétarien', 'Léger'],
+    image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=480&h=280&fit=crop',
+    accent: 'orange',
+    persons: 3,
+    haveIngredients: ['Carottes', 'Lait', 'Oignons'],
+    missingIngredients: ['Bouillon de légumes', 'Crème'],
+  },
+  {
+    id: 'ai-3',
+    title: 'Gratin de pâtes au fromage',
+    time: '35 min',
+    categories: 'Dîner, Confort',
+    rating: 4.7,
+    tags: ['Végétarien', 'Réconfortant'],
+    image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=480&h=280&fit=crop',
+    accent: 'green',
+    persons: 4,
+    haveIngredients: ['Fromage', 'Œufs', 'Lait'],
+    missingIngredients: ['Pâtes', 'Beurre', 'Muscade'],
+  },
+]
+
+// Sample recipes for "All recipes" tab — reuses existing RecipeCard style
+const ALL_RECIPES = [
   {
     id: 1,
     title: 'Caesar Salad',
@@ -31,6 +77,36 @@ const samples = [
     tags: ['Weight loss'],
     image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=480&h=280&fit=crop',
     accent: 'pink',
+  },
+  {
+    id: 4,
+    title: 'Baked Chicken Breasts',
+    time: '40 min',
+    categories: 'Protein, Dinner',
+    rating: 4.7,
+    tags: ['High protein', 'Burn Fat'],
+    image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=480&h=280&fit=crop',
+    accent: 'orange',
+  },
+  {
+    id: 5,
+    title: 'Zucchini Lasagna',
+    time: '55 min',
+    categories: 'Italian, Comfort',
+    rating: 4.4,
+    tags: ['Low carb'],
+    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7497ad?w=480&h=280&fit=crop',
+    accent: 'yellow',
+  },
+  {
+    id: 6,
+    title: 'Keto Ice Cream',
+    time: '10 min',
+    categories: 'Dessert, Keto',
+    rating: 4.1,
+    tags: ['Keto'],
+    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=480&h=280&fit=crop',
+    accent: 'purple',
   },
 ]
 

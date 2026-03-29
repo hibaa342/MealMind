@@ -6,6 +6,18 @@ const IconHome = () => (
     <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" />
   </svg>
 )
+const IconCamera = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+    <circle cx="12" cy="13" r="4" />
+  </svg>
+)
+const IconRecipe = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5V4.5A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+)
 const IconCompass = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <circle cx="12" cy="12" r="9" />
@@ -52,6 +64,7 @@ const IconBag = () => (
 
 const navItems = [
   { to: '/dashboard', label: 'Accueil', Icon: IconHome },
+  { to: '/scanner',   label: 'Scanner',   Icon: IconCamera  },
   { to: '/recipes', label: 'Recettes', Icon: IconCompass },
   { to: '/order', label: 'Commande', Icon: IconCart },
   { to: '/community', label: 'Community', Icon: IconUsers },
