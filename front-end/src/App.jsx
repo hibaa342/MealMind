@@ -6,9 +6,11 @@ import Dashboard from './pages/Dashboard'
 import Scanner from './pages/Scanner'
 import Recipes from './pages/Recipes'
 import Planning from './pages/Planning'
+import Community from './pages/Community'
 import Profile from './pages/Profile'
 import Help from './pages/Help'
 import Favorites from './pages/Favorites'
+import Order from './pages/Order'
 import SiteNavbar from './components/SiteNavbar'
 import CookPalLayout from './components/CookPalLayout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -58,8 +60,10 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="scanner" element={<Scanner user={user} />} />
             <Route path="recipes" element={<Recipes user={user} />} />
+            <Route path="order" element={<Order user={user} />} />
             <Route path="planning" element={<Planning user={user} />} />
-            <Route path="profile" element={<Profile user={user} />} />
+            <Route path="community" element={<Community user={user} />} />
+            <Route path="profile" element={<Profile user={user} onLogout={handleLogout} />} />
             <Route path="help" element={<Help />} />
             <Route path="favorites" element={<Favorites />} />
           </Route>

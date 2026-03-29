@@ -19,7 +19,7 @@ const recommended = [
     categories: 'Mexican, Dinner',
     rating: 4.2,
     tags: ['Vegetarian'],
-    image: 'https://images.unsplash.com/photo-1565299585323-38174c0b5e14?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1565299585323-38174c0b5e14?w=480&h=360&fit=crop',
     accent: 'orange',
   },
   {
@@ -29,7 +29,7 @@ const recommended = [
     categories: 'Breakfast, Healthy',
     rating: 4.6,
     tags: ['Weight loss'],
-    image: 'https://images.unsplash.com/photo-1490474504059-bf625f7d7033?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=480&h=280&fit=crop',
     accent: 'pink',
   },
 ]
@@ -42,7 +42,7 @@ const trending = [
     categories: 'Protein, Dinner',
     rating: 4.7,
     tags: ['High protein', 'Burn Fat'],
-    image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=480&h=280&fit=crop',
     accent: 'orange',
   },
   {
@@ -52,7 +52,7 @@ const trending = [
     categories: 'Italian, Comfort',
     rating: 4.4,
     tags: ['Low carb'],
-    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7497ad?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=480&h=280&fit=crop',
     accent: 'yellow',
   },
   {
