@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { getPostAuthPath } from '../utils/onboardingStorage'
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('')
@@ -26,7 +27,7 @@ const Login = ({ onLogin }) => {
         const mockUser = { id: 1, email, name: 'Gordon Ramsay', title: 'Professional Chef' }
         const mockToken = 'fake-jwt-token'
         onLogin(mockUser, mockToken)
-        navigate('/dashboard')
+        navigate(getPostAuthPath(mockUser))
         setLoading(false)
       }, 1000)
     } catch (err) {
