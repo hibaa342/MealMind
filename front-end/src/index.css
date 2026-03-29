@@ -177,6 +177,20 @@ body {
   background: var(--cookpal-bg);
 }
 
+.cookpal-recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.cookpal-recipe-select-btn {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
 .cookpal-sidebar--right {
   background: var(--cookpal-white);
   border-left: 1px solid rgba(44, 62, 80, 0.06);

@@ -9,7 +9,7 @@ const recommended = [
     categories: 'Mexican, Greens, Lunch',
     rating: 3.8,
     tags: ['Heart-healthy', 'Weight loss'],
-    image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=480&h=280&fit=crop',
     accent: 'green',
   },
   {
@@ -19,7 +19,7 @@ const recommended = [
     categories: 'Mexican, Dinner',
     rating: 4.2,
     tags: ['Vegetarian'],
-    image: 'https://images.unsplash.com/photo-1565299585323-38174c0b5e14?w=480&h=360&fit=crop',
+    image: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=480&h=360&fit=crop',
     accent: 'orange',
   },
   {
@@ -29,7 +29,7 @@ const recommended = [
     categories: 'Breakfast, Healthy',
     rating: 4.6,
     tags: ['Weight loss'],
-    image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=480&h=280&fit=crop',
     accent: 'pink',
   },
 ]

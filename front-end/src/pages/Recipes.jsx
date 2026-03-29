@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import RecipeCard from '../components/RecipeCard'
-import './Recipes.css'
 
 // ─── Mock AI-generated recipes ───────────────────────────────────────────────
 // Replace this with a real Claude API call using the scanned ingredients
@@ -31,19 +30,7 @@ const MOCK_AI_RECIPES = [
     haveIngredients: ['Carottes', 'Lait', 'Oignons'],
     missingIngredients: ['Bouillon de légumes', 'Crème'],
   },
-  {
-    id: 'ai-3',
-    title: 'Gratin de pâtes au fromage',
-    time: '35 min',
-    categories: 'Dîner, Confort',
-    rating: 4.7,
-    tags: ['Végétarien', 'Réconfortant'],
-    image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=480&h=280&fit=crop',
-    accent: 'green',
-    persons: 4,
-    haveIngredients: ['Fromage', 'Œufs', 'Lait'],
-    missingIngredients: ['Pâtes', 'Beurre', 'Muscade'],
-  },
+  // recette Gratin retirée (doublon / identique à Zucchini Lasagna)
 ]
 
 // Sample recipes for "All recipes" tab — reuses existing RecipeCard style
@@ -55,7 +42,7 @@ const ALL_RECIPES = [
     categories: 'Mexican, Greens, Lunch',
     rating: 3.8,
     tags: ['Heart-healthy', 'Weight loss'],
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=480&h=280&fit=crop',
     accent: 'green',
   },
   {
@@ -65,7 +52,7 @@ const ALL_RECIPES = [
     categories: 'Mexican, Dinner',
     rating: 4.2,
     tags: ['Vegetarian'],
-    image: 'https://images.unsplash.com/photo-1565299585323-38174c0b5e14?w=480&h=360&fit=crop',
+    image: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=480&h=360&fit=crop',
     accent: 'orange',
   },
   {
@@ -75,7 +62,7 @@ const ALL_RECIPES = [
     categories: 'Breakfast, Healthy',
     rating: 4.6,
     tags: ['Weight loss'],
-    image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=480&h=280&fit=crop',
     accent: 'pink',
   },
   {
@@ -85,7 +72,7 @@ const ALL_RECIPES = [
     categories: 'Protein, Dinner',
     rating: 4.7,
     tags: ['High protein', 'Burn Fat'],
-    image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=480&h=280&fit=crop',
     accent: 'orange',
   },
   {
@@ -95,7 +82,7 @@ const ALL_RECIPES = [
     categories: 'Italian, Comfort',
     rating: 4.4,
     tags: ['Low carb'],
-    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7497ad?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=480&h=280&fit=crop',
     accent: 'yellow',
   },
   {
@@ -121,12 +108,14 @@ const recipeDetails = {
     ingredients: ['Tortillas', 'Haricots rouges', 'Poivrons', 'Avocat', 'Salsa'],
     steps: ['Cuire les legumes', 'Chauffer les tortillas', 'Monter les tacos', 'Ajouter la salsa'],
   },
-  3: {
-    description: 'Petit-dejeuner leger et vitaminé.',
-    ingredients: ['Fruits rouges', 'Banane', 'Yaourt', 'Granola', 'Graines de chia'],
-    steps: ['Mixer les fruits', 'Verser dans un bol', 'Ajouter toppings', 'Servir immediatement'],
+  5: {
+    description: 'Lasagne légère avec des couches de courgette, sauce tomate et fromage allégé.',
+    ingredients: ['Courgettes', 'Sauce tomate', 'Fromage ricotta', 'Mozzarella', 'Basilic'],
+    steps: ['Trancher les courgettes', 'Faire une sauce tomate maison', 'Monter la lasagne', 'Cuire 35 minutes', 'Laisser reposer avant de servir'],
   },
 }
+
+const samples = [...MOCK_AI_RECIPES, ...ALL_RECIPES]
 
 const Recipes = () => {
   const [selectedRecipeId, setSelectedRecipeId] = useState(null)
@@ -138,7 +127,7 @@ const Recipes = () => {
       <h1 className="cookpal-page__title">Explore recipes</h1>
       <p className="cookpal-page__lead">Discover dishes that match your tastes.</p>
       
-      <div className="cookpal-recipe-row">
+      <div className="cookpal-recipe-grid">
         {samples.map((r) => (
           <button
             key={r.id}
@@ -153,7 +142,7 @@ const Recipes = () => {
       </div>
 
       {/* Modal - Détails de la recette */}
-      {selectedRecipeId && selectedRecipe && selectedRecipeDetail && (
+      {selectedRecipeId && selectedRecipe && (
         <div
           style={{
             position: 'fixed',
@@ -216,7 +205,7 @@ const Recipes = () => {
             />
 
             <p className="cookpal-page__lead" style={{ marginBottom: 16 }}>
-              {selectedRecipeDetail.description}
+              {selectedRecipeDetail?.description || 'Détails de la recette non disponibles pour l’instant.'}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: 20 }}>
@@ -232,20 +221,28 @@ const Recipes = () => {
 
             <div style={{ marginBottom: 20 }}>
               <h3 style={{ marginBottom: 8 }}>🥘 Ingredients</h3>
-              <ul style={{ marginLeft: '20px', marginTop: 0 }}>
-                {selectedRecipeDetail.ingredients.map((ing, idx) => (
-                  <li key={idx} style={{ marginBottom: 6 }}>{ing}</li>
-                ))}
-              </ul>
+              {selectedRecipeDetail?.ingredients?.length ? (
+                <ul style={{ marginLeft: '20px', marginTop: 0 }}>
+                  {selectedRecipeDetail.ingredients.map((ing, idx) => (
+                    <li key={idx} style={{ marginBottom: 6 }}>{ing}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p style={{ margin: 0 }}>Pas encore d’ingrédients disponibles.</p>
+              )}
             </div>
 
             <div>
               <h3 style={{ marginBottom: 8 }}>👨‍🍳 Etapes</h3>
-              <ol style={{ marginLeft: '20px', marginTop: 0 }}>
-                {selectedRecipeDetail.steps.map((step, idx) => (
-                  <li key={idx} style={{ marginBottom: 6 }}>{step}</li>
-                ))}
-              </ol>
+              {selectedRecipeDetail?.steps?.length ? (
+                <ol style={{ marginLeft: '20px', marginTop: 0 }}>
+                  {selectedRecipeDetail.steps.map((step, idx) => (
+                    <li key={idx} style={{ marginBottom: 6 }}>{step}</li>
+                  ))}
+                </ol>
+              ) : (
+                <p style={{ margin: 0 }}>Pas encore d’étapes disponibles.</p>
+              )}
             </div>
 
             <button

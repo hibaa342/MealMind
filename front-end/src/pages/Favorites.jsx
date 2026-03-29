@@ -10,7 +10,7 @@ const initialFavorites = [
     category: 'Healthy',
     rating: 3.8,
     tags: ['Heart-healthy', 'Weight loss'],
-    image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=480&h=280&fit=crop',
     accent: 'green',
   },
   {
@@ -21,7 +21,7 @@ const initialFavorites = [
     category: 'Protein',
     rating: 4.5,
     tags: ['High protein'],
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=480&h=280&fit=crop',
     accent: 'orange',
   },
   {
@@ -32,7 +32,7 @@ const initialFavorites = [
     category: 'Vegetarien',
     rating: 4.2,
     tags: ['Vegetarien'],
-    image: 'https://images.unsplash.com/photo-1565299585323-38174c0b5e14?w=480&h=360&fit=crop',
+    image: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=480&h=360&fit=crop',
     accent: 'pink',
   },
 ]
