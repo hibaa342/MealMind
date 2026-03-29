@@ -9,7 +9,9 @@ import Planning from './pages/Planning'
 import Profile from './pages/Profile'
 import Help from './pages/Help'
 import Favorites from './pages/Favorites'
+import Notifications from './pages/Notifications'
 import SiteNavbar from './components/SiteNavbar'
+import { NotificationsProvider } from './context/NotificationsContext'
 import CookPalLayout from './components/CookPalLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -53,7 +55,13 @@ function App() {
           element={!isAuthenticated ? <Register onRegister={handleLogin} /> : <Navigate to="/dashboard" replace />}
         />
         <Route path="/" element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
-          <Route element={<CookPalLayout user={user} onLogout={handleLogout} />}>
+          <Route
+            element={
+              <NotificationsProvider>
+                <CookPalLayout user={user} onLogout={handleLogout} />
+              </NotificationsProvider>
+            }
+          >
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="scanner" element={<Scanner user={user} />} />
@@ -62,6 +70,7 @@ function App() {
             <Route path="profile" element={<Profile user={user} />} />
             <Route path="help" element={<Help />} />
             <Route path="favorites" element={<Favorites />} />
+            <Route path="notifications" element={<Notifications />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />} />
