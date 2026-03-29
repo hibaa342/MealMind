@@ -1,0 +1,475 @@
+/* ─── Scanner Page ─────────────────────────────────────────────────────────── */
+
+.scanner-page {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  
+  /* ─── Step Bar ──────────────────────────────────────────────────────────────── */
+  
+  .scanner-stepbar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 28px;
+  }
+  
+  .scanner-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .scanner-step__dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cookpal-text-muted);
+    background: #e0e4e8;
+    transition: all 0.35s;
+  }
+  
+  .scanner-step__dot--active {
+    background: var(--cookpal-active-bar);
+    color: #fff;
+  }
+  
+  .scanner-step__dot--done {
+    background: var(--cookpal-green);
+    color: #fff;
+  }
+  
+  .scanner-step__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cookpal-text-muted);
+    transition: color 0.3s;
+  }
+  
+  .scanner-step__label--active,
+  .scanner-step__label--done {
+    color: var(--cookpal-text);
+  }
+  
+  .scanner-step__line {
+    flex: 1;
+    height: 2px;
+    margin: 0 10px;
+    border-radius: 2px;
+    background: #e0e4e8;
+    transition: background 0.4s;
+  }
+  
+  .scanner-step__line--done {
+    background: var(--cookpal-green);
+  }
+  
+  /* ─── Drop Zone ─────────────────────────────────────────────────────────────── */
+  
+  .scanner-card {
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  .scanner-dropzone {
+    border: 2px dashed #d0d7de;
+    border-radius: var(--cookpal-radius);
+    margin: 24px;
+    min-height: 230px;
+    background: var(--cookpal-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .scanner-dropzone--dragover {
+    border-color: var(--cookpal-green);
+    background: var(--cookpal-green-soft);
+  }
+  
+  .scanner-dropzone--preview {
+    border-color: var(--cookpal-green);
+    background: #f6fbf6;
+    cursor: default;
+  }
+  
+  .scanner-dropzone__content {
+    text-align: center;
+    padding: 32px 24px;
+  }
+  
+  .scanner-dropzone__icon {
+    font-size: 52px;
+    margin-bottom: 12px;
+  }
+  
+  .scanner-dropzone__title {
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--cookpal-text);
+    margin: 0 0 6px;
+  }
+  
+  .scanner-dropzone__or {
+    color: var(--cookpal-text-muted);
+    font-size: 13px;
+    margin: 0 0 18px;
+  }
+  
+  .scanner-dropzone__hint {
+    color: #b0bec5;
+    font-size: 12px;
+    margin-top: 12px;
+  }
+  
+  /* ─── Preview ───────────────────────────────────────────────────────────────── */
+  
+  .scanner-preview__img {
+    width: 100%;
+    max-height: 340px;
+    object-fit: cover;
+    display: block;
+    border-radius: calc(var(--cookpal-radius) - 2px);
+  }
+  
+  .scanner-preview__change {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.92);
+    border: none;
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--cookpal-text);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.12);
+  }
+  
+  /* ─── Action Row ────────────────────────────────────────────────────────────── */
+  
+  .scanner-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 0 24px 24px;
+  }
+  
+  .scanner-btn-ghost {
+    background: var(--cookpal-bg);
+    border: 1px solid #d0d7de;
+    color: var(--cookpal-text-muted);
+    border-radius: 12px;
+    padding: 11px 22px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+  
+  .scanner-btn-ghost:hover {
+    background: #e8ecef;
+  }
+  
+  /* ─── Analyzing Phase ───────────────────────────────────────────────────────── */
+  
+  .scanner-analyzing {
+    text-align: center;
+    padding: 40px 32px;
+  }
+  
+  .scanner-analyzing__icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    background: var(--cookpal-green-soft);
+    border: 2px solid rgba(76, 175, 80, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+  }
+  
+  .scanner-analyzing__title {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cookpal-text);
+  }
+  
+  .scanner-analyzing__sub {
+    color: var(--cookpal-text-muted);
+    font-size: 14px;
+    margin: 0 0 24px;
+  }
+  
+  .scanner-progress {
+    height: 8px;
+    border-radius: 99px;
+    background: #e0e4e8;
+    overflow: hidden;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  
+  .scanner-progress__fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--cookpal-green), #81c784);
+    transition: width 0.3s ease;
+  }
+  
+  .scanner-progress__pct {
+    color: var(--cookpal-green);
+    font-size: 13px;
+    font-weight: 700;
+    margin: 8px 0 24px;
+  }
+  
+  .scanner-analyze-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  
+  .scanner-analyze-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .scanner-analyze-step__dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #e0e4e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #fff;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: background 0.4s;
+  }
+  
+  .scanner-analyze-step__dot--done {
+    background: var(--cookpal-green);
+  }
+  
+  .scanner-analyze-step__label {
+    font-size: 13px;
+    color: var(--cookpal-text-muted);
+    transition: color 0.3s;
+  }
+  
+  .scanner-analyze-step__label--done {
+    color: var(--cookpal-text);
+  }
+  
+  /* ─── Results Phase ─────────────────────────────────────────────────────────── */
+  
+  .scanner-results__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 16px;
+  }
+  
+  .scanner-results__title {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cookpal-text);
+  }
+  
+  .scanner-results__sub {
+    color: var(--cookpal-text-muted);
+    font-size: 13px;
+    margin: 0;
+  }
+  
+  .scanner-results__thumb {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 12px;
+    flex-shrink: 0;
+    border: 2px solid #e0e4e8;
+  }
+  
+  .scanner-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  /* ─── Ingredient Chip ───────────────────────────────────────────────────────── */
+  
+  .scanner-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--cookpal-green-soft);
+    border: 1px solid #c8e6c9;
+    border-radius: 12px;
+    padding: 7px 10px 7px 12px;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  
+  .scanner-chip:hover {
+    background: #dcedc8;
+    border-color: var(--cookpal-green);
+  }
+  
+  .scanner-chip__emoji {
+    font-size: 18px;
+  }
+  
+  .scanner-chip__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cookpal-text);
+  }
+  
+  .scanner-chip__conf {
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(76, 175, 80, 0.15);
+    color: var(--cookpal-green-dark);
+    border-radius: 20px;
+    padding: 1px 6px;
+  }
+  
+  .scanner-chip__remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #b0bec5;
+    font-size: 11px;
+    padding: 0 0 0 2px;
+    line-height: 1;
+    transition: color 0.15s;
+  }
+  
+  .scanner-chip__remove:hover {
+    color: var(--danger-color);
+  }
+  
+  /* ─── Add Ingredient ────────────────────────────────────────────────────────── */
+  
+  .scanner-add-input {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 12px;
+    padding: 5px 10px;
+  }
+  
+  .scanner-add-input__field {
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 14px;
+    color: var(--cookpal-text);
+    width: 160px;
+    font-family: inherit;
+  }
+  
+  .scanner-add-input__confirm {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: var(--cookpal-green);
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .scanner-add-input__cancel {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: #e0e4e8;
+    color: var(--cookpal-text);
+    font-weight: 700;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  
+  .scanner-add-btn {
+    background: none;
+    border: 2px dashed rgba(76, 175, 80, 0.45);
+    border-radius: 12px;
+    padding: 7px 16px;
+    color: var(--cookpal-green);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: inherit;
+  }
+  
+  .scanner-add-btn:hover {
+    background: var(--cookpal-green-soft);
+  }
+  
+  /* ─── Divider & Note ────────────────────────────────────────────────────────── */
+  
+  .scanner-divider {
+    border: none;
+    border-top: 1px solid #f0f0f0;
+    margin: 4px 0 20px;
+  }
+  
+  .scanner-note {
+    background: var(--cookpal-green-soft);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--cookpal-green-dark);
+    margin: 0;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  /* ─── CTA Row ───────────────────────────────────────────────────────────────── */
+  
+  .scanner-cta {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  
+  .scanner-btn-disabled {
+    opacity: 0.45;
+    cursor: not-allowed !important;
+  }
+  
