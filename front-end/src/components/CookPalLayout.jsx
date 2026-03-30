@@ -1,5 +1,6 @@
 import React from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useNotifications } from '../context/NotificationsContext'
 
 const IconHome = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -61,6 +62,12 @@ const IconBag = () => (
     <path d="M4 10h16v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10z" />
   </svg>
 )
+const IconBell = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+  </svg>
+)
 
 const navItems = [
   { to: '/dashboard', label: 'Accueil', Icon: IconHome },
@@ -70,6 +77,7 @@ const navItems = [
   { to: '/community', label: 'Community', Icon: IconUsers },
   { to: '/planning', label: 'Planning', Icon: IconUsers },
   { to: '/favorites', label: 'Favoris', Icon: IconHeart },
+  { to: '/notifications', label: 'Notifications', Icon: IconBell },
   { to: '/help', label: 'Help', Icon: IconHelp },
   { to: '/profile', label: 'Profil', Icon: IconSettings },
 ]
@@ -78,6 +86,7 @@ const PrefChip = ({ children }) => <span className="cookpal-chip">{children}</sp
 
 const CookPalLayout = ({ user, onLogout }) => {
   const navigate = useNavigate()
+  const { unreadCount } = useNotifications()
   const displayName = user?.name || 'Chef'
   const subtitle = user?.title || 'Home cook'
 
@@ -107,7 +116,12 @@ const CookPalLayout = ({ user, onLogout }) => {
               end={to === '/dashboard'}
               className={({ isActive }) => `cookpal-nav__link ${isActive ? 'cookpal-nav__link--active' : ''}`}
             >
-              <Icon />
+              <span className="cookpal-nav__icon-wrap">
+                <Icon />
+                {to === '/notifications' && unreadCount > 0 && (
+                  <span className="cookpal-nav__badge" aria-label={`${unreadCount} notification${unreadCount > 1 ? 's' : ''} non lues`} />
+                )}
+              </span>
               <span>{label}</span>
             </NavLink>
           ))}
