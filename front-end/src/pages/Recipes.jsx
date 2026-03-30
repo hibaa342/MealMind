@@ -1,8 +1,5 @@
-// pages/Recipes.jsx
-import React, { useState, useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import React, { useState } from 'react'
 import RecipeCard from '../components/RecipeCard'
-import './Recipes.css'
 
 // ─── Mock AI-generated recipes ───────────────────────────────────────────────
 // Replace this with a real Claude API call using the scanned ingredients
@@ -33,19 +30,7 @@ const MOCK_AI_RECIPES = [
     haveIngredients: ['Carottes', 'Lait', 'Oignons'],
     missingIngredients: ['Bouillon de légumes', 'Crème'],
   },
-  {
-    id: 'ai-3',
-    title: 'Gratin de pâtes au fromage',
-    time: '35 min',
-    categories: 'Dîner, Confort',
-    rating: 4.7,
-    tags: ['Végétarien', 'Réconfortant'],
-    image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=480&h=280&fit=crop',
-    accent: 'green',
-    persons: 4,
-    haveIngredients: ['Fromage', 'Œufs', 'Lait'],
-    missingIngredients: ['Pâtes', 'Beurre', 'Muscade'],
-  },
+  // recette Gratin retirée (doublon / identique à Zucchini Lasagna)
 ]
 
 // Sample recipes for "All recipes" tab — reuses existing RecipeCard style
@@ -57,7 +42,7 @@ const ALL_RECIPES = [
     categories: 'Mexican, Greens, Lunch',
     rating: 3.8,
     tags: ['Heart-healthy', 'Weight loss'],
-    image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=480&h=280&fit=crop',
     accent: 'green',
   },
   {
@@ -67,7 +52,7 @@ const ALL_RECIPES = [
     categories: 'Mexican, Dinner',
     rating: 4.2,
     tags: ['Vegetarian'],
-    image: 'https://images.unsplash.com/photo-1565299585323-38174c0b5e14?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=480&h=360&fit=crop',
     accent: 'orange',
   },
   {
@@ -77,7 +62,7 @@ const ALL_RECIPES = [
     categories: 'Breakfast, Healthy',
     rating: 4.6,
     tags: ['Weight loss'],
-    image: 'https://images.unsplash.com/photo-1490474504059-bf625f7d7033?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=480&h=280&fit=crop',
     accent: 'pink',
   },
   {
@@ -87,7 +72,7 @@ const ALL_RECIPES = [
     categories: 'Protein, Dinner',
     rating: 4.7,
     tags: ['High protein', 'Burn Fat'],
-    image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=480&h=280&fit=crop',
     accent: 'orange',
   },
   {
@@ -97,7 +82,7 @@ const ALL_RECIPES = [
     categories: 'Italian, Comfort',
     rating: 4.4,
     tags: ['Low carb'],
-    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7497ad?w=480&h=280&fit=crop',
+    image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=480&h=280&fit=crop',
     accent: 'yellow',
   },
   {
@@ -112,222 +97,174 @@ const ALL_RECIPES = [
   },
 ]
 
-// ─── AI Recipe Card ───────────────────────────────────────────────────────────
-function AIRecipeCard({ recipe, onView, onOrder }) {
-  const [saved, setSaved] = useState(false)
-
-  return (
-    <article className="recipes-ai-card">
-      <div className="recipes-ai-card__image-wrap">
-        <img className="recipes-ai-card__image" src={recipe.image} alt={recipe.title} loading="lazy" />
-        <span className="recipes-ai-card__badge">✨ IA</span>
-        {recipe.time && <span className="recipes-ai-card__time">⏱ {recipe.time}</span>}
-        <button
-          className={`recipes-ai-card__heart ${saved ? 'recipes-ai-card__heart--on' : ''}`}
-          onClick={() => setSaved(s => !s)}
-          aria-label={saved ? 'Retirer des favoris' : 'Sauvegarder'}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24"
-            fill={saved ? 'currentColor' : 'none'}
-            stroke="currentColor" strokeWidth="1.75">
-            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
-          </svg>
-        </button>
-      </div>
-
-      <div className="recipes-ai-card__body">
-        <h3 className="recipes-ai-card__title">{recipe.title}</h3>
-
-        <div className="recipes-ai-card__meta">
-          <span>⏱ {recipe.time}</span>
-          <span>👥 {recipe.persons} pers.</span>
-          <span>⭐ {recipe.rating}</span>
-        </div>
-
-        {/* Ingredients */}
-        <div className="recipes-ai-card__ingredients">
-          {recipe.haveIngredients?.length > 0 && (
-            <div>
-              <p className="recipes-ai-card__ing-label">✅ Disponibles</p>
-              <div className="recipes-ai-card__ing-row">
-                {recipe.haveIngredients.map(ing => (
-                  <span key={ing} className="recipes-ai-card__ing-chip recipes-ai-card__ing-chip--have">
-                    {ing}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          {recipe.missingIngredients?.length > 0 && (
-            <div>
-              <p className="recipes-ai-card__ing-label">❌ Manquants</p>
-              <div className="recipes-ai-card__ing-row">
-                {recipe.missingIngredients.map(ing => (
-                  <span key={ing} className="recipes-ai-card__ing-chip recipes-ai-card__ing-chip--missing">
-                    {ing}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="recipes-ai-card__actions">
-          <button className="recipes-ai-card__btn-primary" onClick={() => onView(recipe)}>
-            Voir la recette
-          </button>
-          {recipe.missingIngredients?.length > 0 && (
-            <button className="recipes-ai-card__btn-secondary" onClick={() => onOrder(recipe)}>
-              🛒 Commander
-            </button>
-          )}
-        </div>
-      </div>
-    </article>
-  )
+const recipeDetails = {
+  1: {
+    description: 'Salade fraiche, rapide et riche en fibres.',
+    ingredients: ['Laitue romaine', 'Poulet grille', 'Parmesan', 'Croutons', 'Sauce Caesar'],
+    steps: ['Laver la salade', 'Griller le poulet', 'Melanger les ingredients', 'Servir frais'],
+  },
+  2: {
+    description: 'Tacos vegetariens avec beaucoup de saveurs.',
+    ingredients: ['Tortillas', 'Haricots rouges', 'Poivrons', 'Avocat', 'Salsa'],
+    steps: ['Cuire les legumes', 'Chauffer les tortillas', 'Monter les tacos', 'Ajouter la salsa'],
+  },
+  5: {
+    description: 'Lasagne légère avec des couches de courgette, sauce tomate et fromage allégé.',
+    ingredients: ['Courgettes', 'Sauce tomate', 'Fromage ricotta', 'Mozzarella', 'Basilic'],
+    steps: ['Trancher les courgettes', 'Faire une sauce tomate maison', 'Monter la lasagne', 'Cuire 35 minutes', 'Laisser reposer avant de servir'],
+  },
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
-const Recipes = ({ user }) => {
-  const location  = useLocation()
-  const navigate  = useNavigate()
+const samples = [...MOCK_AI_RECIPES, ...ALL_RECIPES]
 
-  // Ingredients passed from Scanner page
-  const scannedIngredients = location.state?.ingredients || []
-
-  const [tab,      setTab]      = useState(scannedIngredients.length > 0 ? 'ai' : 'all')
-  const [loading,  setLoading]  = useState(scannedIngredients.length > 0)
-  const [aiRecipes, setAiRecipes] = useState([])
-
-  // Simulate Claude API call — replace with real fetch
-  useEffect(() => {
-    if (scannedIngredients.length === 0) return
-    const timer = setTimeout(() => {
-      setAiRecipes(MOCK_AI_RECIPES)
-      setLoading(false)
-    }, 2200)
-    return () => clearTimeout(timer)
-  }, [])
-
-  const handleView  = (recipe) => navigate(`/recipes/${recipe.id}`, { state: { recipe } })
-  const handleOrder = (recipe) => navigate('/order',                { state: { missing: recipe.missingIngredients, recipeName: recipe.title } })
-
-  const handleGenerate = () => {
-    setLoading(true)
-    setAiRecipes([])
-    setTimeout(() => {
-      // Shuffle mock for demo — replace with real API
-      setAiRecipes([...MOCK_AI_RECIPES].reverse())
-      setLoading(false)
-    }, 2000)
-  }
+const Recipes = () => {
+  const [selectedRecipeId, setSelectedRecipeId] = useState(null)
+  const selectedRecipe = samples.find((r) => r.id === selectedRecipeId)
+  const selectedRecipeDetail = recipeDetails[selectedRecipeId]
 
   return (
-    <div className="cookpal-page recipes-page">
-
-      {/* ── Header ── */}
-      <h1 className="cookpal-page__title">
-        {tab === 'ai' ? 'Recettes suggérées pour toi' : 'Explorer les recettes'}
-      </h1>
-      <p className="cookpal-page__lead">
-        {tab === 'ai'
-          ? 'Générées par Claude AI selon tes ingrédients scannés.'
-          : 'Découvre des plats qui correspondent à tes goûts.'}
-      </p>
-
-      {/* ── Scanned ingredients banner ── */}
-      {scannedIngredients.length > 0 && (
-        <div className="recipes-scan-banner">
-          <div className="recipes-scan-banner__left">
-            <span className="recipes-scan-banner__label">📸 Ingrédients scannés :</span>
-            <div className="recipes-scan-banner__chips">
-              {scannedIngredients.slice(0, 6).map(ing => (
-                <span key={ing.id} className="recipes-scan-banner__chip">
-                  {ing.emoji} {ing.name}
-                </span>
-              ))}
-              {scannedIngredients.length > 6 && (
-                <span className="recipes-scan-banner__chip">
-                  +{scannedIngredients.length - 6}
-                </span>
-              )}
-            </div>
-          </div>
-          <button className="recipes-scan-banner__btn" onClick={() => navigate('/scanner')}>
-            🔄 Nouveau scan
+    <div className="cookpal-page">
+      <h1 className="cookpal-page__title">Explore recipes</h1>
+      <p className="cookpal-page__lead">Discover dishes that match your tastes.</p>
+      
+      <div className="cookpal-recipe-grid">
+        {samples.map((r) => (
+          <button
+            key={r.id}
+            type="button"
+            className="cookpal-recipe-select-btn"
+            onClick={() => setSelectedRecipeId(r.id)}
+            aria-label={`Voir les details de ${r.title}`}
+          >
+            <RecipeCard recipe={r} />
           </button>
-        </div>
-      )}
-
-      {/* ── Tabs ── */}
-      <div className="recipes-tabs">
-        <button
-          className={`recipes-tab ${tab === 'ai' ? 'recipes-tab--active' : ''}`}
-          onClick={() => setTab('ai')}
-        >✨ Suggestions IA</button>
-        <button
-          className={`recipes-tab ${tab === 'all' ? 'recipes-tab--active' : ''}`}
-          onClick={() => setTab('all')}
-        >🍽 Toutes les recettes</button>
+        ))}
       </div>
 
-      {/* ════════ TAB: AI suggestions ════════ */}
-      {tab === 'ai' && (
-        <>
-          {loading ? (
-            <div className="recipes-loading">
-              <div className="recipes-loading__icon">🤖</div>
-              <h2 className="recipes-loading__title">Claude AI génère tes recettes…</h2>
-              <p className="recipes-loading__sub">Analyse des ingrédients et création des suggestions</p>
-              <div className="recipes-loading__bar">
-                <div className="recipes-loading__fill" />
+      {/* Modal - Détails de la recette */}
+      {selectedRecipeId && selectedRecipe && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setSelectedRecipeId(null)}
+        >
+          <section
+            className="cookpal-panel"
+            style={{
+              maxWidth: '600px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              borderRadius: '8px',
+              position: 'relative',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedRecipeId(null)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'none',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer',
+                padding: '0',
+              }}
+              aria-label="Fermer"
+            >
+              ✕
+            </button>
+
+            <h2 className="cookpal-subtitle" style={{ marginTop: 0 }}>
+              {selectedRecipe.title}
+            </h2>
+
+            <img
+              src={selectedRecipe.image}
+              alt={selectedRecipe.title}
+              style={{
+                width: '100%',
+                height: '280px',
+                objectFit: 'cover',
+                borderRadius: '6px',
+                marginBottom: '16px',
+              }}
+            />
+
+            <p className="cookpal-page__lead" style={{ marginBottom: 16 }}>
+              {selectedRecipeDetail?.description || 'Détails de la recette non disponibles pour l’instant.'}
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: 20 }}>
+              <div style={{ padding: '12px', background: '#F5F5F5', borderRadius: '6px' }}>
+                <strong>⏱️ Temps</strong>
+                <p style={{ margin: '4px 0 0 0' }}>{selectedRecipe.time}</p>
+              </div>
+              <div style={{ padding: '12px', background: '#F5F5F5', borderRadius: '6px' }}>
+                <strong>⭐ Note</strong>
+                <p style={{ margin: '4px 0 0 0' }}>{selectedRecipe.rating.toFixed(1)}/5</p>
               </div>
             </div>
-          ) : aiRecipes.length === 0 ? (
-            <div className="recipes-empty">
-              <div className="recipes-empty__icon">🍳</div>
-              <h2 className="recipes-empty__title">Aucune recette générée</h2>
-              <p className="recipes-empty__sub">Scanne ton frigo pour obtenir des suggestions personnalisées</p>
-              <button className="btn btn-primary" style={{ borderRadius: 12 }} onClick={() => navigate('/scanner')}>
-                📸 Scanner mon frigo
-              </button>
+
+            <div style={{ marginBottom: 20 }}>
+              <h3 style={{ marginBottom: 8 }}>🥘 Ingredients</h3>
+              {selectedRecipeDetail?.ingredients?.length ? (
+                <ul style={{ marginLeft: '20px', marginTop: 0 }}>
+                  {selectedRecipeDetail.ingredients.map((ing, idx) => (
+                    <li key={idx} style={{ marginBottom: 6 }}>{ing}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p style={{ margin: 0 }}>Pas encore d’ingrédients disponibles.</p>
+              )}
             </div>
-          ) : (
-            <>
-              <div className="recipes-grid">
-                {aiRecipes.map(recipe => (
-                  <AIRecipeCard
-                    key={recipe.id}
-                    recipe={recipe}
-                    onView={handleView}
-                    onOrder={handleOrder}
-                  />
-                ))}
-              </div>
 
-              <div className="recipes-bottom">
-                <button className="recipes-bottom__scan" onClick={() => navigate('/scanner')}>
-                  ← Nouveau scan
-                </button>
-                <button className="recipes-bottom__generate" onClick={handleGenerate}>
-                  🔄 Générer d'autres recettes
-                </button>
-              </div>
-            </>
-          )}
-        </>
-      )}
+            <div>
+              <h3 style={{ marginBottom: 8 }}>👨‍🍳 Etapes</h3>
+              {selectedRecipeDetail?.steps?.length ? (
+                <ol style={{ marginLeft: '20px', marginTop: 0 }}>
+                  {selectedRecipeDetail.steps.map((step, idx) => (
+                    <li key={idx} style={{ marginBottom: 6 }}>{step}</li>
+                  ))}
+                </ol>
+              ) : (
+                <p style={{ margin: 0 }}>Pas encore d’étapes disponibles.</p>
+              )}
+            </div>
 
-      {/* ════════ TAB: All recipes ════════ */}
-      {tab === 'all' && (
-        <div className="cookpal-recipe-row">
-          {ALL_RECIPES.map(r => (
-            <RecipeCard key={r.id} recipe={r} />
-          ))}
+            <button
+              type="button"
+              onClick={() => setSelectedRecipeId(null)}
+              style={{
+                marginTop: '20px',
+                padding: '10px 20px',
+                background: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold',
+              }}
+            >
+              Fermer
+            </button>
+          </section>
         </div>
       )}
-
     </div>
   )
 }

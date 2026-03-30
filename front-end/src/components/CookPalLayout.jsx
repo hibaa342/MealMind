@@ -49,6 +49,13 @@ const IconSettings = () => (
     <path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" />
   </svg>
 )
+const IconCart = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="9" cy="20" r="1.5" />
+    <circle cx="18" cy="20" r="1.5" />
+    <path d="M3 4h2l2.4 10.5a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H7" />
+  </svg>
+)
 const IconBag = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d="M6 8V6a6 6 0 0 1 12 0v2" />
@@ -63,14 +70,16 @@ const IconBell = () => (
 )
 
 const navItems = [
-  { to: '/dashboard', label: 'Home', Icon: IconHome },
+  { to: '/dashboard', label: 'Accueil', Icon: IconHome },
   { to: '/scanner',   label: 'Scanner',   Icon: IconCamera  },
-  { to: '/recipes', label: 'Recipes', Icon: IconRecipe },
-  { to: '/planning', label: 'Community', Icon: IconUsers },
-  { to: '/favorites', label: 'Favorites', Icon: IconHeart },
+  { to: '/recipes', label: 'Recettes', Icon: IconCompass },
+  { to: '/order', label: 'Commande', Icon: IconCart },
+  { to: '/community', label: 'Community', Icon: IconUsers },
+  { to: '/planning', label: 'Planning', Icon: IconUsers },
+  { to: '/favorites', label: 'Favoris', Icon: IconHeart },
   { to: '/notifications', label: 'Notifications', Icon: IconBell },
   { to: '/help', label: 'Help', Icon: IconHelp },
-  { to: '/profile', label: 'Settings', Icon: IconSettings },
+  { to: '/profile', label: 'Profil', Icon: IconSettings },
 ]
 
 const PrefChip = ({ children }) => <span className="cookpal-chip">{children}</span>
