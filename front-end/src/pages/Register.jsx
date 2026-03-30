@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { getPostAuthPath } from '../utils/onboardingStorage'
 
 const Register = ({ onRegister }) => {
   const [formData, setFormData] = useState({
@@ -33,14 +34,14 @@ const Register = ({ onRegister }) => {
     try {
       setTimeout(() => {
         const mockUser = {
-          id: 1,
+          id: Date.now(),
           email: formData.email,
           name: formData.name || 'Cook',
           title: 'Home cook',
         }
         const mockToken = 'fake-jwt-token'
         onRegister(mockUser, mockToken)
-        navigate('/dashboard')
+        navigate(getPostAuthPath(mockUser))
         setLoading(false)
       }, 1000)
     } catch (err) {
