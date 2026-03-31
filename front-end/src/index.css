@@ -18,13 +18,33 @@
   --cookpal-active-bar: #2196f3;
   --cookpal-shadow: 0 8px 24px rgba(44, 62, 80, 0.08);
   --cookpal-radius: 20px;
-  --primary-color: #4caf50;
+  --primary-color: #0066ff;
   --secondary-color: #ff9800;
   --danger-color: #f44336;
-  --dark-color: #2c3e50;
-  --light-color: #f4f6f8;
-  --success-color: #4caf50;
-  --warning-color: #ff9800;
+  --dark-color: #0f172a;
+  --light-color: #f8fafc;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+
+  /* Modern SaaS Palette */
+  --saas-blue: #0066ff;
+  --saas-blue-light: #e0edff;
+  --saas-blue-dark: #0052cc;
+  --saas-slate-50: #f8fafc;
+  --saas-slate-100: #f1f5f9;
+  --saas-slate-200: #e2e8f0;
+  --saas-slate-300: #cbd5e1;
+  --saas-slate-400: #94a3b8;
+  --saas-slate-500: #64748b;
+  --saas-slate-600: #475569;
+  --saas-slate-700: #334155;
+  --saas-slate-800: #1e293b;
+  --saas-slate-900: #0f172a;
+  
+  --saas-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --saas-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --saas-shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --saas-radius: 12px;
 }
 
 body {
@@ -778,6 +798,203 @@ body {
 
 .cookpal-order-page,
 .cookpal-planning-page,
+.cookpal-settings-page {
+  padding: 10px 0;
+}
+
+/* Modal and Admin Features */
+.cookpal-admin-btn {
+  margin-left: auto;
+  padding: 10px 20px;
+  background: var(--cookpal-active-bar);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+  box-shadow: var(--cookpal-shadow);
+}
+
+.cookpal-admin-btn:hover {
+  background: #1976d2;
+  transform: translateY(-2px);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 32px;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: var(--saas-shadow-lg);
+  position: relative;
+}
+
+.modal-content h2 {
+  margin-bottom: 24px;
+  color: var(--cookpal-text);
+  font-size: 1.5rem;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-form__group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--cookpal-text-muted);
+}
+
+.modal-form__group input,
+.modal-form__group select {
+  padding: 12px 16px;
+  border: 1px solid var(--saas-slate-200);
+  border-radius: 12px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.modal-form__group input:focus {
+  border-color: var(--cookpal-active-bar);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modal-btn--cancel {
+  background: var(--saas-slate-100);
+  border: none;
+  color: var(--cookpal-text-muted);
+}
+
+.modal-btn--save {
+  background: var(--cookpal-green);
+  border: none;
+  color: white;
+}
+
+.modal-btn--save:hover {
+  background: var(--cookpal-green-dark);
+}
+
+/* UX Enhancements: Chips and Dropzone */
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.selectable-chip {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--saas-slate-200);
+  background: var(--saas-slate-50);
+  color: var(--cookpal-text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.selectable-chip:hover {
+  border-color: var(--cookpal-active-bar);
+  background: var(--saas-blue-light);
+}
+
+.selectable-chip--active {
+  background: var(--cookpal-active-bar);
+  border-color: var(--cookpal-active-bar);
+  color: white;
+}
+
+.dropzone {
+  border: 2px dashed var(--saas-slate-300);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  background: var(--saas-slate-50);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.dropzone:hover, .dropzone--active {
+  border-color: var(--cookpal-active-bar);
+  background: var(--saas-blue-light);
+}
+
+.dropzone__icon {
+  color: var(--saas-slate-400);
+}
+
+.dropzone__text {
+  font-size: 0.9rem;
+  color: var(--cookpal-text-muted);
+}
+
+.dropzone__preview {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.other-input {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--saas-slate-200);
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+}
 .cookpal-profile-page,
 .cookpal-favorites-page {
   max-width: 1000px;
@@ -1294,4 +1511,199 @@ body {
   .cookpal-history-item {
     grid-template-columns: 1fr 1fr;
   }
+}
+/* Super Modern SaaS Auth Styles */
+.auth-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--saas-slate-50);
+  overflow: hidden;
+}
+
+.auth-visual {
+  flex: 1.2;
+  position: relative;
+  overflow: hidden;
+  display: none; /* Hidden on mobile */
+}
+
+@media (min-width: 992px) {
+  .auth-visual {
+    display: block;
+  }
+}
+
+.auth-visual-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.9);
+}
+
+.auth-visual-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 102, 255, 0.4), rgba(15, 23, 42, 0.6));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+  color: white;
+}
+
+.auth-visual-overlay h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+}
+
+.auth-visual-overlay p {
+  font-size: 1.25rem;
+  opacity: 0.9;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+.auth-form-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: white;
+  position: relative;
+}
+
+.auth-card-modern {
+  width: 100%;
+  max-width: 440px;
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auth-logo-modern {
+    width: 300px;
+    height: 300px;
+    margin-bottom: 32px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: inherit;
+    box-shadow: 1px 2px 16px 13px #f09f9f;
+}
+
+.auth-header-modern {
+  margin-bottom: 32px;
+}
+
+.auth-header-modern h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--saas-slate-900);
+  margin-bottom: 8px;
+}
+
+.auth-header-modern p {
+  color: var(--saas-slate-500);
+  font-size: 1rem;
+}
+
+.form-group-modern {
+  margin-bottom: 20px;
+}
+
+.form-group-modern label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--saas-slate-700);
+  margin-bottom: 6px;
+}
+
+.form-input-modern {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1.5px solid var(--saas-slate-200);
+  background: var(--saas-slate-50);
+  font-size: 1rem;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.form-input-modern:focus {
+  border-color: var(--saas-blue);
+  background: white;
+  box-shadow: 0 0 0 4px var(--saas-blue-light);
+}
+
+.btn-saas-primary {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--saas-blue);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-saas-primary:hover {
+  background: var(--saas-blue-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--saas-shadow-lg);
+}
+
+.btn-saas-primary:active {
+  transform: translateY(0);
+}
+
+.btn-saas-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.auth-footer-modern {
+  margin-top: 32px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--saas-slate-500);
+}
+
+.auth-footer-modern a {
+  color: var(--saas-blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-footer-modern a:hover {
+  text-decoration: underline;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Glassmorphism utility for other parts of the app */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--saas-shadow);
 }

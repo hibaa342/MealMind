@@ -1,73 +1,8 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import RecipeCard from '../components/RecipeCard'
+import AddProductModal from '../components/AddProductModal'
 
-const recommended = [
-  {
-    id: 1,
-    title: 'Caesar Salad',
-    time: '20 min',
-    categories: 'Mexican, Greens, Lunch',
-    rating: 3.8,
-    tags: ['Heart-healthy', 'Weight loss'],
-    image: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=480&h=280&fit=crop',
-    accent: 'green',
-  },
-  {
-    id: 2,
-    title: 'Veggie Tacos',
-    time: '25 min',
-    categories: 'Mexican, Dinner',
-    rating: 4.2,
-    tags: ['Vegetarian'],
-    image: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=480&h=360&fit=crop',
-    accent: 'orange',
-  },
-  {
-    id: 3,
-    title: 'Berry Smoothie Bowl',
-    time: '15 min',
-    categories: 'Breakfast, Healthy',
-    rating: 4.6,
-    tags: ['Weight loss'],
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=480&h=280&fit=crop',
-    accent: 'pink',
-  },
-]
-
-const trending = [
-  {
-    id: 4,
-    title: 'Baked Chicken Breasts',
-    time: '40 min',
-    categories: 'Protein, Dinner',
-    rating: 4.7,
-    tags: ['High protein', 'Burn Fat'],
-    image: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=480&h=280&fit=crop',
-    accent: 'orange',
-  },
-  {
-    id: 5,
-    title: 'Zucchini Lasagna',
-    time: '55 min',
-    categories: 'Italian, Comfort',
-    rating: 4.4,
-    tags: ['Low carb'],
-    image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=480&h=280&fit=crop',
-    accent: 'yellow',
-  },
-  {
-    id: 6,
-    title: 'Keto Ice Cream',
-    time: '10 min',
-    categories: 'Dessert, Keto',
-    rating: 4.1,
-    tags: ['Keto'],
-    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=480&h=280&fit=crop',
-    accent: 'purple',
-  },
-]
-
-function RecipeRow({ title, subtitle, recipes }) {
+function RecipeRow({ title, subtitle, recipes, onEdit }) {
   const scrollerRef = useRef(null)
 
   const scroll = (dir) => {
@@ -76,6 +11,8 @@ function RecipeRow({ title, subtitle, recipes }) {
     const delta = dir === 'next' ? 320 : -320
     el.scrollBy({ left: delta, behavior: 'smooth' })
   }
+
+  if (!recipes || recipes.length === 0) return null
 
   return (
     <section className="cookpal-section">
@@ -95,7 +32,7 @@ function RecipeRow({ title, subtitle, recipes }) {
       </div>
       <div className="cookpal-recipe-scroller" ref={scrollerRef}>
         {recipes.map((r) => (
-          <RecipeCard key={r.id} recipe={r} />
+          <RecipeCard key={r._id || r.id} recipe={{ ...r, onEdit }} />
         ))}
       </div>
     </section>
@@ -103,6 +40,60 @@ function RecipeRow({ title, subtitle, recipes }) {
 }
 
 const Dashboard = () => {
+  const [products, setProducts] = useState([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState(null)
+  const isAdmin = window.location.hostname === 'localhost'
+
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/products')
+      const data = await res.json()
+      setProducts(data)
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const handleSaveProduct = async (formData, id = null) => {
+    try {
+      const url = id
+        ? `http://localhost:5000/api/products/${id}`
+        : 'http://localhost:5000/api/products'
+
+      const res = await fetch(url, {
+        method: id ? 'PUT' : 'POST',
+        body: formData
+      })
+
+      if (res.ok) {
+        fetchProducts()
+        setIsModalOpen(false)
+        setEditingProduct(null)
+      }
+    } catch (error) {
+      console.error('Error saving product:', error)
+    }
+  }
+
+  const handleEdit = (product) => {
+    setEditingProduct(product)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setEditingProduct(null)
+  }
+
+  // Split products for display
+  const recommended = products.slice(0, 3)
+  const trending = products.slice(3)
+
   return (
     <div className="cookpal-home">
       <div className="cookpal-search-row">
@@ -120,10 +111,45 @@ const Dashboard = () => {
             <path d="M4 6h16M8 12h8M10 18h4" />
           </svg>
         </button>
+
+        {isAdmin && (
+          <button
+            type="button"
+            className="cookpal-admin-btn"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Add Product
+          </button>
+        )}
       </div>
 
-      <RecipeRow title="Recommended Recipes" subtitle="Based on your preferences." recipes={recommended} />
-      <RecipeRow title="Trending Recipes" subtitle="" recipes={trending} />
+      {products.length === 0 ? (
+        <div className="cookpal-empty-state" style={{ textAlign: 'center', padding: '40px' }}>
+          <p>No recipes found. {isAdmin ? 'Start by adding some!' : 'Check back later.'}</p>
+        </div>
+      ) : (
+        <>
+          <RecipeRow
+            title="Recommended Recipes"
+            subtitle="Based on your preferences."
+            recipes={recommended}
+            onEdit={handleEdit}
+          />
+          <RecipeRow
+            title="Trending Recipes"
+            subtitle=""
+            recipes={trending}
+            onEdit={handleEdit}
+          />
+        </>
+      )}
+
+      <AddProductModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onAdd={handleSaveProduct}
+        initialData={editingProduct}
+      />
     </div>
   )
 }

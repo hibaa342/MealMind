@@ -52,9 +52,11 @@ function App() {
     setUser(updatedUser)
   }
 
+  const isAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register'
+
   return (
     <div className="app">
-      {!isAuthenticated && <SiteNavbar />}
+      {!isAuthenticated && !isAuthPage && <SiteNavbar />}
       <Routes>
         <Route
           path="/login"
