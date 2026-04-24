@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
+import { getDisplayNameFromUser, getPreferredDisplayName, setPreferredDisplayName } from '../utils/userDisplay'
 
 const savedRecipes = [
   { id: 1, title: 'Tajine de legumes', category: 'Marocain' },
@@ -8,7 +9,15 @@ const savedRecipes = [
 ]
 
 const Profile = ({ user, onLogout }) => {
-  const initials = useMemo(() => (user?.name ? user.name.charAt(0).toUpperCase() : 'C'), [user])
+  const shownName = getPreferredDisplayName() || getDisplayNameFromUser(user)
+  const initials = shownName ? shownName.charAt(0).toUpperCase() : 'C'
+
+  const [preferInput, setPreferInput] = useState(() => getPreferredDisplayName())
+  useEffect(() => {
+    const sync = () => setPreferInput(getPreferredDisplayName())
+    window.addEventListener('cookpal-display-name-changed', sync)
+    return () => window.removeEventListener('cookpal-display-name-changed', sync)
+  }, [])
   const foodPreferences = ['Vegetarien', 'Sans gluten', 'Halal', 'Vegan']
   const allergies = ['Gluten', 'Lactose', 'Noix']
   const goals = ['Perte de poids', 'Muscle', 'Equilibre']
@@ -21,14 +30,14 @@ const Profile = ({ user, onLogout }) => {
       <section className="cookpal-panel">
         <div className="cookpal-profile-hero">
           {user?.photo ? (
-            <img src={user.photo} alt={user.name || 'Photo de profil'} className="cookpal-profile-hero__avatar" />
+            <img src={user.photo} alt={shownName} className="cookpal-profile-hero__avatar" />
           ) : (
             <div className="cookpal-profile-hero__avatar cookpal-profile-hero__avatar--initial">{initials}</div>
           )}
 
           <div>
-            <h2>{user?.name || 'Chef CookPal'}</h2>
-            <p>{user?.email || 'chef@cookpal.app'}</p>
+            <h2>{shownName}</h2>
+            <p>{user?.email || '—'}</p>
           </div>
           <button type="button" className="btn btn-primary cookpal-profile-hero__edit">
             Modifier le profil
@@ -88,6 +97,32 @@ const Profile = ({ user, onLogout }) => {
       <div className="cookpal-help-card">
         <h2>Settings</h2>
         <p>Account details</p>
+        <div style={{ marginTop: 16 }}>
+          <label htmlFor="cookpal-prefer-name" style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>
+            Name in sidebar
+          </label>
+          <p style={{ margin: '0 0 8px 0', fontSize: '0.88rem', color: 'var(--cookpal-text-muted, #6b7c8a)' }}>
+            Override the name shown top-right (e.g. if your account name is wrong). Leave empty to use your account name or email.
+          </p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <input
+              id="cookpal-prefer-name"
+              type="text"
+              className="form-input-modern"
+              style={{ flex: '1 1 200px', minWidth: 0, maxWidth: '100%' }}
+              value={preferInput}
+              onChange={(e) => setPreferInput(e.target.value)}
+              placeholder={getDisplayNameFromUser(user)}
+            />
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setPreferredDisplayName(preferInput)}
+            >
+              Save
+            </button>
+          </div>
+        </div>
         {user ? (
           <>
             <p style={{ marginTop: 12 }}>

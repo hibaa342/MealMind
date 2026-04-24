@@ -1707,3 +1707,977 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: var(--saas-shadow);
 }
+
+
+/* NEW DASHBOARD DESIGNS */
+.cookpal-pref-card {
+  display: flex;
+  flex-direction: column;
+  width: 90px;
+  height: 110px;
+  background: var(--cookpal-white);
+  border-radius: 16px;
+  box-shadow: var(--saas-shadow-sm);
+  border: 1px solid rgba(44, 62, 80, 0.05);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.cookpal-pref-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--saas-shadow);
+}
+.cookpal-pref-card__img-wrap {
+  height: 70px;
+  width: 100%;
+  overflow: hidden;
+}
+.cookpal-pref-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cookpal-pref-card__label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cookpal-text);
+  background: #fdfdfd;
+}
+
+.cookpal-header-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.cookpal-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--cookpal-white);
+  border-radius: 999px;
+  padding: 12px 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.02);
+}
+.cookpal-search__input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 1rem;
+  margin: 0 12px;
+  color: var(--cookpal-text);
+}
+.cookpal-search__mic, .cookpal-search__ai {
+  color: var(--cookpal-text-muted);
+  cursor: pointer;
+  display: flex;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+.cookpal-search__mic:hover, .cookpal-search__ai:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.cookpal-create-btn {
+  background: #4a775b; /* forest green */
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(74, 119, 91, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cookpal-create-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(74, 119, 91, 0.3);
+}
+
+.cookpal-budget-tracker {
+  background: var(--cookpal-white);
+  border-radius: 20px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.02);
+  margin-bottom: 32px;
+}
+.cookpal-budget-tracker__content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cookpal-budget-tracker__text {
+  font-size: 1.1rem;
+  color: var(--cookpal-text);
+}
+.cookpal-budget-tracker__bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.cookpal-budget-tracker__bar {
+  flex: 1;
+  height: 12px;
+  background: #ecdcc3; /* beige/brown track */
+  border-radius: 999px;
+  overflow: hidden;
+}
+.cookpal-budget-tracker__bar-fill {
+  height: 100%;
+  background: #d4a373; /* darker brown fill */
+  border-radius: 999px;
+}
+.cookpal-budget-tracker__icon {
+  width: 48px;
+  height: 48px;
+  background: #e8f5e9;
+  color: #4CAF50;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.cookpal-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.cookpal-hero-card {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  min-height: 220px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cookpal-hero-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+.cookpal-hero-card--wide {
+  grid-column: span 2;
+  min-height: 200px;
+}
+.cookpal-hero-card__bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.4s;
+}
+.cookpal-hero-card:hover .cookpal-hero-card__bg {
+  transform: scale(1.05);
+}
+.cookpal-hero-card__content {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 40px 20px 20px;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+  display: flex;
+  align-items: flex-end;
+}
+.cookpal-hero-card__title {
+  color: white;
+  font-size: 1.15rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  font-weight: 600;
+}
+
+
+
+/* GLASSMORPHISM LEFT SIDEBAR (NEW) */
+.cookpal-shell.cookpal-shell--glass {
+  background-image: url("./assets/images/grocery_1777065653499.png");
+  background-size: cover;
+  background-position: left center;
+  background-attachment: fixed;
+}
+.cookpal-shell--glass .cookpal-sidebar--left {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+.cookpal-shell--glass .cookpal-main,
+.cookpal-shell--glass .cookpal-sidebar--right {
+  background: var(--cookpal-bg);
+}
+
+.cookpal-nav__link--card {
+  color: #fff !important;
+  border: none !important;
+  padding: 14px 14px 14px 20px !important;
+  margin-bottom: 6px !important;
+  transition: transform 0.2s, background-position 0.4s !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-left: 0 !important;
+}
+.cookpal-nav__link--card:hover {
+  transform: translateX(4px);
+  background-position: 100% center !important; 
+}
+.cookpal-nav__link--card .cookpal-nav__icon-wrap svg {
+  color: rgba(255,255,255,0.7);
+}
+
+/* Sidebar add-pref modal */
+.cookpal-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 16px;
+}
+.cookpal-modal {
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+  border-radius: var(--cookpal-radius, 12px);
+}
+.cookpal-modal__label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--cookpal-text-muted);
+  margin-bottom: 8px;
+}
+.cookpal-modal__input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  margin-bottom: 20px;
+}
+.cookpal-modal__input:focus {
+  outline: none;
+  border-color: var(--cookpal-green, #4caf50);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+.cookpal-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.cookpal-modal__btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+}
+.cookpal-modal__btn--ghost {
+  background: transparent;
+  color: var(--cookpal-text-muted);
+}
+.cookpal-modal__btn--primary {
+  background: var(--cookpal-green, #4caf50);
+  color: #fff;
+}
+.cookpal-modal__btn--primary:hover {
+  filter: brightness(1.05);
+}
+
+/* Search bar icon buttons + recording */
+.cookpal-search__mic,
+.cookpal-search__ai {
+  border: none;
+  background: transparent;
+  font: inherit;
+}
+.cookpal-search__mic--recording {
+  color: #c62828 !important;
+  animation: cookpal-pulse-mic 1s ease-in-out infinite;
+}
+@keyframes cookpal-pulse-mic {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.cookpal-voice-audio {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.cookpal-voice-hint {
+  font-size: 0.88rem;
+  color: var(--cookpal-text-muted);
+  margin: -8px 0 16px 0;
+}
+
+/* ─── Grocio-style tokens & dashboard ─────────────────────────────────────── */
+:root {
+  --grocio-forest: #1b4332;
+  --grocio-green: #2d6a4f;
+  --grocio-mint: #d8f3dc;
+  --grocio-mint-deep: #b7e4c7;
+  --grocio-card: #ffffff;
+  --grocio-text: #1b4332;
+  --grocio-muted: #5c7068;
+  --grocio-radius-lg: 24px;
+  --grocio-radius-xl: 28px;
+  --grocio-shadow: 0 10px 40px rgba(27, 67, 50, 0.08);
+}
+
+.cookpal-home--grocio {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.grocio-search-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.grocio-search {
+  box-shadow: var(--grocio-shadow);
+  border: 1px solid rgba(45, 106, 79, 0.08);
+}
+
+.grocio-pill-btn {
+  flex-shrink: 0;
+  border: none;
+  background: linear-gradient(135deg, var(--grocio-green) 0%, var(--grocio-forest) 100%);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 12px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(45, 106, 79, 0.25);
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.grocio-pill-btn:hover {
+  filter: brightness(1.06);
+}
+
+.grocio-hint {
+  margin: 0 0 14px 0;
+}
+
+.grocio-hero-card {
+  position: relative;
+  border-radius: var(--grocio-radius-xl);
+  overflow: hidden;
+  min-height: 200px;
+  margin-bottom: 18px;
+  box-shadow: var(--grocio-shadow);
+}
+
+.grocio-hero-card__img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.grocio-hero-card__overlay {
+  position: relative;
+  padding: 22px 20px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: linear-gradient(180deg, transparent 0%, rgba(27, 67, 50, 0.55) 55%, rgba(27, 67, 50, 0.88) 100%);
+  color: #fff;
+}
+
+.grocio-hero-card__badge {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(8px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+
+.grocio-hero-card__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.grocio-hero-card__sub {
+  font-size: 0.88rem;
+  opacity: 0.92;
+  margin: 0 0 14px 0;
+  line-height: 1.45;
+}
+
+.grocio-hero-card__cta {
+  align-self: flex-start;
+  background: #fff;
+  color: var(--grocio-forest);
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 10px 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.grocio-suggest-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--grocio-card);
+  border-radius: var(--grocio-radius-lg);
+  box-shadow: var(--grocio-shadow);
+  border: 1px solid rgba(45, 106, 79, 0.06);
+  margin-bottom: 22px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.grocio-suggest-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(27, 67, 50, 0.12);
+}
+
+.grocio-suggest-card__thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
+  border: 3px solid var(--grocio-mint-deep);
+}
+
+.grocio-suggest-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.grocio-suggest-card__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--grocio-text);
+  margin: 0 0 8px 0;
+}
+
+.grocio-suggest-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--grocio-muted);
+  margin-bottom: 6px;
+}
+
+.grocio-suggest-card__foot {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--grocio-muted);
+}
+
+.grocio-tag {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--grocio-mint);
+  color: var(--grocio-green);
+  font-weight: 600;
+  font-size: 0.72rem;
+}
+
+.grocio-tag--mint {
+  background: #e8f5e9;
+}
+
+.grocio-section {
+  margin-bottom: 22px;
+}
+
+.grocio-section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.grocio-section__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--grocio-text);
+  margin: 0;
+}
+
+.grocio-section__link {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--grocio-green);
+  text-decoration: none;
+}
+
+.grocio-section__link:hover {
+  text-decoration: underline;
+}
+
+.grocio-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.grocio-quick-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 14px 10px;
+  background: var(--grocio-card);
+  border-radius: 20px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid rgba(45, 106, 79, 0.06);
+  box-shadow: 0 4px 16px rgba(27, 67, 50, 0.06);
+  transition: transform 0.2s;
+}
+
+.grocio-quick-tile:hover {
+  transform: translateY(-3px);
+}
+
+.grocio-quick-tile__img {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 10px;
+  border: 3px solid var(--grocio-mint);
+}
+
+.grocio-quick-tile__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.grocio-quick-tile__name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--grocio-text);
+  line-height: 1.25;
+}
+
+.grocio-quick-tile__time {
+  font-size: 0.75rem;
+  color: var(--grocio-muted);
+  font-weight: 500;
+}
+
+.grocio-fresh-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.grocio-fresh-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.grocio-fresh-scroll::-webkit-scrollbar-thumb {
+  background: var(--grocio-mint-deep);
+  border-radius: 4px;
+}
+
+.grocio-fresh-card {
+  flex: 0 0 auto;
+  width: 140px;
+  scroll-snap-align: start;
+  background: var(--grocio-card);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 106, 79, 0.08);
+  box-shadow: var(--grocio-shadow);
+}
+
+.grocio-fresh-card__img {
+  height: 100px;
+  background-size: cover;
+  background-position: center;
+}
+
+.grocio-fresh-card__body {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--grocio-muted);
+}
+
+.grocio-fresh-card__body strong {
+  font-size: 0.88rem;
+  color: var(--grocio-text);
+}
+
+.grocio-fresh-card__kcal {
+  font-weight: 500;
+}
+
+.grocio-budget--soft {
+  background: linear-gradient(135deg, #f0fdf4 0%, #fff 100%);
+  border: 1px solid rgba(45, 106, 79, 0.1);
+  border-radius: var(--grocio-radius-lg);
+  padding: 16px 18px;
+  margin-bottom: 8px;
+}
+
+.grocio-budget__text {
+  font-size: 0.95rem;
+  color: var(--grocio-text);
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.grocio-budget__target {
+  font-size: 0.82rem;
+  color: var(--grocio-muted);
+  font-weight: 500;
+}
+
+.grocio-budget__bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--grocio-mint);
+  overflow: hidden;
+}
+
+.grocio-budget__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--grocio-mint-deep), var(--grocio-green));
+}
+
+/* Mobile shell: header + bottom nav + drawer */
+.cookpal-mobile-header,
+.cookpal-bottom-nav {
+  display: none;
+}
+
+.cookpal-drawer-backdrop {
+  display: none;
+}
+
+.cookpal-mobile-header {
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(45, 106, 79, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.cookpal-mobile-header__brand {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.cookpal-mobile-header__logo {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.cookpal-mobile-header__title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--grocio-forest);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.cookpal-mobile-header__tagline {
+  margin: 4px 0 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--grocio-muted);
+  max-width: 220px;
+}
+
+.cookpal-mobile-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cookpal-mobile-header__icon-btn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: none;
+  background: var(--grocio-mint);
+  color: var(--grocio-forest);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.cookpal-mobile-header__icon-btn:hover {
+  background: var(--grocio-mint-deep);
+}
+
+.cookpal-mobile-header__dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e53935;
+  border: 2px solid #fff;
+}
+
+.cookpal-mobile-header__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, var(--grocio-mint-deep), var(--grocio-green));
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.cookpal-bottom-nav {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 150;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 999px;
+  padding: 8px 12px 8px;
+  box-shadow: 0 12px 40px rgba(27, 67, 50, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  align-items: center;
+  justify-content: space-around;
+  gap: 4px;
+}
+
+.cookpal-bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px 4px;
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--grocio-muted);
+  font-size: 0.65rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  min-width: 56px;
+}
+
+.cookpal-bottom-nav__item svg {
+  opacity: 0.75;
+}
+
+.cookpal-bottom-nav__item--active {
+  color: var(--grocio-green);
+  background: var(--grocio-mint);
+}
+
+.cookpal-bottom-nav__item--active svg {
+  opacity: 1;
+}
+
+.cookpal-bottom-nav__fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  margin-top: -28px;
+  background: linear-gradient(145deg, var(--grocio-green), var(--grocio-forest));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 28px rgba(45, 106, 79, 0.45);
+  flex-shrink: 0;
+}
+
+.cookpal-bottom-nav__fab:hover {
+  filter: brightness(1.05);
+}
+
+.cookpal-bottom-nav__fab--rec {
+  background: linear-gradient(145deg, #c62828, #8e0000);
+  box-shadow: 0 8px 28px rgba(198, 40, 40, 0.45);
+}
+
+.cookpal-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  background: rgba(27, 67, 50, 0.35);
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.cookpal-drawer {
+  width: min(380px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 20px 18px 32px;
+  border-radius: 24px 0 0 24px;
+  background: #fff;
+  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.12);
+  animation: grocio-drawer-in 0.28s ease;
+}
+
+@keyframes grocio-drawer-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.cookpal-drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(45, 106, 79, 0.1);
+}
+
+.cookpal-drawer__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--grocio-forest);
+}
+
+.cookpal-drawer__close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background: var(--grocio-mint);
+  color: var(--grocio-forest);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.cookpal-drawer__body .cookpal-prefs {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 1023px) {
+  .cookpal-mobile-header,
+  .cookpal-bottom-nav {
+    display: flex;
+  }
+
+  .cookpal-drawer-backdrop {
+    display: flex;
+  }
+
+  .cookpal-shell.cookpal-shell--glass {
+    background-image: none;
+    background: linear-gradient(180deg, #ecfdf5 0%, #f8fafc 45%, #f1f5f4 100%);
+  }
+
+  .cookpal-shell {
+    grid-template-columns: 1fr !important;
+    min-height: 100dvh;
+  }
+
+  .cookpal-sidebar--left,
+  .cookpal-sidebar--right {
+    display: none !important;
+  }
+
+  .cookpal-main {
+    padding: 12px 16px calc(100px + env(safe-area-inset-bottom, 0px));
+    background: transparent;
+  }
+
+  .cookpal-home--grocio {
+    max-width: none;
+  }
+
+  .grocio-search-row {
+    flex-wrap: wrap;
+  }
+
+  .grocio-search {
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .cookpal-drawer-backdrop {
+    display: none !important;
+  }
+}
+

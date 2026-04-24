@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import RecipeCard from '../components/RecipeCard'
+import { getUserRecipes } from '../utils/userRecipes'
 
 // ─── Mock AI-generated recipes ───────────────────────────────────────────────
 // Replace this with a real Claude API call using the scanned ingredients
@@ -115,9 +116,21 @@ const recipeDetails = {
   },
 }
 
-const samples = [...MOCK_AI_RECIPES, ...ALL_RECIPES]
-
 const Recipes = () => {
+  const [userRecipes, setUserRecipes] = useState(() => getUserRecipes())
+
+  useEffect(() => {
+    const sync = () => setUserRecipes(getUserRecipes())
+    sync()
+    window.addEventListener('cookpal-user-recipes-changed', sync)
+    return () => window.removeEventListener('cookpal-user-recipes-changed', sync)
+  }, [])
+
+  const samples = useMemo(
+    () => [...MOCK_AI_RECIPES, ...userRecipes, ...ALL_RECIPES],
+    [userRecipes]
+  )
+
   const [selectedRecipeId, setSelectedRecipeId] = useState(null)
   const selectedRecipe = samples.find((r) => r.id === selectedRecipeId)
   const selectedRecipeDetail = recipeDetails[selectedRecipeId]
