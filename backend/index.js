@@ -5,6 +5,7 @@ const connectDB = require('./config/connectDb');
 const userRoutes = require('./routes/UserRoutes');
 const productRoutes = require('./routes/ProductRoutes');
 const planningRoutes = require('./routes/planning');
+const notificationRoutes = require('./routes/NotificationRoutes');
 
 const app = express();
 
@@ -24,6 +25,7 @@ connectDB();
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/planning', planningRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Temporary route to prevent PlanningPage fetch errors
 app.get('/api/orders', (req, res) => res.json([]));
