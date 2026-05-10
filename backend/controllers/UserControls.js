@@ -7,10 +7,17 @@ const jwt = require('jsonwebtoken');
 // @access  Public
 const registerUser = async (req, res) => {
     try {
-        const { name, surname, birthDate, city, email, password } = req.body;
+        let { name, surname, birthDate, city, email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Veuillez remplir tous les champs' });
+        }
+
+        // Normalisation de l'email
+        const normalizedEmail = email.toLowerCase().trim();
 
         // Vérifier si l'utilisateur existe déjà
-        const userExists = await User.findOne({ email });
+        const userExists = await User.findOne({ email: normalizedEmail });
         if (userExists) {
             return res.status(400).json({ message: 'L\'utilisateur existe déjà' });
         }
@@ -25,7 +32,7 @@ const registerUser = async (req, res) => {
             surname,
             birthDate,
             city,
-            email,
+            email: normalizedEmail,
             password: hashedPassword
         });
 
@@ -53,10 +60,30 @@ const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Trouver l'utilisateur par email
-        const user = await User.findOne({ email });
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Veuillez fournir un email et un mot de passe' });
+        }
 
-        if (user && (await bcrypt.compare(password, user.password))) {
+        // Normalisation de l'email pour correspondre au stockage en base
+        const normalizedEmail = email.toLowerCase().trim();
+
+        // Trouver l'utilisateur par email
+        const user = await User.findOne({ email: normalizedEmail });
+
+        if (!user) {
+            console.log(`[AUTH] Échec: Utilisateur non trouvé (${normalizedEmail})`);
+            return res.status(401).json({ message: 'Email ou mot de passe invalide' });
+        }
+
+        // DEBUG: Si vous venez de migrer le code, vérifiez si le MDP en base est hashé
+        if (!user.password.startsWith('$2')) {
+            console.warn(`[AUTH] Alerte: Le mot de passe en base pour ${normalizedEmail} n'est pas hashé correctement !`);
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (isMatch) {
+            console.log(`[AUTH] Succès: Connexion réussie pour ${normalizedEmail}`);
             res.json({
                 _id: user._id,
                 name: user.name,
@@ -65,6 +92,7 @@ const loginUser = async (req, res) => {
                 token: generateToken(user._id)
             });
         } else {
+            console.log(`[AUTH] Échec: Mot de passe incorrect pour ${normalizedEmail}`);
             res.status(401).json({ message: 'Email ou mot de passe invalide' });
         }
     } catch (error) {
@@ -75,7 +103,9 @@ const loginUser = async (req, res) => {
 
 // Générer un JWT
 const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET || 'secret_par_defaut', {
+    // Convertir l'ObjectId en string pour éviter les erreurs de payload
+    const userId = id.toString();
+    return jwt.sign({ id: userId }, process.env.JWT_SECRET || 'your_jwt_secret', {
         expiresIn: '30d',
     });
 };

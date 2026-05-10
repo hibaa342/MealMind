@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./config/connectDb');
 const userRoutes = require('./routes/UserRoutes');
 const productRoutes = require('./routes/ProductRoutes');
+const planningRoutes = require('./routes/planning');
 
 const app = express();
 
@@ -22,6 +23,10 @@ connectDB();
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/planning', planningRoutes);
+
+// Temporary route to prevent PlanningPage fetch errors
+app.get('/api/orders', (req, res) => res.json([]));
 
 // Error Handler
 app.use((err, req, res, next) => {
@@ -33,7 +38,7 @@ app.use((err, req, res, next) => {
     });
 });
 
-const port = 5000;
+const port = process.env.PORT || 5000;
 
 app.listen(port, () => {
     console.log('Server is running on port ' + port);

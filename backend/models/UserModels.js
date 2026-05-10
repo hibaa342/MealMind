@@ -26,6 +26,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Le mot de passe est requis'],
         minlength: 6
+    },
+    budgetLimit: {
+        type: Number,
+        default: 500
     }
 }, {
     timestamps: true

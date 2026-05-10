@@ -1,135 +1,358 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState, useEffect } from 'react';
+import './Planning.css'; // Ensure you create this for specific layout tweaks
 
-const spendingByWeek = [
-  { week: 'S1', amount: 210 },
-  { week: 'S2', amount: 320 },
-  { week: 'S3', amount: 170 },
-  { week: 'S4', amount: 285 },
-]
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner'];
 
-const orderHistory = [
-  { id: 'CMD-2026-102', date: '24/03/2026', total: 132 },
-  { id: 'CMD-2026-097', date: '18/03/2026', total: 168 },
-  { id: 'CMD-2026-091', date: '10/03/2026', total: 96 },
-  { id: 'CMD-2026-085', date: '03/03/2026', total: 154 },
-]
+const PlanningPage = () => {
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [manualExpenses, setManualExpenses] = useState([]);
+  const [orderSpending, setOrderSpending] = useState(0);
+  const [budgetLimit, setBudgetLimit] = useState(500);
+  const [error, setError] = useState('');
 
-const weekDays = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
+  // Modal States
+  const [isMealModalOpen, setIsMealModalOpen] = useState(false);
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [activeSlot, setActiveSlot] = useState({ day: '', type: '' });
+  const [modalInput, setModalInput] = useState('');
+  const [expenseInput, setExpenseInput] = useState('');
 
-const defaultPlanning = {
-  Lundi: { lunch: 'Salade Cesar', dinner: 'Poulet grille' },
-  Mardi: { lunch: 'Wrap thon', dinner: 'Pates legumes' },
-  Mercredi: { lunch: 'Soupe de lentilles', dinner: 'Poisson au four' },
-  Jeudi: { lunch: 'Riz poulet', dinner: 'Tacos maison' },
-  Vendredi: { lunch: 'Bowl quinoa', dinner: 'Pizza healthy' },
-  Samedi: { lunch: 'Couscous veggie', dinner: 'Burger maison' },
-  Dimanche: { lunch: 'Tajine', dinner: 'Soupe + salade' },
-}
+  useEffect(() => {
+    fetchPlans();
+    fetchSpending();
+    fetchBudgetData();
+  }, []);
 
-const Planning = () => {
-  const [planning, setPlanning] = useState(defaultPlanning)
-  const [selectedRecipe, setSelectedRecipe] = useState('')
+  const fetchBudgetData = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
-  const monthlyTotal = useMemo(() => orderHistory.reduce((sum, order) => sum + order.total, 0), [])
-  const mostOrderedIngredient = 'Tomates'
-  const maxWeekAmount = Math.max(...spendingByWeek.map((w) => w.amount))
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/planning/budget-data', {
+        headers: { 'x-auth-token': token }
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setBudgetLimit(data.budgetLimit || 500);
+        setManualExpenses(data.expenses || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch budget data", err);
+    }
+  };
 
-  const addMeal = (day) => {
-    const mealName = window.prompt(`Ajouter un repas pour ${day}`)
-    if (!mealName) return
+  const fetchSpending = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    setError('');
 
-    setPlanning((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        dinner: mealName,
-      },
-    }))
-  }
+    try {
+      // Fetching orders from your 'commande' part
+      const response = await fetch('http://127.0.0.1:5000/api/orders', {
+        headers: { 'x-auth-token': token }
+      });
+      const orders = await response.json();
+      if (response.ok && Array.isArray(orders)) {
+        const total = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+        setOrderSpending(total);
+      }
+    } catch (err) {
+      console.error("Failed to fetch order spending", err);
+      setError('Impossible de se connecter au serveur.');
+    }
+  };
 
-  const openRecipe = (mealName) => {
-    setSelectedRecipe(mealName)
-  }
+  const submitManualSpend = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!expenseInput || isNaN(expenseInput)) return;
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/planning/expenses', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token 
+        },
+        body: JSON.stringify({ amount: parseFloat(expenseInput) })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setManualExpenses([...manualExpenses, data]);
+        setExpenseInput('');
+        setIsExpenseModalOpen(false);
+      }
+    } catch (err) {
+      setError('Failed to save expense.');
+    }
+  };
+
+  const handleUpdateBudget = async () => {
+    const newLimit = prompt("Set your monthly budget limit (MAD):", budgetLimit);
+    if (!newLimit || isNaN(newLimit)) return;
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/planning/budget-limit', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token 
+        },
+        body: JSON.stringify({ limit: parseFloat(newLimit) })
+      });
+      if (response.ok) setBudgetLimit(parseFloat(newLimit));
+    } catch (err) {
+      setError('Failed to update budget limit.');
+    }
+  };
+
+  const totalSpent = manualExpenses.reduce((sum, e) => sum + e.amount, 0) + orderSpending;
+  const budgetPercent = Math.min((totalSpent / budgetLimit) * 100, 100);
+
+  const fetchPlans = async () => {
+    const token = localStorage.getItem('token'); // Get your auth token
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    setError('');
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/planning', {
+        headers: { 'x-auth-token': token }
+      });
+      const data = await response.json();
+      
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+        return;
+      }
+
+      if (response.ok) setPlans(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch meal plans", err);
+      setError('Impossible de se connecter au serveur.');
+      setPlans([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitMeal = async (e) => {
+    e.preventDefault();
+    if (!modalInput.trim()) return;
+    setError('');
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/planning', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token 
+        },
+        body: JSON.stringify({ 
+          dayOfWeek: activeSlot.day, 
+          mealType: activeSlot.type, 
+          recipeTitle: modalInput.trim() 
+        })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setPlans(prev => [...prev, data]);
+        setModalInput('');
+        setIsMealModalOpen(false);
+      } else {
+        setError(data.message || 'Failed to add meal');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Impossible de se connecter au serveur.');
+    }
+  };
+
+  const handleRemove = async (id) => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/api/planning/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-auth-token': token }
+      });
+      if (response.ok) {
+        setPlans(prev => prev.filter(p => p._id !== id)); // Utiliser la mise à jour fonctionnelle
+      }
+    } catch (err) {
+      setError('Impossible de se connecter au serveur.');
+    }
+  };
+
+  const openMealModal = (day, type) => {
+    setActiveSlot({ day, type });
+    setIsMealModalOpen(true);
+  };
+
+  if (loading) return <div className="cookpal-page">Loading your week...</div>;
 
   return (
-    <div className="cookpal-page cookpal-planning-page">
-      <h1 className="cookpal-page__title">Planning & Budget</h1>
-      <p className="cookpal-page__lead">Suivez vos depenses et organisez vos repas de la semaine.</p>
-
-      <section className="cookpal-panel">
-        <h2 className="cookpal-subtitle">Resume budget mensuel</h2>
-        <div className="cookpal-kpis">
-          <article>
-            <span>Total depense</span>
-            <strong>{monthlyTotal} MAD</strong>
-          </article>
-          <article>
-            <span>Nombre de commandes</span>
-            <strong>{orderHistory.length}</strong>
-          </article>
-          <article>
-            <span>Ingredient le plus commande</span>
-            <strong>{mostOrderedIngredient}</strong>
-          </article>
+    <div className="planning-container fade-in">
+      <div className="cookpal-section__head">
+        <div>
+          <h1 className="cookpal-page__title">Meal Planning</h1>
+          <p className="cookpal-page__lead">Organize your weekly nutrition and stay on track with your goals.</p>
         </div>
 
-        <h3 className="cookpal-chart-title">Depenses par semaine</h3>
-        <div className="cookpal-bar-chart" aria-label="Depenses par semaine">
-          {spendingByWeek.map((week) => (
-            <div className="cookpal-bar-chart__item" key={week.week}>
-              <div className="cookpal-bar-chart__bar-wrap">
-                <div className="cookpal-bar-chart__bar" style={{ height: `${(week.amount / maxWeekAmount) * 100}%` }} />
+        {error && <div className="alert alert-error" style={{ marginBottom: '20px' }}>{error}</div>}
+
+        <button className="btn-saas-primary" style={{ width: 'auto' }}>
+          <span>+</span> Smart Generate
+        </button>
+      </div>
+
+      <div className="cookpal-week-grid">
+        {DAYS.map(day => (
+          <div key={day} className="cookpal-day-card glass-panel">
+            <h3 className="day-title">{day}</h3>
+            
+            <div className="day-meals">
+              {MEAL_TYPES.map(type => {
+                const meal = (plans || []).find(p => p.dayOfWeek === day && p.mealType === type);
+                
+                return (
+                  <div key={type} className="meal-slot">
+                    <span className="meal-type-label">{type}</span>
+                    {meal ? (
+                      <div className="meal-item fade-in">
+                        <span className="meal-name">{meal.recipeTitle}</span>
+                        <button 
+                          className="meal-remove-btn" 
+                          onClick={() => handleRemove(meal._id)}
+                        >✕</button>
+                      </div>
+                    ) : (
+                      <button className="meal-add-placeholder" onClick={() => openMealModal(day, type)}>
+                        <span>+</span> Add
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Monthly Budget Graph Section */}
+      <section className="card budget-analytics-card">
+        <div className="budget-header">
+          <div>
+            <h3 className="cookpal-subtitle">Monthly Budget Overview</h3>
+            <p className="budget-meta">Combines app orders and manual grocery logs</p>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button className="cookpal-admin-btn" style={{ background: 'var(--saas-slate-100)', color: 'var(--saas-slate-700)' }} onClick={handleUpdateBudget}>
+              Set Limit
+            </button>
+            <button className="cookpal-admin-btn" onClick={() => setIsExpenseModalOpen(true)}>
+              Log Expense
+            </button>
+          </div>
+        </div>
+
+        <div className="budget-visualizer">
+          <div className="budget-stats">
+            <div className="stat-item">
+              <span>Total Spent</span>
+              <strong className={totalSpent > budgetLimit ? 'text-danger' : ''}>
+                {totalSpent.toFixed(2)} MAD
+              </strong>
+            </div>
+            <div className="stat-item">
+              <span>Remaining</span>
+              <strong>{Math.max(budgetLimit - totalSpent, 0).toFixed(2)} MAD</strong>
+            </div>
+          </div>
+
+          <div className="budget-progress-container">
+            <div className="budget-progress-bar">
+              <div 
+                className={`budget-progress-fill ${totalSpent > budgetLimit ? 'over-budget' : ''}`}
+                style={{ width: `${budgetPercent}%` }}
+              />
+            </div>
+            <div className="budget-labels">
+              <span>0 MAD</span>
+              <span>Budget Limit: {budgetLimit} MAD</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Nice Interface: Add Meal Modal */}
+      {isMealModalOpen && (
+        <div className="modal-overlay fade-in">
+          <div className="modal-content glass-panel">
+            <h2>Plan {activeSlot.type}</h2>
+            <p className="modal-subtitle">What are you cooking on {activeSlot.day}?</p>
+            <form className="modal-form" onSubmit={submitMeal}>
+              <div className="modal-form__group">
+                <input 
+                  type="text" 
+                  placeholder="e.g. Grilled Chicken Salad" 
+                  value={modalInput}
+                  onChange={(e) => setModalInput(e.target.value)}
+                  autoFocus
+                  className="form-input-modern"
+                />
               </div>
-              <span>{week.week}</span>
-              <small>{week.amount} MAD</small>
-            </div>
-          ))}
+              <div className="modal-actions">
+                <button type="button" className="modal-btn modal-btn--cancel" onClick={() => setIsMealModalOpen(false)}>Cancel</button>
+                <button type="submit" className="modal-btn modal-btn--save">Add to Plan</button>
+              </div>
+            </form>
+          </div>
         </div>
-      </section>
+      )}
 
-      <section className="cookpal-panel">
-        <h2 className="cookpal-subtitle">Planning de la semaine</h2>
-        <div className="cookpal-week-grid">
-          {weekDays.map((day) => (
-            <article className="cookpal-day-card" key={day}>
-              <h3>{day}</h3>
-              <p>
-                Midi:{' '}
-                <button type="button" onClick={() => openRecipe(planning[day].lunch)}>
-                  {planning[day].lunch}
-                </button>
-              </p>
-              <p>
-                Soir:{' '}
-                <button type="button" onClick={() => openRecipe(planning[day].dinner)}>
-                  {planning[day].dinner}
-                </button>
-              </p>
-              <button type="button" className="cookpal-add-btn" onClick={() => addMeal(day)}>
-                Ajouter un repas
-              </button>
-            </article>
-          ))}
+      {/* Nice Interface: Log Expense Modal */}
+      {isExpenseModalOpen && (
+        <div className="modal-overlay fade-in">
+          <div className="modal-content glass-panel">
+            <h2>Log Grocery Expense</h2>
+            <p className="modal-subtitle">Enter the amount spent at the store</p>
+            <form className="modal-form" onSubmit={submitManualSpend}>
+              <div className="modal-form__group">
+                <div className="input-with-currency">
+                  <span className="currency-prefix" style={{ left: 12, width: 40 }}>MAD</span>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    placeholder="0.00" 
+                    value={expenseInput}
+                    onChange={(e) => setExpenseInput(e.target.value)}
+                    autoFocus
+                    className="form-input-modern"
+                    style={{ paddingLeft: '50px' }}
+                  />
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="modal-btn modal-btn--cancel" onClick={() => setIsExpenseModalOpen(false)}>Cancel</button>
+                <button type="submit" className="modal-btn modal-btn--save">Save Expense</button>
+              </div>
+            </form>
+          </div>
         </div>
-        {selectedRecipe && (
-          <p className="cookpal-inline-note">Detail recette ouvert: <strong>{selectedRecipe}</strong></p>
-        )}
-      </section>
-
-      <section className="cookpal-panel">
-        <h2 className="cookpal-subtitle">Historique des commandes</h2>
-        <div className="cookpal-history-list">
-          {orderHistory.map((order) => (
-            <div className="cookpal-history-item" key={order.id}>
-              <span>{order.id}</span>
-              <span>{order.date}</span>
-              <strong>{order.total} MAD</strong>
-            </div>
-          ))}
-        </div>
-      </section>
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default Planning
+export default PlanningPage;
