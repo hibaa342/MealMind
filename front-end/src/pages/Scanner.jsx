@@ -24,21 +24,19 @@ function StepBar({ phase }) {
       {steps.map((label, i) => (
         <React.Fragment key={i}>
           <div className="scanner-step">
-            <div className={[
-              'scanner-step__dot',
-              done(i) ? 'scanner-step__dot--done' : active[i].includes(phase) ? 'scanner-step__dot--active' : '',
-            ].join(' ')}>
+            <div className={`scanner-step__dot ${
+              done(i) ? 'scanner-step__dot--done' : active[i].includes(phase) ? 'scanner-step__dot--active' : ''
+            }`}>
               {done(i) ? '✓' : i + 1}
             </div>
-            <span className={[
-              'scanner-step__label',
-              done(i) || active[i].includes(phase) ? 'scanner-step__label--active' : '',
-            ].join(' ')}>
+            <span className={`scanner-step__label ${
+              done(i) || active[i].includes(phase) ? 'scanner-step__label--active' : ''
+            }`}>
               {label}
             </span>
           </div>
           {i < 2 && (
-            <div className={['scanner-step__line', done(i) ? 'scanner-step__line--done' : ''].join(' ')} />
+            <div className={`scanner-step__line ${done(i) ? 'scanner-step__line--done' : ''}`} />
           )}
         </React.Fragment>
       ))}
@@ -65,7 +63,7 @@ function IngredientChip({ ing, onRemove }) {
 }
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
-const ScannerPage = () => { // Removed { user } prop as it wasn't being used
+const ScannerPage = () => {
   const [phase, setPhase] = useState('idle'); 
   const [dragOver, setDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -99,6 +97,14 @@ const ScannerPage = () => { // Removed { user } prop as it wasn't being used
   const handleAnalyze = () => {
     setPhase('analyzing'); 
     setProgress(0);
+
+    // TO PREPARE FOR BACKEND:
+    // 1. Create FormData from fileRef.current.files[0]
+    // 2. Call your FastAPI endpoint (e.g., POST /api/scan)
+    // 3. Update ingredients with response.json()
+    // 4. Handle progress using XHR or simulated steps
+    
+    // Mocking the behavior for now:
     const iv = setInterval(() => {
       setProgress(p => {
         if (p >= 100) {
@@ -139,13 +145,13 @@ const ScannerPage = () => { // Removed { user } prop as it wasn't being used
 
       {/* PHASE: idle / preview */}
       {(phase === 'idle' || phase === 'preview') && (
-        <div className="card scanner-card">
+        <div className="card scanner-card fade-in">
           <div
-            className={[
-              'scanner-dropzone',
-              dragOver ? 'scanner-dropzone--dragover' : '',
-              previewUrl ? 'scanner-dropzone--preview' : '',
-            ].join(' ')}
+            className={`dropzone ${
+              dragOver ? 'dropzone--active' : ''
+            } ${
+              previewUrl ? 'scanner-dropzone--preview' : ''
+            }`}
             onDrop={handleDrop}
             onDragOver={e => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
@@ -160,17 +166,21 @@ const ScannerPage = () => { // Removed { user } prop as it wasn't being used
                 >✕ Change photo</button>
               </>
             ) : (
-              <div className="scanner-dropzone__content">
-                <div className="scanner-dropzone__icon">{dragOver ? '⬇️' : '📂'}</div>
-                <p className="scanner-dropzone__title">Drag & drop your photo here</p>
-                <p className="scanner-dropzone__or">or</p>
+              <>
+                <div className="dropzone__icon" style={{ fontSize: '2.5rem' }}>{dragOver ? '⬇️' : '📸'}</div>
+                <p className="dropzone__text"><strong>Drag & drop your photo</strong> here</p>
+                <p className="dropzone__text" style={{ fontSize: '0.8rem', opacity: 0.6 }}>or</p>
                 <button
-                  className="btn btn-primary"
-                  style={{ borderRadius: 12, padding: '11px 28px', fontSize: 15 }}
-                  onClick={() => fileRef.current.click()}
+                  type="button"
+                  className="btn-saas-primary"
+                  style={{ width: 'auto', padding: '10px 24px' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileRef.current.click();
+                  }}
                 >Choose a photo</button>
-                <p className="scanner-dropzone__hint">JPG, PNG, HEIC — max 20 MB</p>
-              </div>
+                <p className="dropzone__text" style={{ fontSize: '0.75rem' }}>JPG, PNG, HEIC — max 20 MB</p>
+              </>
             )}
           </div>
 
@@ -182,11 +192,11 @@ const ScannerPage = () => { // Removed { user } prop as it wasn't being used
 
           {phase === 'preview' && (
             <div className="scanner-actions">
-              <button className="scanner-btn-ghost" onClick={reset}>← Restart</button>
+              <button className="cookpal-signout" style={{ width: 'auto' }} onClick={reset}>← Cancel</button>
               <button
-                className="btn btn-primary"
+                className="btn-saas-primary"
+                style={{ width: 'auto', padding: '12px 32px' }}
                 onClick={handleAnalyze}
-                style={{ borderRadius: 12, padding: '11px 28px', fontSize: 15 }}
               >✨ Analyse with AI</button>
             </div>
           )}
@@ -195,13 +205,13 @@ const ScannerPage = () => { // Removed { user } prop as it wasn't being used
 
       {/* PHASE: analyzing */}
       {phase === 'analyzing' && (
-        <div className="card scanner-analyzing">
-          <div className="scanner-analyzing__icon">🤖</div>
+        <div className="card scanner-analyzing fade-in" style={{ textAlign: 'center' }}>
+          <div className="scanner-analyzing__icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>🤖</div>
           <h2 className="scanner-analyzing__title">Analysing your photo…</h2>
           <p className="scanner-analyzing__sub">The AI is identifying ingredients in your image</p>
 
-          <div className="scanner-progress">
-            <div className="scanner-progress__fill" style={{ width: `${Math.min(progress, 100)}%` }} />
+          <div className="scanner-progress" style={{ height: '8px', background: 'var(--saas-slate-100)', borderRadius: '4px', overflow: 'hidden', margin: '24px 0 8px' }}>
+            <div className="scanner-progress__fill" style={{ width: `${Math.min(progress, 100)}%`, height: '100%', background: 'var(--saas-blue)', transition: 'width 0.3s ease' }} />
           </div>
           <p className="scanner-progress__pct">{Math.min(Math.round(progress), 100)}%</p>
 
@@ -223,7 +233,7 @@ const ScannerPage = () => { // Removed { user } prop as it wasn't being used
       {/* PHASE: results */}
       {phase === 'results' && (
         <>
-          <div className="card">
+          <div className="card fade-in">
             <div className="scanner-results__header">
               <div>
                 <h2 className="scanner-results__title">🎯 {ingredients.length} ingredients detected</h2>
@@ -270,11 +280,11 @@ const ScannerPage = () => { // Removed { user } prop as it wasn't being used
           </div>
 
           <div className="scanner-cta">
-            <button className="scanner-btn-ghost" onClick={reset}>🔄 New scan</button>
+            <button className="cookpal-signout" style={{ width: 'auto' }} onClick={reset}>🔄 New scan</button>
             <button
-              className={['btn btn-primary', ingredients.length === 0 ? 'scanner-btn-disabled' : ''].join(' ')}
+              className={`btn-saas-primary ${ingredients.length === 0 ? 'scanner-btn-disabled' : ''}`}
               disabled={ingredients.length === 0}
-              style={{ borderRadius: 12, padding: '11px 28px', fontSize: 15 }}
+              style={{ width: 'auto', padding: '14px 40px' }}
               onClick={() => console.log('Generate recipes for:', ingredients)}
             >🍳 Generate my recipes →</button>
           </div>
