@@ -1,52 +1,51 @@
 import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from 'react'
 
-const STORAGE_KEY = 'cookpal-notification-read-ids'
-
-export const DEFAULT_NOTIFICATIONS = [
-  { id: '1', icon: '✅', text: 'Commande confirmée' },
-  { id: '2', icon: '❤️', text: 'Recette sauvegardée' },
-  { id: '3', icon: '📅', text: 'Rappel repas du soir' },
-  { id: '4', icon: '🤖', text: 'Nouvelles recettes disponibles' },
-]
-
-function loadReadIds() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return new Set()
-    const arr = JSON.parse(raw)
-    return new Set(Array.isArray(arr) ? arr : [])
-  } catch {
-    return new Set()
-  }
-}
-
 const NotificationsContext = createContext(null)
 
 export function NotificationsProvider({ children }) {
-  const [readIds, setReadIds] = useState(loadReadIds)
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  const fetchNotifications = useCallback(async () => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+    
+    try {
+      const res = await fetch('http://127.0.0.1:5000/api/notifications', {
+        headers: { 'x-auth-token': token }
+      })
+      const data = await res.json()
+      if (res.ok) setNotifications(data)
+    } catch (err) {
+      console.error('Failed to fetch notifications', err)
+    }
+  }, [])
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...readIds]))
-  }, [readIds])
+    fetchNotifications()
+  }, [fetchNotifications])
 
-  const notifications = useMemo(
-    () =>
-      DEFAULT_NOTIFICATIONS.map((n) => ({
-        ...n,
-        read: readIds.has(n.id),
-      })),
-    [readIds],
-  )
+  const unreadCount = useMemo(() => notifications.filter((n) => !n.isRead).length, [notifications])
 
-  const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications])
+  const markAsRead = useCallback(async (id) => {
+    const token = localStorage.getItem('token')
+    try {
+      const res = await fetch(`http://127.0.0.1:5000/api/notifications/${id}`, {
+        method: 'PATCH',
+        headers: { 'x-auth-token': token }
+      })
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n))
+      }
+    } catch (err) {
+      console.error('Failed to mark read', err)
+    }
+  }, [])
 
   const markAllAsRead = useCallback(() => {
-    setReadIds(new Set(DEFAULT_NOTIFICATIONS.map((n) => n.id)))
-  }, [])
-
-  const markAsRead = useCallback((id) => {
-    setReadIds((prev) => new Set([...prev, id]))
-  }, [])
+    // Implementation for bulk update would go here
+    notifications.forEach(n => !n.isRead && markAsRead(n._id))
+  }, [notifications, markAsRead])
 
   const value = useMemo(
     () => ({

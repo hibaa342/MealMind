@@ -30,6 +30,20 @@ const userSchema = new mongoose.Schema({
     budgetLimit: {
         type: Number,
         default: 500
+    },
+    notificationSettings: {
+        pauseAll: { type: Boolean, default: false },
+        quietMode: {
+            enabled: { type: Boolean, default: false },
+            start: { type: String, default: "22:00" },
+            end: { type: String, default: "08:00" }
+        },
+        categories: {
+            budgetAlerts: { type: Boolean, default: true },
+            mealReminders: { type: Boolean, default: true },
+            communityActivity: { type: Boolean, default: true },
+            newRecipes: { type: Boolean, default: true }
+        }
     }
 }, {
     timestamps: true
