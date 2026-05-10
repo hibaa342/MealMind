@@ -1,0 +1,174 @@
+.planning-container {
+    max-width: 1000px;
+    margin: 0 auto !important;
+    padding: 20px 20px 60px;
+    display: flex;
+    flex-direction: column;
+}
+
+.cookpal-section__head {
+    margin-bottom: 40px;
+}
+
+.cookpal-week-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.day-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--saas-slate-800);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--saas-slate-100);
+}
+
+.meal-slot {
+    margin-bottom: 12px;
+}
+
+.meal-type-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--saas-slate-400);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.meal-item {
+    background: var(--saas-blue-light);
+    color: var(--saas-blue-dark);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.meal-add-placeholder {
+    width: 100%;
+    background: var(--saas-slate-50);
+    border: 1.5px dashed var(--saas-slate-200);
+    color: var(--saas-slate-400);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+/* Budget Visuals */
+.budget-analytics-card {
+    margin-top: 48px;
+    padding: 24px;
+    border: 1px solid var(--saas-slate-100);
+}
+
+.budget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.budget-meta {
+    font-size: 0.85rem;
+    color: var(--saas-slate-400);
+}
+
+.budget-stats {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 24px;
+}
+
+.stat-item span {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--saas-slate-500);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-item strong {
+    font-size: 1.5rem;
+    color: var(--saas-slate-800);
+}
+
+.text-danger { color: #ef4444 !important; }
+
+.budget-progress-bar {
+    height: 12px;
+    background: var(--saas-slate-100);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.budget-progress-fill {
+    height: 100%;
+    background: var(--saas-blue);
+    transition: width 0.5s ease;
+}
+
+.budget-progress-fill.over-budget {
+    background: #ef4444;
+}
+
+.budget-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--saas-slate-400);
+}
+
+/* Modal Styling */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 450px;
+    padding: 32px;
+}
+
+.modal-subtitle {
+    color: var(--saas-slate-500);
+    margin-bottom: 20px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modal-btn--save {
+    background: var(--saas-blue);
+    color: white;
+    border: none;
+}
