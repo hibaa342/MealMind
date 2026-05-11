@@ -71,7 +71,7 @@ function App() {
           }
         />
         <Route path="/" element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
-       <Route path="onboarding" element={<Onboarding user={user} onComplete={handleOnboardingComplete} />} />
+          <Route path="onboarding" element={<Onboarding user={user} onComplete={handleOnboardingComplete} />} />
           <Route element={<RequireOnboarded />}>
             <Route
               element={

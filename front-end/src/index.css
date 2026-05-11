@@ -447,7 +447,6 @@ body {
   overflow-x: auto;
   padding-bottom: 8px;
   scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
 }
 
 .cookpal-recipe-scroller::-webkit-scrollbar {
@@ -828,6 +827,7 @@ body {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -932,6 +932,7 @@ body {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -1702,8 +1703,8 @@ body {
 /* Glassmorphism utility for other parts of the app */
 .glass-panel {
   background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: var(--saas-shadow);
 }
@@ -1908,8 +1909,8 @@ body {
 }
 .cookpal-shell--glass .cookpal-sidebar--left {
   background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   border-right: 1px solid rgba(255, 255, 255, 0.3);
 }
 .cookpal-shell--glass .cookpal-main,
@@ -2115,6 +2116,7 @@ body {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   background: rgba(255, 255, 255, 0.22);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   padding: 6px 12px;
   border-radius: 999px;
@@ -2308,7 +2310,6 @@ body {
   overflow-x: auto;
   padding-bottom: 6px;
   scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
 }
 
 .grocio-fresh-scroll::-webkit-scrollbar {
@@ -2408,8 +2409,8 @@ body {
   gap: 12px;
   padding: 14px 16px 10px;
   background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(45, 106, 79, 0.08);
   position: sticky;
   top: 0;
@@ -2503,8 +2504,8 @@ body {
   bottom: max(12px, env(safe-area-inset-bottom));
   z-index: 150;
   background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   border-radius: 999px;
   padding: 8px 12px 8px;
   box-shadow: 0 12px 40px rgba(27, 67, 50, 0.15);
@@ -2679,5 +2680,166 @@ body {
   .cookpal-drawer-backdrop {
     display: none !important;
   }
+}
+
+/* Help page — simple, évite beaucoup de styles inline */
+.help-page {
+  max-width: 640px;
+}
+
+.help-page .help-search {
+  margin-bottom: 20px;
+  max-width: 100%;
+}
+
+.help-section {
+  margin-bottom: 20px;
+}
+
+.help-section:last-child {
+  margin-bottom: 0;
+}
+
+.help-section__title {
+  font-size: 1.05rem;
+  margin: 0 0 12px;
+  color: var(--cookpal-text);
+}
+
+.help-muted {
+  color: var(--cookpal-text-muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.help-topic-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.help-topic-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--saas-slate-100);
+}
+
+.help-topic-list li:last-child {
+  border-bottom: none;
+}
+
+.help-shortcuts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.help-shortcuts a {
+  color: var(--cookpal-green-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.help-shortcuts a:hover {
+  text-decoration: underline;
+}
+
+.help-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.help-faq__head {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--saas-slate-200);
+  border-radius: 10px;
+  background: var(--cookpal-white);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--cookpal-text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.help-faq__head:hover {
+  background: var(--saas-slate-50);
+}
+
+.help-faq__chevron {
+  color: var(--cookpal-text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.help-faq__body {
+  padding: 12px 14px 4px;
+}
+
+.help-faq__pair {
+  margin-bottom: 14px;
+}
+
+.help-faq__q {
+  margin: 0 0 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--cookpal-text);
+}
+
+.help-faq__a {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--cookpal-text-muted);
+  line-height: 1.45;
+}
+
+.help-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.help-form label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cookpal-text);
+}
+
+.help-form__input,
+.help-form__textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--saas-slate-300);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.help-form__textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.help-form__submit {
+  align-self: flex-start;
+  margin-top: 6px;
+}
+
+.help-tip p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--cookpal-text);
+  line-height: 1.5;
+  padding: 12px 14px;
+  background: var(--cookpal-green-soft);
+  border-radius: 10px;
+  border-left: 3px solid var(--cookpal-green);
 }
 
