@@ -7,7 +7,8 @@ const jwt = require('jsonwebtoken');
 // @access  Public
 const registerUser = async (req, res) => {
     try {
-        let { name, surname, birthDate, city, email, password } = req.body;
+        const body = req.body || {};
+        let { name, surname, birthDate, city, email, password } = body;
 
         if (!email || !password) {
             return res.status(400).json({ message: 'Veuillez remplir tous les champs' });
@@ -58,7 +59,8 @@ const registerUser = async (req, res) => {
 // @access  Public
 const loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const body = req.body || {};
+        const { email, password } = body;
 
         if (!email || !password) {
             return res.status(400).json({ message: 'Veuillez fournir un email et un mot de passe' });

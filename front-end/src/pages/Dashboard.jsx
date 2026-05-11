@@ -46,6 +46,11 @@ const Dashboard = () => {
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=480&h=280&fit=crop'
   )
 
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState(null)
+  const [isSearching, setIsSearching] = useState(false)
+  const [selectedMeal, setSelectedMeal] = useState(null)
+
   const toggleRecording = () => voice?.toggleRecording?.()
   const playRecording = () => voice?.playRecording?.()
   const isRecording = voice?.isRecording
@@ -67,6 +72,30 @@ const Dashboard = () => {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [createOpen, closeCreate])
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults(null)
+      return
+    }
+
+    const delayDebounceFn = setTimeout(() => {
+      setIsSearching(true)
+      fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${searchQuery}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setSearchResults(data.meals || [])
+          setIsSearching(false)
+        })
+        .catch((err) => {
+          console.error("Search error:", err)
+          setSearchResults([])
+          setIsSearching(false)
+        })
+    }, 500)
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchQuery])
 
   const submitRecipe = () => {
     const title = recipeTitle.trim()
@@ -99,6 +128,8 @@ const Dashboard = () => {
             className="cookpal-search__input"
             placeholder="Search recipes, ingredients…"
             aria-label="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
           <button
             type="button"
@@ -130,17 +161,49 @@ const Dashboard = () => {
         </p>
       )}
 
-      <section className="grocio-hero-card" aria-label="Your fridge">
-        <div className="grocio-hero-card__img" style={{ backgroundImage: `url(${imgGrocery})` }} />
-        <div className="grocio-hero-card__overlay">
-          <span className="grocio-hero-card__badge">Live inventory</span>
-          <h2 className="grocio-hero-card__title">What&apos;s in your fridge</h2>
-          <p className="grocio-hero-card__sub">Tap scanner to update stock and cut waste.</p>
-          <Link to="/scanner" className="grocio-hero-card__cta">
-            Open scanner
-          </Link>
-        </div>
-      </section>
+      {searchQuery.trim() && (
+        <section className="grocio-section">
+          <div className="grocio-section__head">
+            <h2 className="grocio-section__title">
+              {isSearching ? 'Searching...' : `Search results for "${searchQuery}"`}
+            </h2>
+          </div>
+          <div className="grocio-quick-grid">
+            {searchResults && searchResults.length === 0 && !isSearching && (
+              <p>No recipes found.</p>
+            )}
+            {searchResults && searchResults.map((meal) => (
+              <button
+                key={meal.idMeal}
+                onClick={() => setSelectedMeal(meal)}
+                className="grocio-quick-tile cookpal-recipe-select-btn"
+                style={{ textAlign: 'left', border: 'none', padding: 0, background: 'none' }}
+              >
+                <div className="grocio-quick-tile__img" style={{ backgroundImage: `url(${meal.strMealThumb}/preview)` }} />
+                <div className="grocio-quick-tile__text">
+                  <span className="grocio-quick-tile__name">{meal.strMeal}</span>
+                  <span className="grocio-quick-tile__time">{meal.strArea}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Hide hero card if searching to reduce clutter */}
+      {!searchQuery.trim() && (
+        <section className="grocio-hero-card" aria-label="Your fridge">
+          <div className="grocio-hero-card__img" style={{ backgroundImage: `url(${imgGrocery})` }} />
+          <div className="grocio-hero-card__overlay">
+            <span className="grocio-hero-card__badge">Live inventory</span>
+            <h2 className="grocio-hero-card__title">What&apos;s in your fridge</h2>
+            <p className="grocio-hero-card__sub">Tap scanner to update stock and cut waste.</p>
+            <Link to="/scanner" className="grocio-hero-card__cta">
+              Open scanner
+            </Link>
+          </div>
+        </section>
+      )}
 
       <Link to="/recipes" className="grocio-suggest-card">
         <div
@@ -268,6 +331,70 @@ const Dashboard = () => {
                 Save recipe
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {selectedMeal && (
+        <div
+          className="cookpal-modal-backdrop"
+          style={{ zIndex: 1000 }}
+          role="presentation"
+          onClick={() => setSelectedMeal(null)}
+        >
+          <div
+            className="cookpal-modal cookpal-panel"
+            role="dialog"
+            aria-labelledby="cookpal-meal-title"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '600px', maxHeight: '90vh', overflow: 'auto', padding: '24px' }}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedMeal(null)}
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}
+              aria-label="Fermer"
+            >
+              ✕
+            </button>
+            <h2 id="cookpal-meal-title" className="cookpal-subtitle" style={{ marginTop: 0 }}>
+              {selectedMeal.strMeal}
+            </h2>
+            <img
+              src={selectedMeal.strMealThumb}
+              alt={selectedMeal.strMeal}
+              style={{ width: '100%', height: '280px', objectFit: 'cover', borderRadius: '6px', marginBottom: '16px' }}
+            />
+
+            <div style={{ marginBottom: 20 }}>
+              <h3 style={{ marginBottom: 8 }}>🥘 Ingrédients</h3>
+              <ul style={{ marginLeft: '20px', marginTop: 0 }}>
+                {Array.from({ length: 20 }).map((_, i) => {
+                  const ing = selectedMeal[`strIngredient${i + 1}`]
+                  const measure = selectedMeal[`strMeasure${i + 1}`]
+                  if (ing && ing.trim()) {
+                    return <li key={i} style={{ marginBottom: 6 }}>{measure} {ing}</li>
+                  }
+                  return null
+                })}
+              </ul>
+            </div>
+
+            <div>
+              <h3 style={{ marginBottom: 8 }}>👨‍🍳 Instructions</h3>
+              <p style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }}>
+                {selectedMeal.strInstructions}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSelectedMeal(null)}
+              className="cookpal-modal__btn cookpal-modal__btn--primary"
+              style={{ marginTop: '20px', width: '100%' }}
+            >
+              Fermer
+            </button>
           </div>
         </div>
       )}
