@@ -1,20 +1,25 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = function(req, res, next) {
-  // Get token from header
-  const token = req.header('x-auth-token');
+  // 1. Récupérer le header Authorization
+  const authHeader = req.header('Authorization');
 
-  // Check if no token
-  if (!token) {
-    return res.status(401).json({ message: 'No token, authorization denied' });
+  // 2. Vérifier si le header existe et commence par "Bearer "
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Accès refusé, aucun token fourni' });
   }
+
+  // 3. Extraire le token (on enlève "Bearer ")
+  const token = authHeader.split(' ')[1];
 
   try {
     const secret = process.env.JWT_SECRET || 'your_jwt_secret';
     const decoded = jwt.verify(token, secret);
-    req.user = decoded; // This contains the { id: userId } signed in UserControls.js
+    
+    // On attache l'utilisateur (l'ID) à la requête
+    req.user = decoded; 
     next();
   } catch (err) {
-    res.status(401).json({ message: 'Token is not valid' });
+    res.status(401).json({ message: 'Token non valide' });
   }
 };

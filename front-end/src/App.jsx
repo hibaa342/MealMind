@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -20,18 +20,24 @@ import ProtectedRoute from './components/ProtectedRoute'
 import RequireOnboarded from './components/RequireOnboarded'
 import { getPostAuthPath } from './utils/onboardingStorage'
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [user, setUser] = useState(null)
-
-  useEffect(() => {
+function readSessionFromStorage() {
+  try {
     const token = localStorage.getItem('token')
     const userData = localStorage.getItem('user')
     if (token && userData) {
-      setIsAuthenticated(true)
-      setUser(JSON.parse(userData))
+      return { isAuthenticated: true, user: JSON.parse(userData) }
     }
-  }, [])
+  } catch {
+    /* ignore corrupt storage */
+  }
+  return { isAuthenticated: false, user: null }
+}
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => readSessionFromStorage().isAuthenticated
+  )
+  const [user, setUser] = useState(() => readSessionFromStorage().user)
 
   const handleLogin = (userData, token) => {
     localStorage.setItem('token', token)

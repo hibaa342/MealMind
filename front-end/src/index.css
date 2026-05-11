@@ -40,7 +40,7 @@
   --saas-slate-700: #334155;
   --saas-slate-800: #1e293b;
   --saas-slate-900: #0f172a;
-  
+
   --saas-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --saas-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --saas-shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
@@ -211,6 +211,7 @@ body {
   text-align: left;
   cursor: pointer;
 }
+
 .cookpal-sidebar--right {
   background: var(--cookpal-white);
   border-left: 1px solid rgba(44, 62, 80, 0.06);
@@ -491,15 +492,19 @@ body {
 .cookpal-recipe-card--green {
   background: #e8f5e9;
 }
+
 .cookpal-recipe-card--orange {
   background: #fff3e0;
 }
+
 .cookpal-recipe-card--pink {
   background: #fce4ec;
 }
+
 .cookpal-recipe-card--yellow {
   background: #fff8e1;
 }
+
 .cookpal-recipe-card--purple {
   background: #f3e5f5;
 }
@@ -960,7 +965,8 @@ body {
   gap: 12px;
 }
 
-.dropzone:hover, .dropzone--active {
+.dropzone:hover,
+.dropzone--active {
   border-color: var(--cookpal-active-bar);
   background: var(--saas-blue-light);
 }
@@ -995,6 +1001,7 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 8px;
 }
+
 .cookpal-profile-page,
 .cookpal-favorites-page {
   max-width: 1000px;
@@ -1208,6 +1215,271 @@ body {
   white-space: nowrap;
 }
 
+/* Profile — header + food preferences (diet / allergies / cuisines) */
+.cookpal-profile-panel--hero {
+  padding-top: 18px;
+}
+
+.cookpal-profile-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.cookpal-profile-header__avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.cookpal-profile-header__avatar--initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(140deg, #66bb6a 0%, #43a047 100%);
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.cookpal-profile-header__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.cookpal-profile-header__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cookpal-profile-header__name {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cookpal-profile-header__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.cookpal-profile-header__icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: #f0f4f2;
+  color: #3d4f45;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cookpal-profile-header__icon-btn:hover {
+  background: #e3ebe6;
+}
+
+.cookpal-profile-header__edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2e7d32;
+  cursor: pointer;
+}
+
+.cookpal-profile-header__edit:hover {
+  text-decoration: underline;
+}
+
+.cookpal-profile-header__tagline {
+  margin: 10px 0 0;
+  font-size: 0.92rem;
+  color: var(--cookpal-text-muted, #6b7c8a);
+}
+
+.cookpal-pref-section {
+  padding-bottom: 8px;
+}
+
+.cookpal-pref-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cookpal-pref-section__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.cookpal-pref-section__manage {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #2e7d32;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cookpal-pref-section__manage:hover {
+  text-decoration: underline;
+}
+
+.cookpal-pref-section__plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #66bb6a 0%, #43a047 100%);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  font-weight: 500;
+}
+
+.cookpal-pref-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cookpal-pref-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  font: inherit;
+  color: inherit;
+}
+
+.cookpal-pref-card:hover {
+  background: #fafbf9;
+}
+
+.cookpal-pref-card--selected {
+  background: #f5f0e8;
+  border-color: #8a8a8a;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.cookpal-pref-card__thumb-wrap {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.cookpal-pref-card__thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cookpal-pref-card__text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.cookpal-pref-card__hint {
+  font-weight: 500;
+  color: var(--cookpal-text-muted, #6b7c8a);
+}
+
+.cookpal-cuisine-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cookpal-cuisine-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  cursor: pointer;
+  text-align: center;
+  font: inherit;
+  color: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cookpal-cuisine-card:hover {
+  border-color: #e0e4e1;
+}
+
+.cookpal-cuisine-card--selected {
+  background: #f5f0e8;
+  border-color: #8a8a8a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.cookpal-cuisine-card__media {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.cookpal-cuisine-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cookpal-cuisine-card__label {
+  display: block;
+  padding: 12px 10px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  background: #fff;
+}
+
+.cookpal-cuisine-card--selected .cookpal-cuisine-card__label {
+  background: #f5f0e8;
+}
+
+.cookpal-pref-card:active,
+.cookpal-cuisine-card:active,
+.cookpal-pref-section__manage:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
+
 .cookpal-tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -1394,6 +1666,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1512,6 +1785,7 @@ body {
     grid-template-columns: 1fr 1fr;
   }
 }
+
 /* Super Modern SaaS Auth Styles */
 .auth-layout {
   display: flex;
@@ -1524,7 +1798,8 @@ body {
   flex: 1.2;
   position: relative;
   overflow: hidden;
-  display: none; /* Hidden on mobile */
+  display: none;
+  /* Hidden on mobile */
 }
 
 @media (min-width: 992px) {
@@ -1584,13 +1859,13 @@ body {
 }
 
 .auth-logo-modern {
-    width: 300px;
-    height: 300px;
-    margin-bottom: 32px;
-    object-fit: contain;
-    border-radius: 50%;
-    background: inherit;
-    box-shadow: 1px 2px 16px 13px #f09f9f;
+  width: 300px;
+  height: 300px;
+  margin-bottom: 32px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: inherit;
+  box-shadow: 1px 2px 16px 13px #f09f9f;
 }
 
 .auth-header-modern {
@@ -1693,6 +1968,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1723,20 +1999,24 @@ body {
   transition: transform 0.2s, box-shadow 0.2s;
   cursor: pointer;
 }
+
 .cookpal-pref-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--saas-shadow);
 }
+
 .cookpal-pref-card__img-wrap {
   height: 70px;
   width: 100%;
   overflow: hidden;
 }
+
 .cookpal-pref-card__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .cookpal-pref-card__label {
   flex: 1;
   display: flex;
@@ -1754,6 +2034,7 @@ body {
   align-items: center;
   margin-bottom: 24px;
 }
+
 .cookpal-search {
   flex: 1;
   display: flex;
@@ -1761,9 +2042,10 @@ body {
   background: var(--cookpal-white);
   border-radius: 999px;
   padding: 12px 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-  border: 1px solid rgba(0,0,0,0.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.02);
 }
+
 .cookpal-search__input {
   flex: 1;
   border: none;
@@ -1773,7 +2055,9 @@ body {
   margin: 0 12px;
   color: var(--cookpal-text);
 }
-.cookpal-search__mic, .cookpal-search__ai {
+
+.cookpal-search__mic,
+.cookpal-search__ai {
   color: var(--cookpal-text-muted);
   cursor: pointer;
   display: flex;
@@ -1781,12 +2065,15 @@ body {
   border-radius: 50%;
   transition: background 0.2s;
 }
-.cookpal-search__mic:hover, .cookpal-search__ai:hover {
-  background: rgba(0,0,0,0.05);
+
+.cookpal-search__mic:hover,
+.cookpal-search__ai:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .cookpal-create-btn {
-  background: #4a775b; /* forest green */
+  background: #4a775b;
+  /* forest green */
   color: white;
   border: none;
   padding: 14px 24px;
@@ -1797,6 +2084,7 @@ body {
   box-shadow: 0 4px 12px rgba(74, 119, 91, 0.2);
   transition: transform 0.2s, box-shadow 0.2s;
 }
+
 .cookpal-create-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(74, 119, 91, 0.3);
@@ -1806,36 +2094,44 @@ body {
   background: var(--cookpal-white);
   border-radius: 20px;
   padding: 20px 24px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-  border: 1px solid rgba(0,0,0,0.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.02);
   margin-bottom: 32px;
 }
+
 .cookpal-budget-tracker__content {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
+
 .cookpal-budget-tracker__text {
   font-size: 1.1rem;
   color: var(--cookpal-text);
 }
+
 .cookpal-budget-tracker__bar-wrap {
   display: flex;
   align-items: center;
   gap: 16px;
 }
+
 .cookpal-budget-tracker__bar {
   flex: 1;
   height: 12px;
-  background: #ecdcc3; /* beige/brown track */
+  background: #ecdcc3;
+  /* beige/brown track */
   border-radius: 999px;
   overflow: hidden;
 }
+
 .cookpal-budget-tracker__bar-fill {
   height: 100%;
-  background: #d4a373; /* darker brown fill */
+  background: #d4a373;
+  /* darker brown fill */
   border-radius: 999px;
 }
+
 .cookpal-budget-tracker__icon {
   width: 48px;
   height: 48px;
@@ -1861,39 +2157,50 @@ body {
   overflow: hidden;
   min-height: 220px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s, box-shadow 0.2s;
 }
+
 .cookpal-hero-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
+
 .cookpal-hero-card--wide {
   grid-column: span 2;
   min-height: 200px;
 }
+
 .cookpal-hero-card__bg {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-size: cover;
   background-position: center;
   transition: transform 0.4s;
 }
+
 .cookpal-hero-card:hover .cookpal-hero-card__bg {
   transform: scale(1.05);
 }
+
 .cookpal-hero-card__content {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   padding: 40px 20px 20px;
-  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
   display: flex;
   align-items: flex-end;
 }
+
 .cookpal-hero-card__title {
   color: white;
   font-size: 1.15rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   font-weight: 600;
 }
 
@@ -1906,12 +2213,14 @@ body {
   background-position: left center;
   background-attachment: fixed;
 }
+
 .cookpal-shell--glass .cookpal-sidebar--left {
   background: rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-right: 1px solid rgba(255, 255, 255, 0.3);
 }
+
 .cookpal-shell--glass .cookpal-main,
 .cookpal-shell--glass .cookpal-sidebar--right {
   background: var(--cookpal-bg);
@@ -1923,15 +2232,17 @@ body {
   padding: 14px 14px 14px 20px !important;
   margin-bottom: 6px !important;
   transition: transform 0.2s, background-position 0.4s !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-left: 0 !important;
 }
+
 .cookpal-nav__link--card:hover {
   transform: translateX(4px);
-  background-position: 100% center !important; 
+  background-position: 100% center !important;
 }
+
 .cookpal-nav__link--card .cookpal-nav__icon-wrap svg {
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* Sidebar add-pref modal */
@@ -1945,12 +2256,14 @@ body {
   z-index: 2000;
   padding: 16px;
 }
+
 .cookpal-modal {
   width: 100%;
   max-width: 400px;
   padding: 24px;
   border-radius: var(--cookpal-radius, 12px);
 }
+
 .cookpal-modal__label {
   display: block;
   font-size: 0.88rem;
@@ -1958,6 +2271,7 @@ body {
   color: var(--cookpal-text-muted);
   margin-bottom: 8px;
 }
+
 .cookpal-modal__input {
   width: 100%;
   box-sizing: border-box;
@@ -1968,16 +2282,19 @@ body {
   font-family: inherit;
   margin-bottom: 20px;
 }
+
 .cookpal-modal__input:focus {
   outline: none;
   border-color: var(--cookpal-green, #4caf50);
   box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 }
+
 .cookpal-modal__actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
+
 .cookpal-modal__btn {
   padding: 10px 18px;
   border-radius: 10px;
@@ -1987,14 +2304,17 @@ body {
   font-family: inherit;
   border: none;
 }
+
 .cookpal-modal__btn--ghost {
   background: transparent;
   color: var(--cookpal-text-muted);
 }
+
 .cookpal-modal__btn--primary {
   background: var(--cookpal-green, #4caf50);
   color: #fff;
 }
+
 .cookpal-modal__btn--primary:hover {
   filter: brightness(1.05);
 }
@@ -2006,14 +2326,24 @@ body {
   background: transparent;
   font: inherit;
 }
+
 .cookpal-search__mic--recording {
   color: #c62828 !important;
   animation: cookpal-pulse-mic 1s ease-in-out infinite;
 }
+
 @keyframes cookpal-pulse-mic {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
 }
+
 .cookpal-voice-audio {
   position: absolute;
   width: 0;
@@ -2021,6 +2351,7 @@ body {
   opacity: 0;
   pointer-events: none;
 }
+
 .cookpal-voice-hint {
   font-size: 0.88rem;
   color: var(--cookpal-text-muted);
@@ -2593,6 +2924,7 @@ body {
     transform: translateX(100%);
     opacity: 0.9;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -2632,6 +2964,7 @@ body {
 }
 
 @media (max-width: 1023px) {
+
   .cookpal-mobile-header,
   .cookpal-bottom-nav {
     display: flex;
@@ -2680,4 +3013,3 @@ body {
     display: none !important;
   }
 }
-

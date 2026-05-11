@@ -2,35 +2,28 @@ const Product = require('../models/ProductModel');
 
 // @desc    Obtenir tous les produits
 // @route   GET /api/products
-// @access  Public
+// @access  Private
 const getProducts = async (req, res) => {
     try {
-        const products = await Product.find().sort({ createdAt: -1 });
+        // IMPORTANT: On filtre par l'ID de l'utilisateur qui vient du middleware !
+        const products = await Product.find({ user: req.user.id }).sort({ createdAt: -1 });
         res.status(200).json(products);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Erreur serveur lors de la récupération des produits' });
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération' });
     }
 };
-
 // @desc    Ajouter un nouveau produit
 // @route   POST /api/products
 // @access  Public (simulé admin côté front par localhost)
 const addProduct = async (req, res) => {
     try {
-        console.log('Request body:', req.body);
-        console.log('Request file:', req.file);
-
         const { title, time, categories, rating, tags, accent } = req.body;
-        
-        // L'image est maintenant uploadée via multer et disponible dans req.file
         const image = req.file ? req.file.path : req.body.image;
 
-        if (!image) {
-            return res.status(400).json({ message: 'Une image est requise' });
-        }
+        if (!image) return res.status(400).json({ message: 'Une image est requise' });
 
         const product = await Product.create({
+            user: req.user.id, // <--- On ajoute le propriétaire ici !
             title,
             time,
             categories,
@@ -40,60 +33,41 @@ const addProduct = async (req, res) => {
             accent
         });
 
-        if (product) {
-            res.status(201).json(product);
-        } else {
-            res.status(400).json({ message: 'Données produit invalides' });
-        }
+        res.status(201).json(product);
     } catch (error) {
-        console.error('Add Product Error:', error);
-        res.status(500).json({ 
-            message: 'Erreur serveur lors de l\'ajout du produit',
-            error: error.message,
-            details: error.errors // Pour les erreurs de validation Mongoose
-        });
+        res.status(500).json({ message: 'Erreur serveur lors de la création' });
     }
 };
 
-// @desc    Modifier un produit
+// @desc    Mettre à jour un produit
 // @route   PUT /api/products/:id
-// @access  Public (simulé admin côté front par localhost)
+// @access  Private
 const updateProduct = async (req, res) => {
     try {
-        const { id } = req.params;
         const { title, time, categories, rating, tags, accent } = req.body;
-        
-        let updateData = {
-            title,
-            time,
-            categories,
-            rating,
-            accent
-        };
+        const image = req.file ? req.file.path : req.body.image;
 
-        if (tags) {
-            updateData.tags = Array.isArray(tags) ? tags : tags.split(',');
+        const update = {};
+        if (title !== undefined) update.title = title;
+        if (time !== undefined) update.time = time;
+        if (categories !== undefined) update.categories = categories;
+        if (rating !== undefined) update.rating = rating;
+        if (accent !== undefined) update.accent = accent;
+        if (tags !== undefined) {
+            update.tags = Array.isArray(tags) ? tags : (tags ? tags.split(',') : []);
         }
+        if (image !== undefined) update.image = image;
 
-        // Si une nouvelle image est uploadée
-        if (req.file) {
-            updateData.image = req.file.path;
-        }
+        const product = await Product.findOneAndUpdate(
+            { _id: req.params.id, user: req.user.id },
+            update,
+            { new: true, runValidators: true }
+        );
 
-        const product = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
-
-        if (product) {
-            res.status(200).json(product);
-        } else {
-            res.status(404).json({ message: 'Produit non trouvé' });
-        }
+        if (!product) return res.status(404).json({ message: 'Produit introuvable' });
+        res.status(200).json(product);
     } catch (error) {
-        console.error('Update Product Error:', error);
-        res.status(500).json({ 
-            message: 'Erreur serveur lors de la modification du produit',
-            error: error.message,
-            details: error.errors
-        });
+        res.status(500).json({ message: 'Erreur serveur lors de la mise à jour' });
     }
 };
 
