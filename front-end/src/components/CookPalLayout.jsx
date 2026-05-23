@@ -273,8 +273,6 @@ const CookPalLayout = ({ user }) => {
 
   return (
     <div className="cookpal-shell cookpal-shell--glass">
-      <audio ref={voice.audioRef} className="cookpal-voice-audio" preload="auto" />
-
       <aside className="cookpal-sidebar cookpal-sidebar--left">
         <div className="cookpal-brand">
           <span className="cookpal-brand__icon" aria-hidden>
@@ -387,9 +385,16 @@ const CookPalLayout = ({ user }) => {
         </NavLink>
         <button
           type="button"
-          className={`cookpal-bottom-nav__fab ${voice.isRecording ? 'cookpal-bottom-nav__fab--rec' : ''}`}
+          className={`cookpal-bottom-nav__fab ${voice.isRecording || voice.isTranscribing ? 'cookpal-bottom-nav__fab--rec' : ''}`}
           onClick={voice.toggleRecording}
-          aria-label={voice.isRecording ? 'Stop recording' : 'Record voice note'}
+          disabled={voice.isTranscribing}
+          aria-label={
+            voice.isTranscribing
+              ? 'Transcription en cours'
+              : voice.isRecording
+                ? 'Arrêter et transcrire'
+                : 'Dicter une recherche'
+          }
         >
           <IconMicFab />
         </button>
