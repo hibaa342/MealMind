@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getPostAuthPath } from '../utils/onboardingStorage'
-import loginBg from '../assets/login-bg.png'
-import logo from '../assets/logo.png'
+// On importe la même image que pour le Login
+import snapcookDesign from '../assets/snapcook-design.png'
+import './Auth.css' 
 
 const Register = ({ onRegister }) => {
   const [formData, setFormData] = useState({
@@ -10,7 +11,6 @@ const Register = ({ onRegister }) => {
     surname: '',
     birthDate: '',
     city: '',
-
     email: '',
     password: '',
     confirmPassword: '',
@@ -68,48 +68,46 @@ const Register = ({ onRegister }) => {
   }
 
   return (
-    <div className="auth-layout">
-      {/* Left Side: Visuals (Same as Login for consistency) */}
-      <div className="auth-visual">
-        <img src={loginBg} alt="MealMind Background" className="auth-visual-img" />
-        <div className="auth-visual-overlay">
-          <h1>Rejoignez l'aventure <br /> MealMind.</h1>
-          <p>Créez votre compte en quelques secondes et commencez à transformer votre façon de cuisiner et de manger.</p>
+    <div className="snapcook-auth-container">
+      {/* Left Side: Même image recadrée au millimètre près que le Login */}
+      <div className="snapcook-auth-left">
+        <div className="snapcook-image-cropper">
+          <img src={snapcookDesign} alt="SnapCook Design Panel" className="snapcook-design-panel-img" />
         </div>
       </div>
 
-      {/* Right Side: Register Form */}
-      <div className="auth-form-container" style={{ paddingTop: '60px', paddingBottom: '60px', overflowY: 'auto' }}>
-        <div className="auth-card-modern">
-          <img src={logo} alt="MealMind Logo" className="auth-logo-modern" />
-
-          <div className="auth-header-modern">
-            <h2>Inscription</h2>
-            <p>Créez votre profil pour une expérience sur mesure.</p>
+      {/* Right Side: Formulaire d'inscription défilant et propre */}
+      <div className="snapcook-auth-right" style={{ overflowY: 'auto' }}>
+        <div className="snapcook-auth-card" style={{ padding: '40px 0' }}>
+          
+          <div className="snapcook-auth-header">
+            <h1 className="snapcook-auth-title">INSCRIPTION</h1>
+            <p className="snapcook-auth-subtitle">Créez votre profil pour rejoindre la communauté SnapCook.</p>
           </div>
 
-          {error && <div className="alert alert-error" style={{ marginBottom: '20px' }}>{error}</div>}
+          {error && <div className="snapcook-alert snapcook-alert-error">{error}</div>}
 
           <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div className="form-group-modern">
-                <label>Nom</label>
+            {/* Nom & Prénom */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div className="snapcook-form-group">
+                <label className="snapcook-form-label">Nom</label>
                 <input
                   type="text"
                   name="name"
-                  className="form-input-modern"
+                  className="snapcook-form-input"
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Doe"
                   required
                 />
               </div>
-              <div className="form-group-modern">
-                <label>Prénom</label>
+              <div className="snapcook-form-group">
+                <label className="snapcook-form-label">Prénom</label>
                 <input
                   type="text"
                   name="surname"
-                  className="form-input-modern"
+                  className="snapcook-form-input"
                   value={formData.surname}
                   onChange={handleChange}
                   placeholder="John"
@@ -118,23 +116,24 @@ const Register = ({ onRegister }) => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div className="form-group-modern">
-                <label>Date de naissance</label>
+            {/* Date de naissance & Ville */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div className="snapcook-form-group">
+                <label className="snapcook-form-label">Date de naissance</label>
                 <input
                   type="date"
                   name="birthDate"
-                  className="form-input-modern"
+                  className="snapcook-form-input"
                   value={formData.birthDate}
                   onChange={handleChange}
                 />
               </div>
-              <div className="form-group-modern">
-                <label>Ville</label>
+              <div className="snapcook-form-group">
+                <label className="snapcook-form-label">Ville</label>
                 <input
                   type="text"
                   name="city"
-                  className="form-input-modern"
+                  className="snapcook-form-input"
                   value={formData.city}
                   onChange={handleChange}
                   placeholder="Paris"
@@ -142,12 +141,13 @@ const Register = ({ onRegister }) => {
               </div>
             </div>
 
-            <div className="form-group-modern">
-              <label>Email</label>
+            {/* Email */}
+            <div className="snapcook-form-group">
+              <label className="snapcook-form-label">Email address</label>
               <input
                 type="email"
                 name="email"
-                className="form-input-modern"
+                className="snapcook-form-input"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="john@example.com"
@@ -155,25 +155,26 @@ const Register = ({ onRegister }) => {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div className="form-group-modern">
-                <label>Mot de passe</label>
+            {/* Mots de passe */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div className="snapcook-form-group">
+                <label className="snapcook-form-label">Mot de passe</label>
                 <input
                   type="password"
                   name="password"
-                  className="form-input-modern"
+                  className="snapcook-form-input"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
                   required
                 />
               </div>
-              <div className="form-group-modern">
-                <label>Confirmation</label>
+              <div className="snapcook-form-group">
+                <label className="snapcook-form-label">Confirmation</label>
                 <input
                   type="password"
                   name="confirmPassword"
-                  className="form-input-modern"
+                  className="snapcook-form-input"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="••••••••"
@@ -182,19 +183,14 @@ const Register = ({ onRegister }) => {
               </div>
             </div>
 
-            <button type="submit" className="btn-saas-primary" disabled={loading}>
-              {loading ? (
-                <>
-                  <span className="spinner-small"></span>
-                  Création...
-                </>
-              ) : (
-                'Créer mon compte'
-              )}
-            </button>
+            <div className="snapcook-actions-container">
+              <button type="submit" className="snapcook-btn-submit" disabled={loading}>
+                {loading ? <span className="spinner-inline"></span> : 'Join SnapCook'}
+              </button>
+            </div>
           </form>
 
-          <p className="auth-footer-modern">
+          <p className="snapcook-auth-footer">
             Déjà un compte ? <Link to="/login">Se connecter</Link>
           </p>
         </div>

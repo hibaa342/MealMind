@@ -1,0 +1,210 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+.snapcook-auth-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  flex-wrap: nowrap;
+  background-color: #FAF8F4;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Left Side: Setup to perfectly isolate the green graphic */
+.snapcook-auth-left {
+  flex: 0 0 42%;
+  padding: 0;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  background-color: #1E2D24; 
+}
+
+/* The Cropper Wrapper forces the image to scale so the white text area stays completely hidden */
+.snapcook-image-cropper {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.snapcook-design-panel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+@media (max-width: 991px) {
+  .snapcook-auth-left {
+    display: none; 
+  }
+  .snapcook-auth-right {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    padding: 60px 24px !important;
+  }
+}
+
+/* Right Side: Centered Form Layout */
+.snapcook-auth-right {
+  flex: 0 0 58%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 10%;
+  position: relative;
+  background-color: #FAF8F4;
+}
+
+.snapcook-auth-card {
+  width: 100%;
+  max-width: 500px; /* Slightly narrower for a more elegant, centered feel */
+  display: flex;
+  flex-direction: column;
+}
+
+.snapcook-auth-header {
+  margin-bottom: 40px;
+}
+
+.snapcook-auth-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.8rem;
+  font-weight: 400;
+  color: #1E2D24;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+.snapcook-auth-subtitle {
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: #1E2D24;
+  line-height: 1.4;
+  max-width: 340px;
+}
+
+/* Form Styles */
+.snapcook-form-group {
+  margin-bottom: 32px;
+}
+
+.snapcook-form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #1E2D24;
+  margin-bottom: 6px;
+}
+
+.snapcook-form-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid #1E2D24;
+  background: transparent;
+  padding: 8px 0;
+  font-size: 1.05rem;
+  color: #1E2D24;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.snapcook-form-input:focus {
+  border-bottom-color: #5E7766;
+}
+
+.snapcook-actions-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40px;
+}
+
+.snapcook-btn-submit {
+  background-color: #607A66;
+  color: #FAF8F4;
+  border: none;
+  padding: 14px 50px;
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  font-family: inherit;
+  width: auto;
+}
+
+.snapcook-btn-submit:hover {
+  background-color: #4F6555;
+}
+
+.snapcook-btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.snapcook-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+
+.snapcook-alert-error {
+  background-color: #fdf2f2;
+  color: #9b1c1c;
+  border: 1px solid #fbd5d5;
+}
+
+.snapcook-auth-footer {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 0.88rem;
+  color: #1E2D24;
+  opacity: 0.75;
+}
+
+.snapcook-auth-footer a {
+  color: #1E2D24;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.snapcook-auth-container .snapcook-auth-left,
+.snapcook-auth-container .snapcook-auth-right {
+  box-sizing: border-box;
+}
+
+.snapcook-form-input:-webkit-autofill,
+.snapcook-form-input:-webkit-autofill:hover, 
+.snapcook-form-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1E2D24;
+  -webkit-box-shadow: 0 0 0px 1000px #FAF8F4 inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Spinner for loading state */
+.spinner-inline {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #FAF8F4;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
