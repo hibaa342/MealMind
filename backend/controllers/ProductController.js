@@ -17,6 +17,8 @@ const getProducts = async (req, res) => {
 // @access  Public (simulé admin côté front par localhost)
 const addProduct = async (req, res) => {
     try {
+        console.log('req.body:', req.body);   // ADD THIS
+        console.log('req.file:', req.file); 
         const { title, time, categories, rating, tags, accent } = req.body;
         const image = req.file ? req.file.path : req.body.image;
 
@@ -34,9 +36,10 @@ const addProduct = async (req, res) => {
         });
 
         res.status(201).json(product);
-    } catch (error) {
-        res.status(500).json({ message: 'Erreur serveur lors de la création' });
-    }
+    }  catch (error) {
+    console.error('PRODUCT ERROR:', error.message);
+    res.status(500).json({ message: 'Erreur serveur lors de la création' });
+}
 };
 
 // @desc    Mettre à jour un produit
@@ -70,9 +73,18 @@ const updateProduct = async (req, res) => {
         res.status(500).json({ message: 'Erreur serveur lors de la mise à jour' });
     }
 };
-
+    const deleteProduct = async (req, res) => {
+    try {
+        const product = await Product.findOneAndDelete({ _id: req.params.id, user: req.user.id });
+        if (!product) return res.status(404).json({ message: 'Produit introuvable' });
+        res.status(200).json({ message: 'Produit supprimé' });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur serveur' });
+    }
+};
 module.exports = {
     getProducts,
     addProduct,
-    updateProduct
+    updateProduct,
+    deleteProduct
 };

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+ingredients: [{ type: String }] // simple list of ingredient names for now
 const productSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
