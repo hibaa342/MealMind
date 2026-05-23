@@ -52,9 +52,15 @@ const Dashboard = () => {
   const [selectedMeal, setSelectedMeal] = useState(null)
 
   const toggleRecording = () => voice?.toggleRecording?.()
-  const playRecording = () => voice?.playRecording?.()
   const isRecording = voice?.isRecording
+  const isTranscribing = voice?.isTranscribing
   const voiceNote = voice?.voiceNote
+  const transcription = voice?.transcription
+  const micBusy = isRecording || isTranscribing
+
+  useEffect(() => {
+    if (transcription) setSearchQuery(transcription)
+  }, [transcription])
 
   const closeCreate = useCallback(() => {
     setCreateOpen(false)
@@ -133,20 +139,29 @@ const Dashboard = () => {
           />
           <button
             type="button"
-            className={`cookpal-search__mic ${isRecording ? 'cookpal-search__mic--recording' : ''}`}
+            className={`cookpal-search__mic ${micBusy ? 'cookpal-search__mic--recording' : ''}`}
             onClick={toggleRecording}
-            aria-label={isRecording ? 'Stop recording' : 'Start voice recording'}
+            disabled={isTranscribing}
+            aria-label={
+              isTranscribing
+                ? 'Transcription en cours'
+                : isRecording
+                  ? 'Arrêter et transcrire'
+                  : 'Dicter une recherche'
+            }
+            title={
+              isTranscribing
+                ? 'Transcription…'
+                : isRecording
+                  ? 'Arrêter et mettre le texte dans la recherche'
+                  : 'Parler pour rechercher'
+            }
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
               <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
               <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
               <line x1="12" y1="19" x2="12" y2="23" />
               <line x1="8" y1="23" x2="16" y2="23" />
-            </svg>
-          </button>
-          <button type="button" className="cookpal-search__ai" onClick={playRecording} aria-label="Play recording" title="Play last recording">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--grocio-green)" strokeWidth="1.75">
-              <polygon points="5 3 19 12 5 21 5 3" fill="var(--grocio-green)" stroke="none" />
             </svg>
           </button>
         </div>
