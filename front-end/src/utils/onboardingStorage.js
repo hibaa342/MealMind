@@ -2,7 +2,8 @@ const KEY_PREFIX = 'cookpal-onboarding-done-'
 
 export function userKey(user) {
   if (!user) return null
-  return String(user.id ?? user.email ?? '')
+  // API returns Mongo _id; JWT / some paths may use id
+  return String(user.id ?? user._id ?? user.email ?? '')
 }
 
 export function isOnboardingComplete(user) {
