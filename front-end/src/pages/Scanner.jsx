@@ -1,70 +1,59 @@
 import React, { useState, useRef, useCallback } from 'react';
 import './Scanner.css';
 
-// ─── mock: replace with real API call ────────────────────────────────────────
 const MOCK_INGREDIENTS = [
-  { id: 1, name: 'Tomatoes', emoji: '🍅', confidence: 97 },
-  { id: 2, name: 'Cheese',   emoji: '🧀', confidence: 94 },
-  { id: 3, name: 'Carrots',  emoji: '🥕', confidence: 91 },
-  { id: 4, name: 'Eggs',     emoji: '🥚', confidence: 89 },
-  { id: 5, name: 'Onions',   emoji: '🧅', confidence: 85 },
-  { id: 6, name: 'Milk',     emoji: '🥛', confidence: 82 },
+  { id: 1, name: 'Tomatoes', confidence: 97 },
+  { id: 2, name: 'Cheese', confidence: 94 },
+  { id: 3, name: 'Carrots', confidence: 91 },
+  { id: 4, name: 'Eggs', confidence: 89 },
+  { id: 5, name: 'Onions', confidence: 85 },
+  { id: 6, name: 'Milk', confidence: 82 },
 ];
 
-// ─── Step Bar ────────────────────────────────────────────────────────────────
 function StepBar({ phase }) {
-  const steps = ['Photo', 'Analyse', 'Results'];
+  const steps = ['Photo', 'Analyze', 'Results'];
   const active = [['idle', 'preview'], ['analyzing'], ['results']];
-  const done = (i) =>
-    (i === 0 && ['analyzing', 'results'].includes(phase)) ||
-    (i === 1 && phase === 'results');
+  const done = (index) =>
+    (index === 0 && ['analyzing', 'results'].includes(phase)) ||
+    (index === 1 && phase === 'results');
 
   return (
     <div className="scanner-stepbar">
-      {steps.map((label, i) => (
-        <React.Fragment key={i}>
+      {steps.map((label, index) => (
+        <React.Fragment key={label}>
           <div className="scanner-step">
-            <div className={`scanner-step__dot ${
-              done(i) ? 'scanner-step__dot--done' : active[i].includes(phase) ? 'scanner-step__dot--active' : ''
-            }`}>
-              {done(i) ? '✓' : i + 1}
+            <div className={`scanner-step__dot ${done(index) ? 'scanner-step__dot--done' : active[index].includes(phase) ? 'scanner-step__dot--active' : ''}`}>
+              {index + 1}
             </div>
-            <span className={`scanner-step__label ${
-              done(i) || active[i].includes(phase) ? 'scanner-step__label--active' : ''
-            }`}>
+            <span className={`scanner-step__label ${done(index) || active[index].includes(phase) ? 'scanner-step__label--active' : ''}`}>
               {label}
             </span>
           </div>
-          {i < 2 && (
-            <div className={`scanner-step__line ${done(i) ? 'scanner-step__line--done' : ''}`} />
-          )}
+          {index < steps.length - 1 && <div className={`scanner-step__line ${done(index) ? 'scanner-step__line--done' : ''}`} />}
         </React.Fragment>
       ))}
     </div>
   );
 }
 
-// ─── Ingredient Chip ─────────────────────────────────────────────────────────
-function IngredientChip({ ing, onRemove }) {
+function IngredientChip({ ingredient, onRemove }) {
   return (
     <div className="scanner-chip">
-      <span className="scanner-chip__emoji">{ing.emoji}</span>
-      <span className="scanner-chip__name">{ing.name}</span>
-      {ing.confidence && (
-        <span className="scanner-chip__conf">{ing.confidence}%</span>
-      )}
-      <button
-        className="scanner-chip__remove"
-        onClick={() => onRemove(ing.id)}
-        title="Remove"
-      >✕</button>
+      <div className="scanner-chip__content">
+        <span className="scanner-chip__name">{ingredient.name}</span>
+        {ingredient.confidence != null && (
+          <span className="scanner-chip__conf">{ingredient.confidence}%</span>
+        )}
+      </div>
+      <button className="scanner-chip__remove" onClick={() => onRemove(ingredient.id)}>
+        Remove
+      </button>
     </div>
   );
 }
 
-// ─── Main Page ───────────────────────────────────────────────────────────────
 const ScannerPage = () => {
-  const [phase, setPhase] = useState('idle'); 
+  const [phase, setPhase] = useState('idle');
   const [dragOver, setDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [ingredients, setIngredients] = useState([]);
@@ -79,216 +68,186 @@ const ScannerPage = () => {
     setPhase('preview');
   };
 
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
+  const handleDrop = useCallback((event) => {
+    event.preventDefault();
     setDragOver(false);
-    handleFile(e.dataTransfer.files[0]);
+    handleFile(event.dataTransfer.files[0]);
   }, []);
 
   const reset = () => {
-    setPhase('idle'); 
+    setPhase('idle');
     setPreviewUrl(null);
-    setIngredients([]); 
+    setIngredients([]);
     setProgress(0);
-    setShowAdd(false); 
+    setShowAdd(false);
     setNewIng('');
   };
 
   const handleAnalyze = () => {
-    setPhase('analyzing'); 
+    setPhase('analyzing');
     setProgress(0);
 
-    // TO PREPARE FOR BACKEND:
-    // 1. Create FormData from fileRef.current.files[0]
-    // 2. Call your FastAPI endpoint (e.g., POST /api/scan)
-    // 3. Update ingredients with response.json()
-    // 4. Handle progress using XHR or simulated steps
-    
-    // Mocking the behavior for now:
-    const iv = setInterval(() => {
-      setProgress(p => {
-        if (p >= 100) {
-          clearInterval(iv);
+    const intervalId = setInterval(() => {
+      setProgress((current) => {
+        if (current >= 100) {
+          clearInterval(intervalId);
           setIngredients(MOCK_INGREDIENTS);
           setPhase('results');
           return 100;
         }
-        return p + Math.random() * 11;
+        return current + Math.random() * 10;
       });
     }, 180);
   };
 
   const addIngredient = () => {
     if (!newIng.trim()) return;
-    setIngredients(prev => [...prev, { id: Date.now(), name: newIng.trim(), emoji: '🥘', confidence: null }]);
-    setNewIng(''); 
+    setIngredients((prev) => [...prev, { id: Date.now(), name: newIng.trim(), confidence: null }]);
+    setNewIng('');
     setShowAdd(false);
   };
 
-  const removeIngredient = (id) => setIngredients(prev => prev.filter(i => i.id !== id));
+  const removeIngredient = (id) => setIngredients((prev) => prev.filter((item) => item.id !== id));
 
   const analyzeSteps = [
     { label: 'Object detection', done: progress > 25 },
     { label: 'Food classification', done: progress > 55 },
     { label: 'Quantity estimation', done: progress > 80 },
-    { label: 'Finalisation', done: progress >= 100 },
+    { label: 'Finalization', done: progress >= 100 },
   ];
 
   return (
     <div className="cookpal-page scanner-page">
-      <h1 className="cookpal-page__title">Fridge & pantry scan</h1>
+      <h1 className="cookpal-page__title">Scanner</h1>
       <p className="cookpal-page__lead">
-        Upload a photo of your fridge or cupboard — AI detects your ingredients automatically.
+        Upload a photo of your fridge or pantry. AI detects the contents automatically.
       </p>
 
       <StepBar phase={phase} />
 
-      {/* PHASE: idle / preview */}
       {(phase === 'idle' || phase === 'preview') && (
-        <div className="card scanner-card fade-in">
+        <div className="scanner-card fade-in">
           <div
-            className={`dropzone ${
-              dragOver ? 'dropzone--active' : ''
-            } ${
-              previewUrl ? 'scanner-dropzone--preview' : ''
-            }`}
+            className={`scanner-dropzone ${dragOver ? 'scanner-dropzone--active' : ''} ${previewUrl ? 'scanner-dropzone--preview' : ''}`}
             onDrop={handleDrop}
-            onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragOver(true);
+            }}
             onDragLeave={() => setDragOver(false)}
             onClick={() => !previewUrl && fileRef.current.click()}
           >
             {previewUrl ? (
               <>
-                <img src={previewUrl} alt="preview" className="scanner-preview__img" />
-                <button
-                  className="scanner-preview__change"
-                  onClick={e => { e.stopPropagation(); reset(); }}
-                >✕ Change photo</button>
+                <img src={previewUrl} alt="Photo preview" className="scanner-preview__img" />
+                <button className="scanner-preview__change" onClick={(event) => {
+                  event.stopPropagation();
+                  reset();
+                }}>
+                  Change photo
+                </button>
               </>
             ) : (
-              <>
-                <div className="dropzone__icon" style={{ fontSize: '2.5rem' }}>{dragOver ? '⬇️' : '📸'}</div>
-                <p className="dropzone__text"><strong>Drag & drop your photo</strong> here</p>
-                <p className="dropzone__text" style={{ fontSize: '0.8rem', opacity: 0.6 }}>or</p>
+              <div className="scanner-dropzone__content">
+                <p className="scanner-dropzone__title">Drag and drop a photo here</p>
+                <p className="scanner-dropzone__hint">or choose a file from your device</p>
                 <button
                   type="button"
-                  className="btn-saas-primary"
-                  style={{ width: 'auto', padding: '10px 24px' }}
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  className="scanner-dropzone__button"
+                  onClick={(event) => {
+                    event.stopPropagation();
                     fileRef.current.click();
                   }}
-                >Choose a photo</button>
-                <p className="dropzone__text" style={{ fontSize: '0.75rem' }}>JPG, PNG, HEIC — max 20 MB</p>
-              </>
+                >
+                  Choose photo
+                </button>
+                <p className="scanner-dropzone__note">JPG, PNG, HEIC - max 20 MB</p>
+              </div>
             )}
           </div>
 
           <input
-            ref={fileRef} type="file" accept="image/*"
+            ref={fileRef}
+            type="file"
+            accept="image/*"
             style={{ display: 'none' }}
-            onChange={e => handleFile(e.target.files[0])}
+            onChange={(event) => handleFile(event.target.files[0])}
           />
 
           {phase === 'preview' && (
             <div className="scanner-actions">
-              <button className="cookpal-signout" style={{ width: 'auto' }} onClick={reset}>← Cancel</button>
-              <button
-                className="btn-saas-primary"
-                style={{ width: 'auto', padding: '12px 32px' }}
-                onClick={handleAnalyze}
-              >✨ Analyse with AI</button>
+              <button className="scanner-cancel" onClick={reset}>Cancel</button>
+              <button className="scanner-submit" onClick={handleAnalyze}>Analyze photo</button>
             </div>
           )}
         </div>
       )}
 
-      {/* PHASE: analyzing */}
       {phase === 'analyzing' && (
-        <div className="card scanner-analyzing fade-in" style={{ textAlign: 'center' }}>
-          <div className="scanner-analyzing__icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>🤖</div>
-          <h2 className="scanner-analyzing__title">Analysing your photo…</h2>
-          <p className="scanner-analyzing__sub">The AI is identifying ingredients in your image</p>
+        <div className="scanner-card scanner-analyzing fade-in">
+          <h2 className="scanner-analyzing__title">Analyzing your photo</h2>
+          <p className="scanner-analyzing__sub">Identifying ingredients in the image</p>
 
-          <div className="scanner-progress" style={{ height: '8px', background: 'var(--saas-slate-100)', borderRadius: '4px', overflow: 'hidden', margin: '24px 0 8px' }}>
-            <div className="scanner-progress__fill" style={{ width: `${Math.min(progress, 100)}%`, height: '100%', background: 'var(--saas-blue)', transition: 'width 0.3s ease' }} />
+          <div className="scanner-progress">
+            <div className="scanner-progress__fill" style={{ width: `${Math.min(progress, 100)}%` }} />
           </div>
           <p className="scanner-progress__pct">{Math.min(Math.round(progress), 100)}%</p>
 
           <div className="scanner-analyze-steps">
-            {analyzeSteps.map((s, i) => (
-              <div key={i} className="scanner-analyze-step">
-                <span className={['scanner-analyze-step__dot', s.done ? 'scanner-analyze-step__dot--done' : ''].join(' ')}>
-                  {s.done ? '✓' : ''}
-                </span>
-                <span className={['scanner-analyze-step__label', s.done ? 'scanner-analyze-step__label--done' : ''].join(' ')}>
-                  {s.label}
-                </span>
+            {analyzeSteps.map((step) => (
+              <div key={step.label} className="scanner-analyze-step">
+                <span className={`scanner-analyze-step__dot ${step.done ? 'scanner-analyze-step__dot--done' : ''}`} />
+                <span className={`scanner-analyze-step__label ${step.done ? 'scanner-analyze-step__label--done' : ''}`}>{step.label}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* PHASE: results */}
       {phase === 'results' && (
-        <>
-          <div className="card fade-in">
-            <div className="scanner-results__header">
-              <div>
-                <h2 className="scanner-results__title">🎯 {ingredients.length} ingredients detected</h2>
-                <p className="scanner-results__sub">Check and correct if needed before generating your recipe</p>
-              </div>
-              {previewUrl && (
-                <img src={previewUrl} alt="scan thumbnail" className="scanner-results__thumb" />
-              )}
+        <div className="scanner-card fade-in">
+          <div className="scanner-results__header">
+            <div>
+              <h2 className="scanner-results__title">{ingredients.length} ingredients detected</h2>
+              <p className="scanner-results__sub">Review and adjust the list before generating your recipe.</p>
             </div>
-
-            <div className="scanner-chips">
-              {ingredients.map(ing => (
-                <IngredientChip key={ing.id} ing={ing} onRemove={removeIngredient} />
-              ))}
-
-              {showAdd ? (
-                <div className="scanner-add-input">
-                  <input
-                    autoFocus
-                    className="scanner-add-input__field"
-                    placeholder="Ingredient name"
-                    value={newIng}
-                    onChange={e => setNewIng(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') addIngredient();
-                      if (e.key === 'Escape') { setShowAdd(false); setNewIng(''); }
-                    }}
-                  />
-                  <button className="scanner-add-input__confirm" onClick={addIngredient}>✓</button>
-                  <button className="scanner-add-input__cancel" onClick={() => { setShowAdd(false); setNewIng(''); }}>✕</button>
-                </div>
-              ) : (
-                <button className="scanner-add-btn" onClick={() => setShowAdd(true)}>
-                  + Add ingredient
-                </button>
-              )}
-            </div>
-
-            <hr className="scanner-divider" />
-            <p className="scanner-note">
-              <span>💡</span>
-              <span>These ingredients will be sent to <strong>AI</strong> to generate personalised recipes.</span>
-            </p>
+            {previewUrl && <img src={previewUrl} alt="scan thumbnail" className="scanner-results__thumb" />}
           </div>
+
+          <div className="scanner-chips">
+            {ingredients.map((ingredient) => (
+              <IngredientChip key={ingredient.id} ingredient={ingredient} onRemove={removeIngredient} />
+            ))}
+
+            {showAdd ? (
+              <div className="scanner-add-input">
+                <input
+                  autoFocus
+                  className="scanner-add-input__field"
+                  placeholder="Ingredient name"
+                  value={newIng}
+                  onChange={(event) => setNewIng(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') addIngredient();
+                  }}
+                />
+                <button type="button" className="scanner-add-input__confirm" onClick={addIngredient}>Add</button>
+                <button type="button" className="scanner-add-input__cancel" onClick={() => setShowAdd(false)}>Cancel</button>
+              </div>
+            ) : (
+              <button type="button" className="scanner-add-btn" onClick={() => setShowAdd(true)}>
+                Add ingredient
+              </button>
+            )}
+          </div>
+
+          <hr className="scanner-divider" />
+          <p className="scanner-note">If an ingredient is missing, add it manually before moving on.</p>
 
           <div className="scanner-cta">
-            <button className="cookpal-signout" style={{ width: 'auto' }} onClick={reset}>🔄 New scan</button>
-            <button
-              className={`btn-saas-primary ${ingredients.length === 0 ? 'scanner-btn-disabled' : ''}`}
-              disabled={ingredients.length === 0}
-              style={{ width: 'auto', padding: '14px 40px' }}
-              onClick={() => console.log('Generate recipes for:', ingredients)}
-            >🍳 Generate my recipes →</button>
+            <button className="scanner-cancel" onClick={reset}>Scan another photo</button>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
