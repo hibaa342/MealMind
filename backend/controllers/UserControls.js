@@ -112,7 +112,97 @@ const generateToken = (id) => {
     });
 };
 
+// @desc    Ajouter une recette aux favoris
+// @route   POST /api/users/favorites/add
+// @access  Private
+const addFavorite = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { recipeId, title, image } = req.body;
+
+        if (!userId || !recipeId) {
+            return res.status(400).json({ message: 'userId et recipeId sont requis' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+
+        // Check if recipe is already in favorites
+        const alreadyExists = user.favorites.some(fav => fav.id === recipeId);
+        if (alreadyExists) {
+            return res.status(400).json({ message: 'Cette recette est déjà dans les favoris' });
+        }
+
+        user.favorites.push({
+            id: recipeId,
+            title: title,
+            image: image,
+            addedAt: new Date()
+        });
+
+        await user.save();
+        res.json({ message: 'Recette ajoutée aux favoris', favorites: user.favorites });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Erreur serveur lors de l\'ajout aux favoris' });
+    }
+};
+
+// @desc    Supprimer une recette des favoris
+// @route   DELETE /api/users/favorites/:userId/:recipeId
+// @access  Private
+const removeFavorite = async (req, res) => {
+    try {
+        const { userId, recipeId } = req.params;
+
+        if (!userId || !recipeId) {
+            return res.status(400).json({ message: 'userId et recipeId sont requis' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+
+        user.favorites = user.favorites.filter(fav => fav.id !== recipeId);
+        await user.save();
+
+        res.json({ message: 'Recette supprimée des favoris', favorites: user.favorites });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Erreur serveur lors de la suppression' });
+    }
+};
+
+// @desc    Récupérer les favoris d'un utilisateur
+// @route   GET /api/users/favorites/:userId
+// @access  Private
+const getFavorites = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({ message: 'userId est requis' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+
+        res.json({ favorites: user.favorites });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération des favoris' });
+    }
+};
+
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    addFavorite,
+    removeFavorite,
+    getFavorites
 };

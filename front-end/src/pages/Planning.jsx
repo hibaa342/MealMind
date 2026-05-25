@@ -131,8 +131,8 @@ const PlanningPage = () => {
       const data = await response.json();
       
       if (response.status === 401) {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+        setError('Session expirée ou accès refusé. Reconnectez-vous depuis le profil si le problème persiste.');
+        setPlans([]);
         return;
       }
 
