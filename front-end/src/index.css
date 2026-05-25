@@ -26,6 +26,9 @@
   --success-color: #10b981;
   --warning-color: #f59e0b;
 
+  /* Snap Cook Design System */
+  --snap-forest: #1b3b28;
+
   /* Modern SaaS Palette */
   --saas-blue: #0066ff;
   --saas-blue-light: #e0edff;
@@ -477,35 +480,36 @@ body {
   scroll-snap-align: start;
   border-radius: var(--cookpal-radius);
   overflow: hidden;
-  box-shadow: 0 10px 32px rgba(44, 62, 80, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   transition: transform 0.2s, box-shadow 0.2s;
+  background: #ffffff;
 }
 
 .cookpal-recipe-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 14px 40px rgba(44, 62, 80, 0.14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .cookpal-recipe-card--green {
-  background: #e8f5e9;
+  background: #ffffff;
 }
 
 .cookpal-recipe-card--orange {
-  background: #fff3e0;
+  background: #ffffff;
 }
 
 .cookpal-recipe-card--pink {
-  background: #fce4ec;
+  background: #ffffff;
 }
 
 .cookpal-recipe-card--yellow {
-  background: #fff8e1;
+  background: #ffffff;
 }
 
 .cookpal-recipe-card--purple {
-  background: #f3e5f5;
+  background: #ffffff;
 }
 
 .cookpal-recipe-card__image-wrap {

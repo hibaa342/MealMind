@@ -1,29 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useOutletContext } from 'react-router-dom'
 
-const initialFavorites = [
-  {
-    id: 1,
-    title: 'Poulet Teriyaki',
-    time: '30 min',
-    image: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?w=400&h=300&fit=crop',
-  },
-  {
-    id: 2,
-    title: 'Salade Caprese',
-    time: '15 min',
-    image: 'https://images.unsplash.com/photo-1592417817098-8fd3d9eb14a5?w=400&h=300&fit=crop',
-  },
-  {
-    id: 3,
-    title: 'Veggie Tacos',
-    time: '25 min',
-    image: 'https://images.unsplash.com/photo-1564759298141-cef86f51d4d4?w=400&h=300&fit=crop',
-  },
-]
-
 const Favorites = () => {
-  const [favorites, setFavorites] = useState(initialFavorites)
+  const [favorites, setFavorites] = useState([])
+  const [userId, setUserId] = useState(null)
+  const [loading, setLoading] = useState(true)
   const { voice } = useOutletContext() || {}
   const [searchQuery, setSearchQuery] = useState('')
   const isRecording = voice?.isRecording
@@ -31,9 +12,65 @@ const Favorites = () => {
   const toggleRecording = () => voice?.toggleRecording?.()
   const playRecording = () => voice?.playRecording?.()
 
-  const removeFromFavorites = (id) => {
-    setFavorites((prev) => prev.filter((item) => item.id !== id))
+  // Get userId from localStorage and fetch favorites
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser)
+        setUserId(user._id)
+        fetchFavorites(user._id)
+      } catch (err) {
+        console.error('Error parsing user from localStorage:', err)
+        setLoading(false)
+      }
+    } else {
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchFavorites = async (uid) => {
+    try {
+      setLoading(true)
+      const res = await fetch(`http://localhost:5000/api/users/favorites/${uid}`)
+      if (res.ok) {
+        const data = await res.json()
+        setFavorites(data.favorites || [])
+      } else {
+        console.error('Error fetching favorites')
+        setFavorites([])
+      }
+    } catch (err) {
+      console.error('Error fetching favorites:', err)
+      setFavorites([])
+    } finally {
+      setLoading(false)
+    }
   }
+
+  const removeFromFavorites = async (recipeId) => {
+    if (!userId) return
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/favorites/${userId}/${recipeId}`, {
+        method: 'DELETE',
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setFavorites(data.favorites)
+      } else {
+        console.error('Error removing favorite')
+      }
+    } catch (err) {
+      console.error('Error removing favorite:', err)
+    }
+  }
+
+  // Filter favorites based on search query
+  const filteredFavorites = favorites.filter(fav =>
+    fav.title.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <div className="cookpal-home cookpal-home--grocio">
@@ -85,16 +122,18 @@ const Favorites = () => {
           <h2 className="grocio-section__title">Vos recettes favorites</h2>
         </div>
         
-        {favorites.length === 0 ? (
+        {loading ? (
+          <p className="cookpal-empty">Chargement...</p>
+        ) : filteredFavorites.length === 0 ? (
           <p className="cookpal-empty">Aucune recette sauvegardée.</p>
         ) : (
           <div className="grocio-quick-grid">
-            {favorites.map((r) => (
+            {filteredFavorites.map((r) => (
               <div key={r.id} className="grocio-quick-tile" style={{ position: 'relative' }}>
                 <div className="grocio-quick-tile__img" style={{ backgroundImage: `url(${r.image})` }} />
                 <div className="grocio-quick-tile__text">
                   <span className="grocio-quick-tile__name">{r.title}</span>
-                  <span className="grocio-quick-tile__time">{r.time}</span>
+                  <span className="grocio-quick-tile__time">Sauvegardée</span>
                 </div>
                 
                 {/* Icône de cœur active superposée pour retirer des favoris */}

@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 500
     },
+    favorites: {
+        type: Array,
+        default: []
+    },
     notificationSettings: {
         pauseAll: { type: Boolean, default: false },
         quietMode: {

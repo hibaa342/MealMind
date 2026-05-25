@@ -1,16 +1,21 @@
 const jwt = require('jsonwebtoken');
 
-module.exports = function(req, res, next) {
-  // 1. Récupérer le header Authorization
+function extractToken(req) {
   const authHeader = req.header('Authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.split(' ')[1];
+  }
+  const legacy = req.header('x-auth-token');
+  if (legacy) return legacy;
+  return null;
+}
 
-  // 2. Vérifier si le header existe et commence par "Bearer "
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+module.exports = function(req, res, next) {
+  const token = extractToken(req);
+
+  if (!token) {
     return res.status(401).json({ message: 'Accès refusé, aucun token fourni' });
   }
-
-  // 3. Extraire le token (on enlève "Bearer ")
-  const token = authHeader.split(' ')[1];
 
   try {
     const secret = process.env.JWT_SECRET || 'your_jwt_secret';
