@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
-const API_BASE = 'http://127.0.0.1:5000'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000'
 const MIN_BLOB_BYTES = 500
 
 const getSpeechRecognition = () => {
@@ -23,6 +23,15 @@ const extensionForMime = (mime) => {
 const isQuotaError = (message) =>
   /quota|billing|insufficient/i.test(message || '')
 
+const collectTranscriptFromEvent = (event) => {
+  let text = ''
+  const start = typeof event.resultIndex === 'number' ? event.resultIndex : 0
+  for (let i = start; i < event.results.length; i++) {
+    text += event.results[i][0]?.transcript || ''
+  }
+  return text.trim()
+}
+
 export function useVoiceRecorder() {
   const [isRecording, setIsRecording] = useState(false)
   const [isTranscribing, setIsTranscribing] = useState(false)
@@ -35,6 +44,7 @@ export function useVoiceRecorder() {
   const chunksRef = useRef([])
   const mimeTypeRef = useRef('audio/webm')
   const modeRef = useRef(null) // 'speech' | 'whisper'
+  const lastTranscriptRef = useRef('')
 
   const stopStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop())
@@ -48,34 +58,44 @@ export function useVoiceRecorder() {
     }
   }, [stopStream])
 
+  const commitTranscription = useCallback((text) => {
+    const trimmed = text.trim()
+    if (!trimmed) return false
+    lastTranscriptRef.current = trimmed
+    setTranscription(trimmed)
+    return true
+  }, [])
+
   const startBrowserDictation = useCallback(() => {
     const SpeechRecognition = getSpeechRecognition()
     if (!SpeechRecognition) return false
 
-    setVoiceNote(null)
+    setVoiceNote('Écoute… parlez puis recliquez sur le micro pour arrêter.')
+    lastTranscriptRef.current = ''
+
     const recognition = new SpeechRecognition()
     recognition.lang = navigator.language?.toLowerCase().startsWith('fr') ? 'fr-FR' : 'en-US'
-    recognition.continuous = false
+    recognition.continuous = true
     recognition.interimResults = true
     recognition.maxAlternatives = 1
 
     recognition.onstart = () => {
       modeRef.current = 'speech'
       setIsRecording(true)
+      setVoiceNote('Parlez maintenant… recliquez sur le micro quand vous avez fini.')
     }
 
     recognition.onresult = (event) => {
-      let text = ''
-      for (let i = 0; i < event.results.length; i++) {
-        text += event.results[i][0].transcript
+      const trimmed = collectTranscriptFromEvent(event)
+      if (trimmed) {
+        lastTranscriptRef.current = trimmed
+        setTranscription(trimmed)
       }
-      const trimmed = text.trim()
-      if (trimmed) setTranscription(trimmed)
     }
 
     recognition.onerror = (event) => {
       if (event.error === 'no-speech') {
-        setVoiceNote('Aucune parole détectée. Réessayez.')
+        setVoiceNote('Aucune parole détectée. Réessayez en parlant plus fort.')
       } else if (event.error !== 'aborted') {
         setVoiceNote(
           event.error === 'not-allowed'
@@ -88,7 +108,16 @@ export function useVoiceRecorder() {
 
     recognition.onend = () => {
       setIsRecording(false)
-      setVoiceNote(null)
+      const finalText = lastTranscriptRef.current.trim()
+      if (finalText) {
+        commitTranscription(finalText)
+        setVoiceNote(null)
+      } else {
+        setVoiceNote((prev) => {
+          if (prev && !/Parlez|Écoute/i.test(prev)) return prev
+          return 'Aucun texte capté. Réessayez ou utilisez Chrome/Edge.'
+        })
+      }
     }
 
     recognitionRef.current = recognition
@@ -97,59 +126,73 @@ export function useVoiceRecorder() {
       return true
     } catch (err) {
       setVoiceNote(err?.message || 'Impossible de démarrer la dictée.')
+      setIsRecording(false)
       return false
     }
-  }, [])
+  }, [commitTranscription])
 
-  const transcribeBlob = useCallback(async (blob, mimeType) => {
-    setIsTranscribing(true)
-    setVoiceNote('Transcription en cours…')
-    try {
-      if (blob.size < MIN_BLOB_BYTES) {
-        setVoiceNote('Enregistrement trop court. Parlez 2–3 secondes minimum.')
-        return
-      }
-
-      const ext = extensionForMime(mimeType)
-      const formData = new FormData()
-      formData.append('file', blob, `recording.${ext}`)
-
-      const response = await fetch(`${API_BASE}/api/transcribe`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      const result = await response.json().catch(() => ({}))
-
-      if (!response.ok) {
-        const msg = result.error || `Erreur serveur (${response.status})`
-        if (isQuotaError(msg) && getSpeechRecognition()) {
-          setVoiceNote('Quota OpenAI épuisé — bascule sur la dictée du navigateur…')
-          startBrowserDictation()
+  const transcribeBlob = useCallback(
+    async (blob, mimeType) => {
+      setIsTranscribing(true)
+      setVoiceNote('Transcription en cours…')
+      try {
+        if (blob.size < MIN_BLOB_BYTES) {
+          setVoiceNote('Enregistrement trop court. Parlez 2–3 secondes minimum.')
           return
         }
-        if (isQuotaError(msg)) {
-          throw new Error(
-            'Quota OpenAI épuisé. Utilisez Chrome ou Edge, ou rechargez votre compte sur platform.openai.com.'
-          )
-        }
-        throw new Error(msg)
-      }
 
-      const text = (result.text || result.transcription || '').trim()
-      if (text) {
-        setTranscription(text)
-        setVoiceNote(null)
-      } else {
-        setVoiceNote('Aucun texte reconnu. Parlez plus fort ou plus longtemps.')
+        const ext = extensionForMime(mimeType)
+        const formData = new FormData()
+        formData.append('file', blob, `recording.${ext}`)
+
+        const response = await fetch(`${API_BASE}/api/transcribe`, {
+          method: 'POST',
+          body: formData,
+        })
+
+        const result = await response.json().catch(() => ({}))
+
+        if (!response.ok) {
+          const msg = result.error || `Erreur serveur (${response.status})`
+          if (isQuotaError(msg) && getSpeechRecognition()) {
+            setVoiceNote('Quota API épuisé — bascule sur la dictée du navigateur…')
+            startBrowserDictation()
+            return
+          }
+          if (isQuotaError(msg)) {
+            throw new Error(
+              'Quota API épuisé. Utilisez Chrome ou Edge, ou rechargez votre clé Groq.'
+            )
+          }
+          throw new Error(msg)
+        }
+
+        const text = (result.text || result.transcription || '').trim()
+        if (text) {
+          commitTranscription(text)
+          setVoiceNote(null)
+        } else {
+          setVoiceNote('Aucun texte reconnu. Parlez plus fort ou plus longtemps.')
+        }
+      } catch (error) {
+        console.error('Transcription error:', error)
+        const msg = error.message || 'Transcription impossible.'
+        if (getSpeechRecognition() && !msg.includes('Failed to fetch')) {
+          setVoiceNote(`${msg} — essai avec la dictée du navigateur…`)
+          startBrowserDictation()
+        } else if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+          setVoiceNote(
+            'Serveur injoignable. Lancez le backend (port 5000) ou utilisez Chrome/Edge pour la dictée.'
+          )
+        } else {
+          setVoiceNote(msg)
+        }
+      } finally {
+        setIsTranscribing(false)
       }
-    } catch (error) {
-      console.error('Transcription error:', error)
-      setVoiceNote(error.message || 'Transcription impossible.')
-    } finally {
-      setIsTranscribing(false)
-    }
-  }, [startBrowserDictation])
+    },
+    [commitTranscription, startBrowserDictation]
+  )
 
   const stopWhisperRecording = useCallback(() => {
     const rec = mediaRecorderRef.current
@@ -177,6 +220,7 @@ export function useVoiceRecorder() {
 
   const startWhisperRecording = useCallback(async () => {
     setVoiceNote(null)
+    lastTranscriptRef.current = ''
     chunksRef.current = []
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -206,13 +250,15 @@ export function useVoiceRecorder() {
   const toggleRecording = useCallback(async () => {
     if (isTranscribing) return
 
-    // Arrêt dictée navigateur
     if (isRecording && modeRef.current === 'speech' && recognitionRef.current) {
-      recognitionRef.current.stop()
+      try {
+        recognitionRef.current.stop()
+      } catch {
+        setIsRecording(false)
+      }
       return
     }
 
-    // Arrêt enregistrement Whisper
     if (isRecording && modeRef.current === 'whisper') {
       const blob = await stopWhisperRecording()
       if (blob?.size > 0) {
@@ -223,13 +269,11 @@ export function useVoiceRecorder() {
       return
     }
 
-    // Démarrage : dictée navigateur en priorité (gratuite, pas de quota OpenAI)
     if (getSpeechRecognition()) {
-      startBrowserDictation()
-      return
+      const started = startBrowserDictation()
+      if (started) return
     }
 
-    // Secours : Whisper via le backend
     try {
       await startWhisperRecording()
     } catch (err) {
@@ -257,5 +301,9 @@ export function useVoiceRecorder() {
     transcription,
     voiceNote,
     toggleRecording,
+    clearTranscription: () => {
+      lastTranscriptRef.current = ''
+      setTranscription('')
+    },
   }
 }

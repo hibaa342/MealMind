@@ -5,12 +5,17 @@ import { loadSidebarPrefs, saveSidebarPrefs } from '../utils/sidebarPrefs'
 import { getDisplayNameFromUser, getPreferredDisplayName, getSubtitleFromUser } from '../utils/userDisplay'
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder'
 
-import imgMeat from '../assets/images/meat_1777065052517.png'
-import imgSoup from '../assets/images/soup_1777065107187.png'
-import imgGrocery from '../assets/images/grocery_1777065653499.png'
-import imgSalad from '../assets/images/salad_1777065578678.png'
-import imgTacos from '../assets/images/tacos_1777065667208.png'
-import imgMutton from '../assets/images/mutton_1777065367934.png'
+const IconChefHat = () => (
+  <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+    <path
+      d="M8 18c0-5 3-9 8-9s8 4 8 9v2H8v-2z"
+      fill="currentColor"
+      opacity="0.95"
+    />
+    <ellipse cx="16" cy="11" rx="9" ry="3.5" fill="currentColor" />
+    <rect x="10" y="20" width="12" height="6" rx="2" fill="currentColor" opacity="0.85" />
+  </svg>
+)
 
 const IconHome = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -107,87 +112,82 @@ const IconSliders = () => (
   </svg>
 )
 
+const IconCalendar = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+)
+const IconUser = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+)
+
 const navItems = [
-  { to: '/dashboard', label: 'Accueil', Icon: IconHome },
-  { to: '/recipes', label: 'Recettes', Icon: IconCamera, bg: imgSoup },
-  { to: '/scanner', label: 'Scanner', Icon: IconCompass, bg: imgMutton },
-  { to: '/order', label: 'Commande', Icon: IconCart, bg: imgSalad },
-  { to: '/community', label: 'Community', Icon: IconUsers, bg: imgMeat },
-  { to: '/planning', label: 'Planning', Icon: IconUsers, bg: imgGrocery },
-  { to: '/favorites', label: 'Favoris', Icon: IconHeart, bg: imgTacos },
-  { to: '/notifications', label: 'Notifications', Icon: IconBell, bg: imgSoup },
-  { to: '/help', label: 'Help', Icon: IconHelp, bg: imgMutton },
-  { to: '/profile', label: 'Profil', Icon: IconSettings },
+  { to: '/dashboard', label: 'Home', Icon: IconHome },
+  { to: '/recipes', label: 'Recipes', Icon: IconRecipe },
+  { to: '/scanner', label: 'Scanner', Icon: IconCamera },
+  { to: '/order', label: 'Order', Icon: IconCart },
+  { to: '/community', label: 'Community', Icon: IconUsers },
+  { to: '/planning', label: 'Planning', Icon: IconCalendar },
+  { to: '/favorites', label: 'Favorites', Icon: IconHeart },
+  { to: '/notifications', label: 'Notifications', Icon: IconBell },
+  { to: '/help', label: 'Help', Icon: IconHelp },
 ]
 
-const PREF_IMAGE_POOL = [imgMeat, imgSoup, imgGrocery, imgSalad, imgTacos, imgMutton]
-
-const prefImageAt = (index) => PREF_IMAGE_POOL[index % PREF_IMAGE_POOL.length]
-
-const PrefCard = ({ image, label }) => (
-  <div className="cookpal-pref-card">
-    {image && (
-      <div className="cookpal-pref-card__img-wrap">
-        <img src={image} alt={label} className="cookpal-pref-card__img" />
-      </div>
-    )}
-    <div className="cookpal-pref-card__label">{label}</div>
-  </div>
+const PrefPill = ({ label, variant = 'diet' }) => (
+  <span className={`snapcook-pref-pill snapcook-pref-pill--${variant}`}>{label}</span>
 )
 
 const PrefsSections = ({ prefs, openAdd }) => (
   <>
-    <section className="cookpal-prefs">
-      <div className="cookpal-prefs__head">
-        <h3>DIET</h3>
-      </div>
+    <section className="cookpal-prefs snapcook-prefs">
+      <h3 className="snapcook-prefs__label">DIET</h3>
       <div className="cookpal-prefs__row">
         {prefs.diets.map((label, i) => (
-          <PrefCard key={`diet-${label}-${i}`} label={label} image={prefImageAt(i)} />
+          <PrefPill key={`diet-${label}-${i}`} label={label} variant="diet" />
         ))}
-        <button type="button" className="cookpal-prefs__add" aria-label="Add diet" onClick={() => openAdd('diet')}>
+        <button type="button" className="snapcook-prefs__add" aria-label="Add diet" onClick={() => openAdd('diet')}>
           +
         </button>
       </div>
     </section>
-    <section className="cookpal-prefs">
-      <div className="cookpal-prefs__head">
-        <h3>ALLERGIES</h3>
-      </div>
+    <section className="cookpal-prefs snapcook-prefs">
+      <h3 className="snapcook-prefs__label">ALLERGIES</h3>
       <div className="cookpal-prefs__row">
         {prefs.allergies.map((label, i) => (
-          <PrefCard key={`allergy-${label}-${i}`} label={label} image={prefImageAt(i + 1)} />
+          <PrefPill key={`allergy-${label}-${i}`} label={label} variant="allergy" />
         ))}
-        <button type="button" className="cookpal-prefs__add" aria-label="Add allergy" onClick={() => openAdd('allergy')}>
+        <button type="button" className="snapcook-prefs__add" aria-label="Add allergy" onClick={() => openAdd('allergy')}>
           +
         </button>
       </div>
     </section>
-    <section className="cookpal-prefs">
-      <div className="cookpal-prefs__head">
-        <h3>CUISINES</h3>
-      </div>
+    <section className="cookpal-prefs snapcook-prefs">
+      <h3 className="snapcook-prefs__label">CUISINES</h3>
       <div className="cookpal-prefs__row">
         {prefs.cuisines.map((label, i) => (
-          <PrefCard key={`cuisine-${label}-${i}`} label={label} image={prefImageAt(i + 2)} />
+          <PrefPill key={`cuisine-${label}-${i}`} label={label} variant="cuisine" />
         ))}
-        <button type="button" className="cookpal-prefs__add" aria-label="Add cuisine" onClick={() => openAdd('cuisine')}>
+        <button type="button" className="snapcook-prefs__add" aria-label="Add cuisine" onClick={() => openAdd('cuisine')}>
           +
         </button>
       </div>
     </section>
-    <section className="cookpal-prefs">
-      <div className="cookpal-prefs__head">
-        <h3>GOALS</h3>
-      </div>
-      <div className="cookpal-prefs__row">
+    <section className="cookpal-prefs snapcook-prefs snapcook-prefs--goals">
+      <h3 className="snapcook-prefs__label">GOALS</h3>
+      <ul className="snapcook-goals-list">
         {prefs.goals.map((label, i) => (
-          <PrefCard key={`goal-${label}-${i}`} label={label} image={prefImageAt(i + 3)} />
+          <li key={`goal-${label}-${i}`}>{label}</li>
         ))}
-        <button type="button" className="cookpal-prefs__add" aria-label="Add goal" onClick={() => openAdd('goal')}>
-          +
-        </button>
-      </div>
+      </ul>
+      <button type="button" className="snapcook-prefs__add snapcook-prefs__add--inline" aria-label="Add goal" onClick={() => openAdd('goal')}>
+        +
+      </button>
     </section>
   </>
 )
@@ -272,50 +272,50 @@ const CookPalLayout = ({ user }) => {
   }, [addOpen, addValue, closeAdd])
 
   return (
-    <div className="cookpal-shell cookpal-shell--glass">
-      <aside className="cookpal-sidebar cookpal-sidebar--left">
-        <div className="cookpal-brand">
-          <span className="cookpal-brand__icon" aria-hidden>
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 14c0-4 2.5-7 8-7s8 3 8 7v2h2v8c0 4-3.5 7-10 7s-10-3-10-7v-8h2v-2z" fill="#4CAF50" />
-              <ellipse cx="16" cy="12" rx="10" ry="4" fill="#81C784" />
-            </svg>
+    <div className="cookpal-shell cookpal-shell--snapcook">
+      <aside className="cookpal-sidebar cookpal-sidebar--left snapcook-sidebar" aria-label="Site navigation">
+        <div className="snapcook-brand">
+          <span className="snapcook-brand__icon" aria-hidden>
+            <IconChefHat />
           </span>
-          <span className="cookpal-brand__text">CookPal</span>
+          <span className="snapcook-brand__text">SnapCook</span>
         </div>
 
-        <nav className="cookpal-nav cookpal-nav--glass" aria-label="Main">
-          {navItems.map(({ to, label, Icon, bg }) => {
-            const isActive = location.pathname.startsWith(to) || (to === '/dashboard' && location.pathname === '/')
-
-            const cardStyle =
-              !isActive && bg
-                ? {
-                    backgroundImage: `linear-gradient(to right, rgba(25, 25, 25, 1) 15%, rgba(25, 25, 25, 0.4) 60%, rgba(0,0,0,0) 100%), url(${bg})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'right center',
-                  }
-                : {}
-
-            return (
-              <NavLink
-                key={to}
-                to={to}
-                end={to === '/dashboard'}
-                className={`cookpal-nav__link ${isActive ? 'cookpal-nav__link--active' : ''} ${!isActive && bg ? 'cookpal-nav__link--card' : ''}`}
-                style={cardStyle}
-              >
-                <span className="cookpal-nav__icon-wrap">
-                  <Icon />
-                  {to === '/notifications' && unreadCount > 0 && (
-                    <span className="cookpal-nav__badge" aria-label={`${unreadCount} notification${unreadCount > 1 ? 's' : ''} non lues`} />
-                  )}
-                </span>
-                <span>{label}</span>
-              </NavLink>
-            )
-          })}
+        <nav className="snapcook-nav" aria-label="Main">
+          {navItems.map(({ to, label, Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/dashboard'}
+              className={({ isActive }) =>
+                `snapcook-nav__link${isActive ? ' snapcook-nav__link--active' : ''}`
+              }
+            >
+              <span className="snapcook-nav__icon-wrap">
+                <Icon />
+                {to === '/notifications' && unreadCount > 0 && (
+                  <span
+                    className="cookpal-nav__badge"
+                    aria-label={`${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`}
+                  />
+                )}
+              </span>
+              <span>{label}</span>
+            </NavLink>
+          ))}
         </nav>
+
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            `snapcook-nav__link snapcook-nav__link--profile${isActive ? ' snapcook-nav__link--active' : ''}`
+          }
+        >
+          <span className="snapcook-nav__icon-wrap">
+            <IconUser />
+          </span>
+          <span>Profile</span>
+        </NavLink>
       </aside>
 
       <header className="cookpal-mobile-header">
@@ -327,8 +327,8 @@ const CookPalLayout = ({ user }) => {
             </svg>
           </span>
           <div>
-            <div className="cookpal-mobile-header__title">CookPal</div>
-            <p className="cookpal-mobile-header__tagline">AI grocery planner — smarter meals, less waste</p>
+            <div className="cookpal-mobile-header__title">SnapCook</div>
+            <p className="cookpal-mobile-header__tagline">Smarter meals, less waste</p>
           </div>
         </div>
         <div className="cookpal-mobile-header__actions">
@@ -350,13 +350,13 @@ const CookPalLayout = ({ user }) => {
         </div>
       </header>
 
-      <main className="cookpal-main">
+      <main className="cookpal-main snapcook-main">
         <Outlet context={{ voice }} />
       </main>
 
-      <aside className="cookpal-sidebar cookpal-sidebar--right">
-        <div className="cookpal-profile">
-          <div className="cookpal-profile__avatar cookpal-profile__avatar--green" aria-hidden>
+      <aside className="cookpal-sidebar cookpal-sidebar--right snapcook-panel-right">
+        <div className="cookpal-profile snapcook-profile">
+          <div className="cookpal-profile__avatar snapcook-profile__avatar" aria-hidden>
             {displayName.charAt(0).toUpperCase()}
           </div>
           <div>

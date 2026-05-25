@@ -3176,3 +3176,224 @@ body {
   border-left: 3px solid var(--cookpal-green);
 }
 
+/* ─── SnapCook app shell (fixed sidebar + profile panel) ─────────────────── */
+:root {
+  --snap-forest: #1b3b28;
+  --snap-forest-light: #2a5240;
+  --snap-bg: #f4f9f4;
+  --snap-panel: #f0f4f2;
+}
+
+.cookpal-shell--snapcook {
+  display: block;
+  min-height: 100vh;
+  background: var(--snap-bg);
+}
+
+.snapcook-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  z-index: 300;
+  background: var(--snap-forest);
+  color: #fff;
+  padding: 24px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  border-right: none;
+}
+
+.snapcook-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 20px;
+  color: #fff;
+}
+
+.snapcook-brand__text {
+  font-weight: 700;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+
+.snapcook-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.snapcook-nav__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.88);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.92rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.snapcook-nav__link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.snapcook-nav__link--active {
+  background: var(--snap-forest-light);
+  color: #fff;
+  font-weight: 600;
+}
+
+.snapcook-nav__link--profile {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.snapcook-nav__icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.snapcook-nav__icon-wrap svg {
+  color: inherit;
+}
+
+.snapcook-panel-right {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100vh;
+  z-index: 200;
+  overflow-y: auto;
+  background: var(--snap-panel);
+  border-left: 1px solid rgba(27, 59, 40, 0.08);
+  padding: 28px 22px;
+}
+
+.snapcook-main {
+  margin-left: 240px;
+  margin-right: 300px;
+  min-height: 100vh;
+  padding: 28px 32px 48px;
+  background: var(--snap-bg);
+  max-width: none;
+}
+
+.snapcook-profile__avatar {
+  background: var(--snap-forest) !important;
+}
+
+.snapcook-prefs__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #8a9a92;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 10px;
+}
+
+.snapcook-pref-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: #e8f5e9;
+  color: var(--snap-forest);
+}
+
+.snapcook-pref-pill--allergy {
+  background: #fce8e8;
+  color: #8b3a3a;
+}
+
+.snapcook-pref-pill--cuisine {
+  background: #e8f5e9;
+  color: var(--snap-forest);
+}
+
+.snapcook-prefs__add {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px dashed rgba(45, 106, 79, 0.35);
+  background: transparent;
+  color: var(--snap-forest);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.snapcook-prefs__add:hover {
+  background: rgba(45, 106, 79, 0.08);
+}
+
+.snapcook-prefs__add--inline {
+  margin-top: 8px;
+}
+
+.snapcook-prefs--goals .snapcook-goals-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 4px;
+}
+
+.snapcook-prefs--goals .snapcook-goals-list li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 0.88rem;
+  color: var(--snap-forest);
+  font-weight: 500;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.snapcook-prefs--goals .snapcook-goals-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #52b788;
+}
+
+@media (max-width: 1100px) {
+  .snapcook-panel-right {
+    display: none;
+  }
+
+  .snapcook-main {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 1023px) {
+  .snapcook-sidebar {
+    display: none !important;
+  }
+
+  .snapcook-main {
+    margin-left: 0;
+  }
+}
+

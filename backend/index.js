@@ -50,9 +50,9 @@ app.post('/api/transcribe', upload.single('file'), async (req, res) => {
             return res.status(400).json({ error: 'Aucun fichier audio reçu.' });
         }
 
-        if (!process.env.OPENAI_API_KEY) {
+        if (!process.env.GROQ_API_KEY) {
             cleanup();
-            return res.status(500).json({ error: 'OPENAI_API_KEY manquante dans backend/.env' });
+            return res.status(500).json({ error: 'GROQ_API_KEY manquante dans backend/.env' });
         }
 
         const size = fs.statSync(req.file.path).size;
