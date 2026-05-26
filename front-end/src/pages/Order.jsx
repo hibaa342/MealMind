@@ -1,122 +1,255 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState, useMemo } from 'react';
+import './Order.css';
 
-const initialMissingIngredients = [
-  { id: 1, name: 'Tomates', quantity: '1 kg', price: 18 },
-  { id: 2, name: 'Poulet', quantity: '750 g', price: 62 },
-  { id: 3, name: 'Fromage rape', quantity: '300 g', price: 34 },
-  { id: 4, name: 'Huile d olive', quantity: '1 bouteille', price: 45 },
-]
+const availableIngredients = [
+  { id: 1, name: 'Tomatoes', unit: 'kg', pricePerUnit: 18 },
+  { id: 2, name: 'Chicken', unit: 'kg', pricePerUnit: 120 },
+  { id: 3, name: 'Cheese', unit: 'kg', pricePerUnit: 95 },
+  { id: 4, name: 'Olive oil', unit: 'L', pricePerUnit: 45 },
+  { id: 5, name: 'Bread', unit: 'piece', pricePerUnit: 5 },
+  { id: 6, name: 'Eggs', unit: 'dozen', pricePerUnit: 22 },
+  { id: 7, name: 'Milk', unit: 'L', pricePerUnit: 12 },
+  { id: 8, name: 'Onions', unit: 'kg', pricePerUnit: 8 },
+  { id: 9, name: 'Garlic', unit: 'kg', pricePerUnit: 15 },
+  { id: 10, name: 'Rice', unit: 'kg', pricePerUnit: 25 },
+];
 
 const recentOrdersSeed = [
-  { id: 'CMD-2026-102', date: '24/03/2026', store: 'Marjane', total: 132 },
-  { id: 'CMD-2026-097', date: '18/03/2026', store: 'Carrefour', total: 168 },
-  { id: 'CMD-2026-091', date: '10/03/2026', store: 'Marjane', total: 96 },
-]
+  { id: 'ORD-2026-102', date: '24/05/2026', total: 132 },
+  { id: 'ORD-2026-097', date: '18/05/2026', total: 168 },
+  { id: 'ORD-2026-091', date: '10/05/2026', total: 96 },
+];
 
 const Order = () => {
-  const [store, setStore] = useState('Marjane')
-  const [items, setItems] = useState(initialMissingIngredients)
-  const [recentOrders, setRecentOrders] = useState(recentOrdersSeed)
-  const [isConfirmed, setIsConfirmed] = useState(false)
+  const [cart, setCart] = useState([]);
+  const [recentOrders, setRecentOrders] = useState(recentOrdersSeed);
+  const [selectedIngredientId, setSelectedIngredientId] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [orderPlaced, setOrderPlaced] = useState(false);
 
-  const total = useMemo(() => items.reduce((sum, item) => sum + item.price, 0), [items])
+  const selectedIngredient = availableIngredients.find((ing) => ing.id === selectedIngredientId);
 
-  const removeItem = (id) => {
-    setItems((prev) => prev.filter((item) => item.id !== id))
-  }
+  const addToCart = () => {
+    if (!selectedIngredient || quantity <= 0) return;
 
-  const refillItems = () => {
-    setItems(initialMissingIngredients)
-    setIsConfirmed(false)
-  }
+    const existingItem = cart.find((item) => item.id === selectedIngredient.id);
 
-  const confirmOrder = () => {
-    if (items.length === 0) return
+    if (existingItem) {
+      setCart((prev) =>
+        prev.map((item) =>
+          item.id === selectedIngredient.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        )
+      );
+    } else {
+      setCart((prev) => [
+        ...prev,
+        {
+          id: selectedIngredient.id,
+          name: selectedIngredient.name,
+          unit: selectedIngredient.unit,
+          pricePerUnit: selectedIngredient.pricePerUnit,
+          quantity,
+        },
+      ]);
+    }
 
-    const now = new Date()
-    const orderId = `CMD-${now.getFullYear()}-${String(Math.floor(Math.random() * 900) + 100)}`
-    const orderDate = now.toLocaleDateString('fr-FR')
+    setQuantity(1);
+    setSelectedIngredientId(null);
+  };
+
+  const updateQuantity = (id, newQuantity) => {
+    if (newQuantity <= 0) {
+      setCart((prev) => prev.filter((item) => item.id !== id));
+    } else {
+      setCart((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, quantity: newQuantity } : item
+        )
+      );
+    }
+  };
+
+  const removeFromCart = (id) => {
+    setCart((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const total = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.pricePerUnit * item.quantity, 0);
+  }, [cart]);
+
+  const placeOrder = () => {
+    if (cart.length === 0) return;
+
+    const now = new Date();
+    const orderId = `ORD-${now.getFullYear()}-${String(Math.floor(Math.random() * 900) + 100)}`;
+    const orderDate = now.toLocaleDateString('en-GB');
 
     const newOrder = {
       id: orderId,
       date: orderDate,
-      store,
       total,
-    }
+    };
 
-    setRecentOrders((prev) => [newOrder, ...prev].slice(0, 4))
-    setItems([])
-    setIsConfirmed(true)
-  }
+    setRecentOrders((prev) => [newOrder, ...prev].slice(0, 5));
+    setCart([]);
+    setOrderPlaced(true);
+
+    setTimeout(() => setOrderPlaced(false), 3000);
+  };
 
   return (
-    <div className="cookpal-page cookpal-order-page">
-      <h1 className="cookpal-page__title">Ma commande</h1>
-      <p className="cookpal-page__lead">Finalisez votre panier d ingredients manquants.</p>
+    <div className="order-page">
+      <div className="order-page__header">
+        <h1 className="cookpal-page__title">Shopping</h1>
+        <p className="cookpal-page__lead">
+          Select ingredients, add them to your cart, and place your order.
+        </p>
+      </div>
 
-      <section className="cookpal-panel">
-        {items.length === 0 ? (
-          <div className="cookpal-empty-state">
-            <p className="cookpal-empty">Liste de commande vide.</p>
-            <p className="cookpal-page__lead" style={{ marginBottom: 10 }}>Ajoutez des ingredients pour preparer votre prochaine commande.</p>
-            <button type="button" className="btn btn-primary" onClick={refillItems}>
-              Ajouter des ingredients exemples
-            </button>
-          </div>
-        ) : (
-          <div className="cookpal-order-list">
-            {items.map((item) => (
-              <article className="cookpal-order-item" key={item.id}>
-                <div>
-                  <h3>{item.name}</h3>
-                  <p>Quantite estimee: {item.quantity}</p>
-                </div>
-                <div className="cookpal-order-item__right">
-                  <strong>{item.price} MAD</strong>
-                  <button type="button" onClick={() => removeItem(item.id)} aria-label={`Supprimer ${item.name}`}>
-                    X
+      <div className="order-page__container">
+        <div className="order-page__left">
+          <div className="order-card">
+            <h2 className="order-card__title">Available ingredients</h2>
+            <div className="order-ingredients">
+              {availableIngredients.map((ing) => (
+                <button
+                  key={ing.id}
+                  className={`order-ingredient-btn ${selectedIngredientId === ing.id ? 'order-ingredient-btn--active' : ''}`}
+                  onClick={() => {
+                    setSelectedIngredientId(ing.id);
+                    setQuantity(1);
+                  }}
+                >
+                  <div className="order-ingredient-name">{ing.name}</div>
+                  <div className="order-ingredient-price">{ing.pricePerUnit} DH/{ing.unit}</div>
+                </button>
+              ))}
+            </div>
+
+            {selectedIngredient && (
+              <div className="order-add-section">
+                <h3 className="order-add-section__title">Add to cart</h3>
+                <p className="order-add-section__label">{selectedIngredient.name}</p>
+
+                <div className="order-quantity-control">
+                  <button
+                    className="order-qty-btn"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    className="order-qty-input"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    min="1"
+                  />
+                  <button className="order-qty-btn" onClick={() => setQuantity(quantity + 1)}>
+                    +
                   </button>
                 </div>
-              </article>
-            ))}
+
+                <div className="order-add-price">
+                  <span>Total: {selectedIngredient.pricePerUnit * quantity} DH</span>
+                </div>
+
+                <button className="order-add-btn" onClick={addToCart}>
+                  Add to cart
+                </button>
+              </div>
+            )}
           </div>
-        )}
-
-        <div className="cookpal-order-controls">
-          <label htmlFor="store">Supermarche</label>
-          <select id="store" value={store} onChange={(e) => setStore(e.target.value)}>
-            <option value="Marjane">Marjane</option>
-            <option value="Carrefour">Carrefour</option>
-          </select>
         </div>
 
-        <div className="cookpal-order-footer">
-          <p>
-            Total estime <strong>{total} MAD</strong>
-          </p>
-          <button type="button" className="btn btn-primary" onClick={confirmOrder} disabled={items.length === 0}>
-            Confirmer la commande
-          </button>
+        <div className="order-page__right">
+          <div className="order-card">
+            <h2 className="order-card__title">Shopping cart</h2>
+
+            {cart.length === 0 ? (
+              <div className="order-empty">
+                <p>Your cart is empty</p>
+                <p className="order-empty__hint">Select ingredients from the list to add them</p>
+              </div>
+            ) : (
+              <>
+                <div className="order-cart-items">
+                  {cart.map((item) => (
+                    <div key={item.id} className="order-cart-item">
+                      <div className="order-cart-item__info">
+                        <p className="order-cart-item__name">{item.name}</p>
+                        <p className="order-cart-item__price">{item.pricePerUnit} DH/{item.unit}</p>
+                      </div>
+
+                      <div className="order-cart-item__quantity">
+                        <button
+                          className="order-qty-mini"
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        >
+                          -
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          className="order-qty-mini"
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <div className="order-cart-item__total">
+                        <p>{item.pricePerUnit * item.quantity} DH</p>
+                        <button
+                          className="order-remove-btn"
+                          onClick={() => removeFromCart(item.id)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="order-divider" />
+
+                <div className="order-total">
+                  <span>Total</span>
+                  <span className="order-total__amount">{total} DH</span>
+                </div>
+
+                <button className="order-place-btn" onClick={placeOrder}>
+                  Place order
+                </button>
+
+                {orderPlaced && <div className="order-success">Order placed successfully</div>}
+              </>
+            )}
+          </div>
         </div>
+      </div>
 
-        {isConfirmed && <p className="cookpal-success">Commande envoyee avec succes.</p>}
-      </section>
-
-      <section className="cookpal-panel">
-        <h2 className="cookpal-subtitle">Historique rapide</h2>
-        <div className="cookpal-history-list">
-          {recentOrders.map((order) => (
-            <div className="cookpal-history-item" key={order.id}>
-              <span>{order.id}</span>
-              <span>{order.date}</span>
-              <span>{order.store}</span>
-              <strong>{order.total} MAD</strong>
+      <div className="order-history">
+        <div className="order-card">
+          <h2 className="order-card__title">Order history</h2>
+          {recentOrders.length === 0 ? (
+            <p className="order-history__empty">No orders yet</p>
+          ) : (
+            <div className="order-history__list">
+              {recentOrders.map((order) => (
+                <div key={order.id} className="order-history__item">
+                  <div className="order-history__id">{order.id}</div>
+                  <div className="order-history__date">{order.date}</div>
+                  <div className="order-history__total">{order.total} DH</div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      </section>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Order
+export default Order;

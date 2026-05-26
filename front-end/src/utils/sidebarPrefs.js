@@ -1,10 +1,10 @@
 const KEY = 'cookpal-sidebar-prefs'
 
 const defaultState = () => ({
-  diets: ['Meat', 'Soup'],
+  diets: ['Meat', 'Soup', 'Vegan'],
   allergies: ['Wheat', 'Dairy'],
   cuisines: ['American', 'Italian'],
-  goals: ['Burn Fat'],
+  goals: ['Reduce food waste', 'Eat healthier'],
 })
 
 export function loadSidebarPrefs() {

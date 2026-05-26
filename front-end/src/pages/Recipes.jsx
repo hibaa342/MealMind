@@ -1,123 +1,108 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import RecipeCard from '../components/RecipeCard'
 import { getUserRecipes } from '../utils/userRecipes'
+import './Recipes.css'
 
-// ─── Mock AI-generated recipes ───────────────────────────────────────────────
-// Replace this with a real Claude API call using the scanned ingredients
-const MOCK_AI_RECIPES = [
-  {
-    id: 'ai-1',
-    title: 'Omelette aux tomates et fromage',
-    time: '15 min',
-    categories: 'Petit-déjeuner, Rapide',
-    rating: 4.5,
-    tags: ['Végétarien', 'Protéiné'],
-    image: 'https://images.unsplash.com/photo-1510693206972-df098062cb71?w=480&h=280&fit=crop',
-    accent: 'yellow',
-    persons: 2,
-    haveIngredients: ['Œufs', 'Tomates', 'Fromage', 'Oignons'],
-    missingIngredients: ['Crème fraîche', 'Ciboulette'],
-  },
-  {
-    id: 'ai-2',
-    title: 'Soupe de carottes au lait',
-    time: '25 min',
-    categories: 'Dîner, Soupe',
-    rating: 4.2,
-    tags: ['Végétarien', 'Léger'],
-    image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=480&h=280&fit=crop',
-    accent: 'orange',
-    persons: 3,
-    haveIngredients: ['Carottes', 'Lait', 'Oignons'],
-    missingIngredients: ['Bouillon de légumes', 'Crème'],
-  },
-  // recette Gratin retirée (doublon / identique à Zucchini Lasagna)
-]
+// Color accent cycling for recipes
+const ACCENT_COLORS = ['green', 'orange', 'pink', 'yellow', 'purple']
 
-// Sample recipes for "All recipes" tab — reuses existing RecipeCard style
-const ALL_RECIPES = [
-  {
-    id: 1,
-    title: 'Caesar Salad',
-    time: '20 min',
-    categories: 'Mexican, Greens, Lunch',
-    rating: 3.8,
-    tags: ['Heart-healthy', 'Weight loss'],
-    image: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=480&h=280&fit=crop',
-    accent: 'green',
-  },
-  {
-    id: 2,
-    title: 'Veggie Tacos',
-    time: '25 min',
-    categories: 'Mexican, Dinner',
-    rating: 4.2,
-    tags: ['Vegetarian'],
-    image: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=480&h=360&fit=crop',
-    accent: 'orange',
-  },
-  {
-    id: 3,
-    title: 'Berry Smoothie Bowl',
-    time: '15 min',
-    categories: 'Breakfast, Healthy',
-    rating: 4.6,
-    tags: ['Weight loss'],
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=480&h=280&fit=crop',
-    accent: 'pink',
-  },
-  {
-    id: 4,
-    title: 'Baked Chicken Breasts',
-    time: '40 min',
-    categories: 'Protein, Dinner',
-    rating: 4.7,
-    tags: ['High protein', 'Burn Fat'],
-    image: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=480&h=280&fit=crop',
-    accent: 'orange',
-  },
-  {
-    id: 5,
-    title: 'Zucchini Lasagna',
-    time: '55 min',
-    categories: 'Italian, Comfort',
-    rating: 4.4,
-    tags: ['Low carb'],
-    image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=480&h=280&fit=crop',
-    accent: 'yellow',
-  },
-  {
-    id: 6,
-    title: 'Keto Ice Cream',
-    time: '10 min',
-    categories: 'Dessert, Keto',
-    rating: 4.1,
-    tags: ['Keto'],
-    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=480&h=280&fit=crop',
-    accent: 'purple',
-  },
-]
+// Helper to cycle through accent colors
+const getAccentColor = (index) => ACCENT_COLORS[index % ACCENT_COLORS.length]
 
-const recipeDetails = {
-  1: {
-    description: 'Salade fraiche, rapide et riche en fibres.',
-    ingredients: ['Laitue romaine', 'Poulet grille', 'Parmesan', 'Croutons', 'Sauce Caesar'],
-    steps: ['Laver la salade', 'Griller le poulet', 'Melanger les ingredients', 'Servir frais'],
-  },
-  2: {
-    description: 'Tacos vegetariens avec beaucoup de saveurs.',
-    ingredients: ['Tortillas', 'Haricots rouges', 'Poivrons', 'Avocat', 'Salsa'],
-    steps: ['Cuire les legumes', 'Chauffer les tortillas', 'Monter les tacos', 'Ajouter la salsa'],
-  },
-  5: {
-    description: 'Lasagne légère avec des couches de courgette, sauce tomate et fromage allégé.',
-    ingredients: ['Courgettes', 'Sauce tomate', 'Fromage ricotta', 'Mozzarella', 'Basilic'],
-    steps: ['Trancher les courgettes', 'Faire une sauce tomate maison', 'Monter la lasagne', 'Cuire 35 minutes', 'Laisser reposer avant de servir'],
-  },
+// Helper to fetch recipes from TheMealDB
+const fetchTheMealDBRecipes = async () => {
+  try {
+    const recipes = []
+    const fetchedIds = new Set()
+
+    const categories = ['Seafood', 'Breakfast', 'Vegetarian', 'Pasta', 'Dessert']
+    
+    for (const category of categories) {
+      if (recipes.length >= 10) break
+      try {
+        const res = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category}`)
+        const data = await res.json()
+        if (data.meals) {
+          for (const meal of data.meals.slice(0, 2)) {
+            if (!fetchedIds.has(meal.idMeal) && recipes.length < 10) {
+              recipes.push({
+                id: meal.idMeal,
+                title: meal.strMeal,
+                image: meal.strMealThumb,
+                time: '30 min',
+                categories: category,
+                rating: 4.2 + Math.random() * 0.7,
+                accent: getAccentColor(recipes.length),
+              })
+              fetchedIds.add(meal.idMeal)
+            }
+          }
+        }
+      } catch (err) {
+        console.error(`Failed to fetch ${category} meals:`, err)
+      }
+    }
+
+    return recipes
+  } catch (error) {
+    console.error('Failed to fetch recipes from TheMealDB:', error)
+    return []
+  }
 }
 
 const Recipes = () => {
+  const [recipes, setRecipes] = useState([])
+  const [loading, setLoading] = useState(true)
   const [userRecipes, setUserRecipes] = useState(() => getUserRecipes())
+  const [favorites, setFavorites] = useState([])
+  const [userId, setUserId] = useState(null)
+
+  // Get userId from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser)
+        setUserId(user._id)
+        // Fetch user favorites
+        if (user._id) {
+          fetchUserFavorites(user._id)
+        }
+      } catch (err) {
+        console.error('Error parsing user from localStorage:', err)
+      }
+    }
+  }, [])
+
+  // Fetch user favorites from backend
+  const fetchUserFavorites = async (uid) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/favorites/${uid}`)
+      if (res.ok) {
+        const data = await res.json()
+        setFavorites(data.favorites || [])
+      }
+    } catch (err) {
+      console.error('Error fetching favorites:', err)
+    }
+  }
+
+  // Fetch recipes from TheMealDB on mount
+  useEffect(() => {
+    const loadRecipes = async () => {
+      try {
+        setLoading(true)
+        const meals = await fetchTheMealDBRecipes()
+        setRecipes(meals)
+      } catch (error) {
+        console.error('Error loading recipes:', error)
+        setRecipes([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadRecipes()
+  }, [])
 
   useEffect(() => {
     const sync = () => setUserRecipes(getUserRecipes())
@@ -127,154 +112,241 @@ const Recipes = () => {
   }, [])
 
   const samples = useMemo(
-    () => [...MOCK_AI_RECIPES, ...userRecipes, ...ALL_RECIPES],
-    [userRecipes]
+    () => [...recipes, ...userRecipes],
+    [recipes, userRecipes]
   )
 
   const [selectedRecipeId, setSelectedRecipeId] = useState(null)
   const selectedRecipe = samples.find((r) => r.id === selectedRecipeId)
-  const selectedRecipeDetail = recipeDetails[selectedRecipeId]
+  const [recipeDetail, setRecipeDetail] = useState(null)
+  const [loadingDetail, setLoadingDetail] = useState(false)
+
+  // Fetch detailed recipe info when a recipe is selected
+  useEffect(() => {
+    if (!selectedRecipeId) {
+      setRecipeDetail(null)
+      return
+    }
+
+    const fetchDetail = async () => {
+      try {
+        setLoadingDetail(true)
+        const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${selectedRecipeId}`)
+        const data = await res.json()
+        if (data.meals && data.meals[0]) {
+          setRecipeDetail(data.meals[0])
+        }
+      } catch (error) {
+        console.error('Error fetching recipe detail:', error)
+        setRecipeDetail(null)
+      } finally {
+        setLoadingDetail(false)
+      }
+    }
+
+    fetchDetail()
+  }, [selectedRecipeId])
+
+  // Handle adding favorite
+  const handleAddFavorite = async (recipeId, title, image) => {
+    if (!userId) {
+      alert('Please log in to add favorites')
+      return
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/favorites/add/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipeId,
+          title,
+          image,
+        }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setFavorites(data.favorites)
+      } else {
+        const error = await res.json()
+        console.error('Error adding favorite:', error.message)
+      }
+    } catch (err) {
+      console.error('Error adding favorite:', err)
+    }
+  }
+
+  // Handle removing favorite
+  const handleRemoveFavorite = async (recipeId) => {
+    if (!userId) return
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/favorites/${userId}/${recipeId}`, {
+        method: 'DELETE',
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setFavorites(data.favorites)
+      } else {
+        const error = await res.json()
+        console.error('Error removing favorite:', error.message)
+      }
+    } catch (err) {
+      console.error('Error removing favorite:', err)
+    }
+  }
+
+  // Check if recipe is favorited
+  const isFavorited = (recipeId) => {
+    return favorites.some(fav => fav.id === recipeId)
+  }
+
+  if (loading) {
+    return (
+      <div className="recipes-page">
+        <h1 className="recipes-page__title">Explore recipes</h1>
+        <p className="recipes-page__lead">Loading delicious meals...</p>
+        <div className="recipes-page__loading">Loading...</div>
+      </div>
+    )
+  }
 
   return (
-    <div className="cookpal-page">
-      <h1 className="cookpal-page__title">Explore recipes</h1>
-      <p className="cookpal-page__lead">Discover dishes that match your tastes.</p>
-      
-      <div className="cookpal-recipe-grid">
-        {samples.map((r) => (
-          <button
-            key={r.id}
-            type="button"
-            className="cookpal-recipe-select-btn"
-            onClick={() => setSelectedRecipeId(r.id)}
-            aria-label={`Voir les details de ${r.title}`}
-          >
-            <RecipeCard recipe={r} />
-          </button>
-        ))}
+    <div className="recipes-page">
+      <div className="recipes-page__header">
+        <h1 className="recipes-page__title">Explore recipes</h1>
+        <p className="recipes-page__lead">Discover dishes that match your tastes.</p>
       </div>
 
-      {/* Modal - Détails de la recette */}
+      <div className="recipes-page__grid">
+        {samples.length > 0 ? (
+          samples.map((r) => (
+            <div
+              key={r.id}
+              className="recipes-page__card-wrapper"
+              onClick={() => setSelectedRecipeId(r.id)}
+              style={{ cursor: 'pointer' }}
+            >
+              <RecipeCard 
+                recipe={r}
+                isFavorited={isFavorited(r.id)}
+                onFavoriteToggle={() => {
+                  if (isFavorited(r.id)) {
+                    handleRemoveFavorite(r.id)
+                  } else {
+                    handleAddFavorite(r.id, r.title, r.image)
+                  }
+                }}
+              />
+            </div>
+          ))
+        ) : (
+          <div className="recipes-page__empty">
+            <p>No recipes found. Try again later.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Modal - Recipe Details */}
       {selectedRecipeId && selectedRecipe && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}
-          onClick={() => setSelectedRecipeId(null)}
-        >
-          <section
-            className="cookpal-panel"
-            style={{
-              maxWidth: '600px',
-              width: '90%',
-              maxHeight: '90vh',
-              overflow: 'auto',
-              borderRadius: '8px',
-              position: 'relative',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="recipes-page__modal-overlay" onClick={() => setSelectedRecipeId(null)}>
+          <section className="recipes-page__modal-content" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
+              className="recipes-page__modal-close"
               onClick={() => setSelectedRecipeId(null)}
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                background: 'none',
-                border: 'none',
-                fontSize: '24px',
-                cursor: 'pointer',
-                padding: '0',
-              }}
-              aria-label="Fermer"
+              aria-label="Close"
             >
               ✕
             </button>
 
-            <h2 className="cookpal-subtitle" style={{ marginTop: 0 }}>
-              {selectedRecipe.title}
-            </h2>
+            <h2 className="recipes-page__modal-title">{selectedRecipe.title}</h2>
 
             <img
               src={selectedRecipe.image}
               alt={selectedRecipe.title}
-              style={{
-                width: '100%',
-                height: '280px',
-                objectFit: 'cover',
-                borderRadius: '6px',
-                marginBottom: '16px',
-              }}
+              className="recipes-page__modal-image"
             />
 
-            <p className="cookpal-page__lead" style={{ marginBottom: 16 }}>
-              {selectedRecipeDetail?.description || 'Détails de la recette non disponibles pour l’instant.'}
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: 20 }}>
-              <div style={{ padding: '12px', background: '#F5F5F5', borderRadius: '6px' }}>
-                <strong>⏱️ Temps</strong>
-                <p style={{ margin: '4px 0 0 0' }}>{selectedRecipe.time}</p>
+            <div className="recipes-page__modal-meta">
+              <div className="recipes-page__meta-item">
+                <span className="recipes-page__meta-label">⏱️ Time</span>
+                <p>{selectedRecipe.time}</p>
               </div>
-              <div style={{ padding: '12px', background: '#F5F5F5', borderRadius: '6px' }}>
-                <strong>⭐ Note</strong>
-                <p style={{ margin: '4px 0 0 0' }}>{selectedRecipe.rating.toFixed(1)}/5</p>
+              <div className="recipes-page__meta-item">
+                <span className="recipes-page__meta-label">⭐ Rating</span>
+                <p>{selectedRecipe.rating.toFixed(1)}/5</p>
+              </div>
+              <div className="recipes-page__meta-item">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if (isFavorited(selectedRecipeId)) {
+                      handleRemoveFavorite(selectedRecipeId)
+                    } else {
+                      handleAddFavorite(selectedRecipeId, selectedRecipe.title, selectedRecipe.image)
+                    }
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    padding: '8px',
+                  }}
+                  aria-label={isFavorited(selectedRecipeId) ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  {isFavorited(selectedRecipeId) ? '❤️' : '🤍'}
+                </button>
               </div>
             </div>
 
-            <div style={{ marginBottom: 20 }}>
-              <h3 style={{ marginBottom: 8 }}>🥘 Ingredients</h3>
-              {selectedRecipeDetail?.ingredients?.length ? (
-                <ul style={{ marginLeft: '20px', marginTop: 0 }}>
-                  {selectedRecipeDetail.ingredients.map((ing, idx) => (
-                    <li key={idx} style={{ marginBottom: 6 }}>{ing}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p style={{ margin: 0 }}>Pas encore d’ingrédients disponibles.</p>
-              )}
-            </div>
+            {loadingDetail ? (
+              <p className="recipes-page__modal-loading">Loading recipe details...</p>
+            ) : recipeDetail ? (
+              <>
+                <div className="recipes-page__modal-section">
+                  <h3 className="recipes-page__modal-heading">🥘 Ingredients</h3>
+                  <ul className="recipes-page__ingredients-list">
+                    {Array.from({ length: 20 })
+                      .map((_, idx) => {
+                        const ingredientKey = `strIngredient${idx + 1}`
+                        const measureKey = `strMeasure${idx + 1}`
+                        const ingredient = recipeDetail[ingredientKey]
+                        const measure = recipeDetail[measureKey]
+                        return ingredient && ingredient.trim() ? (
+                          <li key={idx} className="recipes-page__ingredient-item">
+                            {measure?.trim() || ''} {ingredient}
+                          </li>
+                        ) : null
+                      })
+                      .filter(Boolean)}
+                  </ul>
+                </div>
 
-            <div>
-              <h3 style={{ marginBottom: 8 }}>👨‍🍳 Etapes</h3>
-              {selectedRecipeDetail?.steps?.length ? (
-                <ol style={{ marginLeft: '20px', marginTop: 0 }}>
-                  {selectedRecipeDetail.steps.map((step, idx) => (
-                    <li key={idx} style={{ marginBottom: 6 }}>{step}</li>
-                  ))}
-                </ol>
-              ) : (
-                <p style={{ margin: 0 }}>Pas encore d’étapes disponibles.</p>
-              )}
-            </div>
+                <div className="recipes-page__modal-section">
+                  <h3 className="recipes-page__modal-heading">👨‍🍳 Instructions</h3>
+                  <p className="recipes-page__instructions">
+                    {recipeDetail.strInstructions}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <p className="recipes-page__modal-no-details">Recipe details unavailable.</p>
+            )}
 
-            <button
-              type="button"
-              onClick={() => setSelectedRecipeId(null)}
-              style={{
-                marginTop: '20px',
-                padding: '10px 20px',
-                background: '#4CAF50',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-              }}
+            <a
+              href={recipeDetail?.strSource || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="recipes-page__modal-btn"
             >
-              Fermer
-            </button>
+              View Full Recipe
+            </a>
           </section>
         </div>
       )}

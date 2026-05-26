@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser } = require('../controllers/UserControls');
+const { registerUser, loginUser, addFavorite, removeFavorite, getFavorites } = require('../controllers/UserControls');
 const User = require('../models/UserModels');
 const auth = require('../middleware/auth');
 
@@ -15,5 +15,10 @@ router.get('/me', auth, async (req, res) => {
         res.status(500).json({ message: 'Erreur serveur' });
     }
 });
+
+// Routes pour les favoris
+router.post('/favorites/add/:userId', auth, addFavorite);
+router.delete('/favorites/:userId/:recipeId', auth, removeFavorite);
+router.get('/favorites/:userId', auth, getFavorites);
 
 module.exports = router;

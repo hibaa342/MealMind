@@ -8,8 +8,7 @@ const accentClass = {
   purple: 'cookpal-recipe-card--purple',
 }
 
-const RecipeCard = ({ recipe }) => {
-  const [saved, setSaved] = useState(false)
+const RecipeCard = ({ recipe, isFavorited = false, onFavoriteToggle }) => {
   if (!recipe) return null
 
   const {
@@ -31,11 +30,14 @@ const RecipeCard = ({ recipe }) => {
         {time && <span className="cookpal-recipe-card__time">{time}</span>}
         <button
           type="button"
-          className={`cookpal-recipe-card__heart ${saved ? 'cookpal-recipe-card__heart--on' : ''}`}
-          onClick={() => setSaved((s) => !s)}
-          aria-label={saved ? 'Remove from favorites' : 'Add to favorites'}
+          className={`cookpal-recipe-card__heart ${isFavorited ? 'cookpal-recipe-card__heart--on' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            onFavoriteToggle && onFavoriteToggle()
+          }}
+          aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75">
             <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
           </svg>
         </button>

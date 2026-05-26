@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getPostAuthPath } from '../utils/onboardingStorage'
-import loginBg from '../assets/login-bg.png'
-import logo from '../assets/logo.png'
+import snapcookDesign from '../assets/snapcook-design.png'
+import './Auth.css' 
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('')
@@ -40,35 +40,35 @@ const Login = ({ onLogin }) => {
   }
 
   return (
-    <div className="auth-layout">
-      {/* Left Side: Visuals */}
-      <div className="auth-visual">
-        <img src={loginBg} alt="MealMind Background" className="auth-visual-img" />
-        <div className="auth-visual-overlay">
-          <h1>Planifiez vos repas, <br /> libérez votre esprit.</h1>
-          <p>Rejoignez des milliers de passionnés de cuisine qui utilisent MealMind pour organiser leur nutrition quotidienne avec intelligence.</p>
+    <div className="snapcook-auth-container">
+      {/* Left Side: Image container that crops to only show the green graphic */}
+      <div className="snapcook-auth-left">
+        <div className="snapcook-image-cropper">
+          <img src={snapcookDesign} alt="SnapCook Design Panel" className="snapcook-design-panel-img" />
         </div>
       </div>
 
-      {/* Right Side: Login Form */}
-      <div className="auth-form-container">
-        <div className="auth-card-modern">
-          <img src={logo} alt="MealMind Logo" className="auth-logo-modern" />
+      {/* Right Side: Centered Form Panel */}
+      <div className="snapcook-auth-right">
+        <div className="snapcook-auth-card">
           
-          <div className="auth-header-modern">
-            <h2>Bon retour !</h2>
-            <p>Connectez-vous pour accéder à votre cuisine personnalisée.</p>
+          <div className="snapcook-auth-header">
+            <h1 className="snapcook-auth-title">WELCOME TO SNAPCOOK.</h1>
+            <div className="snapcook-auth-subtitle-row">
+              {/* Removed the dates and location from here */}
+              <p className="snapcook-auth-subtitle">A Community for Foodies and Adventurous Cooks.</p>
+            </div>
           </div>
 
-          {error && <div className="alert alert-error" style={{ marginBottom: '20px' }}>{error}</div>}
+          {error && <div className="snapcook-alert snapcook-alert-error">{error}</div>}
 
           <form onSubmit={handleSubmit}>
-            <div className="form-group-modern">
-              <label htmlFor="email">Email</label>
+            <div className="snapcook-form-group">
+              <label className="snapcook-form-label" htmlFor="email">Email address</label>
               <input 
                 id="email"
                 type="email" 
-                className="form-input-modern"
+                className="snapcook-form-input"
                 placeholder="nom@exemple.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -76,15 +76,15 @@ const Login = ({ onLogin }) => {
               />
             </div>
             
-            <div className="form-group-modern">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label htmlFor="password" style={{ marginBottom: 0 }}>Mot de passe</label>
-                <a href="#" style={{ fontSize: '0.8rem', color: 'var(--saas-blue)', fontWeight: '500', textDecoration: 'none' }}>Oublié ?</a>
+            <div className="snapcook-form-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label className="snapcook-form-label" htmlFor="password">Password</label>
+                <a href="#" style={{ fontSize: '0.82rem', color: '#1E2D24', opacity: 0.6, textDecoration: 'none' }}>Oublié ?</a>
               </div>
               <input 
                 id="password"
                 type="password" 
-                className="form-input-modern"
+                className="snapcook-form-input"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -92,20 +92,16 @@ const Login = ({ onLogin }) => {
               />
             </div>
 
-            <button type="submit" className="btn-saas-primary" disabled={loading}>
-              {loading ? (
-                <>
-                  <span className="spinner-small"></span>
-                  Connexion...
-                </>
-              ) : (
-                'Se connecter'
-              )}
-            </button>
+            <div className="snapcook-actions-container">
+              {/* Button text changed to Join SnapCook & removed the '12 spots available' label */}
+              <button type="submit" className="snapcook-btn-submit" disabled={loading}>
+                {loading ? <span className="spinner-inline"></span> : 'Join SnapCook'}
+              </button>
+            </div>
           </form>
 
-          <p className="auth-footer-modern">
-            Nouveau sur MealMind ? <Link to="/register">Créer un compte</Link>
+          <p className="snapcook-auth-footer">
+            Nouveau sur SnapCook ? <Link to="/register">Créer un compte</Link>
           </p>
         </div>
       </div>
