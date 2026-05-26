@@ -57,35 +57,48 @@ const Recipes = () => {
   const [favorites, setFavorites] = useState([])
   const [userId, setUserId] = useState(null)
 
-  // Get userId from localStorage
+  // Fetch user favorites from backend using native FETCH and a direct ID parameter
+  const fetchFavorites = async (currentUserId) => {
+    if (!currentUserId) return
+    try {
+      const token = localStorage.getItem('token') 
+      
+      const res = await fetch(`http://localhost:5000/api/users/favorites/${currentUserId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        // Handles both plain arrays or object-wrapped payloads safely
+        setFavorites(data.favorites || data || [])
+      } else {
+        console.error('Failed to fetch favorites, status:', res.status)
+      }
+    } catch (err) {
+      console.error("Error fetching favorites:", err)
+    }
+  }
+
+  // Get userId from localStorage and immediately feed it to your fetch call
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser)
         setUserId(user._id)
-        // Fetch user favorites
+        
         if (user._id) {
-          fetchUserFavorites(user._id)
+          fetchFavorites(user._id)
         }
       } catch (err) {
         console.error('Error parsing user from localStorage:', err)
       }
     }
   }, [])
-
-  // Fetch user favorites from backend
-  const fetchUserFavorites = async (uid) => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/users/favorites/${uid}`)
-      if (res.ok) {
-        const data = await res.json()
-        setFavorites(data.favorites || [])
-      }
-    } catch (err) {
-      console.error('Error fetching favorites:', err)
-    }
-  }
 
   // Fetch recipes from TheMealDB on mount
   useEffect(() => {
@@ -147,7 +160,7 @@ const Recipes = () => {
     fetchDetail()
   }, [selectedRecipeId])
 
-  // Handle adding favorite
+  // Handle adding favorite with complete authorization headers
   const handleAddFavorite = async (recipeId, title, image) => {
     if (!userId) {
       alert('Please log in to add favorites')
@@ -155,10 +168,12 @@ const Recipes = () => {
     }
 
     try {
+      const token = localStorage.getItem('token')
       const res = await fetch(`http://localhost:5000/api/users/favorites/add/${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           recipeId,
@@ -169,7 +184,7 @@ const Recipes = () => {
 
       if (res.ok) {
         const data = await res.json()
-        setFavorites(data.favorites)
+        setFavorites(data.favorites || [])
       } else {
         const error = await res.json()
         console.error('Error adding favorite:', error.message)
@@ -179,18 +194,22 @@ const Recipes = () => {
     }
   }
 
-  // Handle removing favorite
+  // Handle removing favorite with complete authorization headers
   const handleRemoveFavorite = async (recipeId) => {
     if (!userId) return
 
     try {
+      const token = localStorage.getItem('token')
       const res = await fetch(`http://localhost:5000/api/users/favorites/${userId}/${recipeId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       })
 
       if (res.ok) {
         const data = await res.json()
-        setFavorites(data.favorites)
+        setFavorites(data.favorites || [])
       } else {
         const error = await res.json()
         console.error('Error removing favorite:', error.message)

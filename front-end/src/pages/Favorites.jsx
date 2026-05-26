@@ -12,7 +12,7 @@ const Favorites = () => {
   const toggleRecording = () => voice?.toggleRecording?.()
   const playRecording = () => voice?.playRecording?.()
 
-  // Get userId from localStorage and fetch favorites
+  // Get userId from localStorage and fetch favorites securely
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
@@ -29,15 +29,25 @@ const Favorites = () => {
     }
   }, [])
 
+  // Fetch user favorites with native FETCH and Auth verification headers
   const fetchFavorites = async (uid) => {
     try {
       setLoading(true)
-      const res = await fetch(`http://localhost:5000/api/users/favorites/${uid}`)
+      const token = localStorage.getItem('token') // Grab fresh token
+
+      const res = await fetch(`http://localhost:5000/api/users/favorites/${uid}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Pass standard validation token
+        }
+      })
+      
       if (res.ok) {
         const data = await res.json()
-        setFavorites(data.favorites || [])
+        setFavorites(data.favorites || data || [])
       } else {
-        console.error('Error fetching favorites')
+        console.error('Error fetching favorites status:', res.status)
         setFavorites([])
       }
     } catch (err) {
@@ -48,19 +58,25 @@ const Favorites = () => {
     }
   }
 
+  // Remove recipe from favorites securely sending Auth headers
   const removeFromFavorites = async (recipeId) => {
     if (!userId) return
 
     try {
+      const token = localStorage.getItem('token') // Grab fresh token
+
       const res = await fetch(`http://localhost:5000/api/users/favorites/${userId}/${recipeId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}` // Protect custom routes
+        }
       })
 
       if (res.ok) {
         const data = await res.json()
-        setFavorites(data.favorites)
+        setFavorites(data.favorites || [])
       } else {
-        console.error('Error removing favorite')
+        console.error('Error removing favorite status:', res.status)
       }
     } catch (err) {
       console.error('Error removing favorite:', err)
@@ -69,7 +85,7 @@ const Favorites = () => {
 
   // Filter favorites based on search query
   const filteredFavorites = favorites.filter(fav =>
-    fav.title.toLowerCase().includes(searchQuery.toLowerCase())
+    fav.title?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
