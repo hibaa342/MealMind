@@ -1,314 +1,424 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
+import './Community.css'
 
 const topChefs = [
   {
-    id: 1,
+    id: 'moroccan',
     name: 'Chef Moroccan',
     specialty: 'Cuisine Marocaine',
     followers: 1240,
-    badge: '👨‍🍳',
+    badge: 'CM',
     level: 'Expert',
+    recipe: 'Tajine citron olive',
+    note: 'Publie des recettes familiales et des astuces epices.',
   },
   {
-    id: 2,
+    id: 'healthy',
     name: 'Healthy Hunter',
     specialty: 'Healthy & Light',
     followers: 856,
-    badge: '🥗',
+    badge: 'HH',
     level: 'Master',
+    recipe: 'Buddha bowl colore',
+    note: 'Idees rapides pour manger frais avec moins de gaspillage.',
   },
   {
-    id: 3,
+    id: 'quick',
     name: 'Quick Meals Pro',
     specialty: 'Recettes rapides',
     followers: 642,
-    badge: '⚡',
+    badge: 'QP',
     level: 'Expert',
+    recipe: 'Pasta legumes 15 min',
+    note: 'Repas express pour les soirs charges.',
   },
   {
-    id: 4,
+    id: 'veggie',
     name: 'Veggie Vibes',
-    specialty: 'Végétarien',
+    specialty: 'Vegetarien',
     followers: 503,
-    badge: '🌱',
+    badge: 'VV',
     level: 'Advanced',
+    recipe: 'Curry pois chiches',
+    note: 'Plats veggie simples, colores et nourrissants.',
   },
 ]
 
 const challenges = [
   {
-    id: 1,
-    title: '5 Ingrédients Challenge',
-    description: 'Créez un repas délicieux avec seulement 5 ingrédients',
+    id: 'five',
+    title: '5 Ingredients Challenge',
+    description: 'Creez un repas delicieux avec seulement 5 ingredients.',
     participants: 127,
     difficulty: 'Moyen',
-    reward: '50 XP',
-    icon: '5️⃣',
+    reward: 50,
+    icon: '5',
   },
   {
-    id: 2,
-    title: 'Desserts sans sucre',
-    description: 'Préparez un dessert sans sucre raffiné',
+    id: 'sugarfree',
+    title: 'Dessert sans sucre',
+    description: 'Preparez un dessert sans sucre raffine.',
     participants: 89,
     difficulty: 'Difficile',
-    reward: '75 XP',
-    icon: '🍰',
+    reward: 75,
+    icon: 'DS',
   },
   {
-    id: 3,
+    id: 'budget',
     title: 'Budget Master',
-    description: 'Préparez un repas 3 couverts pour moins de 30 MAD',
+    description: 'Preparez un repas 3 couverts pour moins de 30 MAD.',
     participants: 203,
     difficulty: 'Moyen',
-    reward: '60 XP',
-    icon: '💰',
+    reward: 60,
+    icon: 'BM',
   },
   {
-    id: 4,
-    title: '15 Minutes ou Moins',
-    description: 'Un diner complet en 15 minutes maximum',
+    id: 'quick15',
+    title: '15 Minutes ou moins',
+    description: 'Un diner complet en 15 minutes maximum.',
     participants: 156,
     difficulty: 'Facile',
-    reward: '40 XP',
-    icon: '⏱️',
+    reward: 40,
+    icon: '15',
   },
 ]
 
 const trendingRecipes = [
   {
-    id: 1,
-    title: 'Buddha Bowl Coloré',
+    id: 'buddha',
+    title: 'Buddha Bowl Colore',
     chef: 'Healthy Hunter',
     likes: 456,
     saves: 234,
-    trending: true,
+    tag: 'Healthy',
   },
   {
-    id: 2,
+    id: 'tajine',
     title: 'Tajine Marocain Traditionnel',
     chef: 'Chef Moroccan',
     likes: 623,
     saves: 412,
-    trending: true,
+    tag: 'Tradition',
   },
   {
-    id: 3,
-    title: 'Pasta aux Légumes 2 Minutes',
+    id: 'pasta',
+    title: 'Pasta aux Legumes 15 Minutes',
     chef: 'Quick Meals Pro',
     likes: 289,
     saves: 145,
-    trending: false,
+    tag: 'Express',
   },
 ]
 
-const Community = ({ user }) => {
-  const [selectedChef, setSelectedChef] = useState(null)
-  const [userLevel, setUserLevel] = useState('Beginner')
-  const [userXP, setUserXP] = useState(320)
-  const [participatedChallenges, setParticipatedChallenges] = useState([1])
+const tabs = [
+  { id: 'chefs', label: 'Chefs' },
+  { id: 'recipes', label: 'Tendance' },
+  { id: 'challenges', label: 'Defis' },
+]
 
-  const toggleChallenge = (challengeId) => {
-    setParticipatedChallenges((prev) => {
-      if (prev.includes(challengeId)) {
-        return prev.filter((id) => id !== challengeId)
-      } else {
-        setUserXP((p) => p + 50)
-        return [...prev, challengeId]
-      }
+const difficultyClass = {
+  Facile: 'community-chip--easy',
+  Moyen: 'community-chip--medium',
+  Difficile: 'community-chip--hard',
+}
+
+const Community = () => {
+  const [activeTab, setActiveTab] = useState('chefs')
+  const [selectedChefId, setSelectedChefId] = useState(topChefs[0].id)
+  const [followedChefs, setFollowedChefs] = useState(['healthy'])
+  const [likedRecipes, setLikedRecipes] = useState(['tajine'])
+  const [savedRecipes, setSavedRecipes] = useState(['buddha'])
+  const [joinedChallenges, setJoinedChallenges] = useState(['five'])
+  const [completedChallenges, setCompletedChallenges] = useState([])
+  const [toast, setToast] = useState('Welcome back to the community.')
+
+  const userXP = 320 + completedChallenges.length * 80 + joinedChallenges.length * 20
+  const nextLevelXP = 500
+  const progress = Math.min(100, Math.round((userXP / nextLevelXP) * 100))
+  const selectedChef = topChefs.find((chef) => chef.id === selectedChefId) || topChefs[0]
+
+  const communityStats = useMemo(
+    () => [
+      { value: '2,847', label: 'Membres actifs' },
+      { value: '1,234', label: 'Recettes partagees' },
+      { value: '15,602', label: 'Commentaires' },
+      { value: String(joinedChallenges.length + completedChallenges.length), label: 'Vos defis' },
+    ],
+    [completedChallenges.length, joinedChallenges.length]
+  )
+
+  const toggleFollow = (chef) => {
+    setFollowedChefs((current) => {
+      const isFollowing = current.includes(chef.id)
+      setToast(isFollowing ? `Vous ne suivez plus ${chef.name}.` : `Vous suivez ${chef.name}.`)
+      return isFollowing ? current.filter((id) => id !== chef.id) : [...current, chef.id]
+    })
+  }
+
+  const toggleLike = (recipe) => {
+    setLikedRecipes((current) => {
+      const liked = current.includes(recipe.id)
+      setToast(liked ? 'Like retire.' : `${recipe.title} ajoute aux likes.`)
+      return liked ? current.filter((id) => id !== recipe.id) : [...current, recipe.id]
+    })
+  }
+
+  const toggleSave = (recipe) => {
+    setSavedRecipes((current) => {
+      const saved = current.includes(recipe.id)
+      setToast(saved ? 'Recette retiree des favoris.' : `${recipe.title} sauvegardee.`)
+      return saved ? current.filter((id) => id !== recipe.id) : [...current, recipe.id]
+    })
+  }
+
+  const toggleChallenge = (challenge) => {
+    setJoinedChallenges((current) => {
+      const joined = current.includes(challenge.id)
+      setToast(joined ? `Defi quitte: ${challenge.title}.` : `Defi rejoint: +${challenge.reward} XP possible.`)
+      return joined ? current.filter((id) => id !== challenge.id) : [...current, challenge.id]
+    })
+    setCompletedChallenges((current) => current.filter((id) => id !== challenge.id))
+  }
+
+  const completeChallenge = (challenge) => {
+    setJoinedChallenges((current) => (current.includes(challenge.id) ? current : [...current, challenge.id]))
+    setCompletedChallenges((current) => {
+      if (current.includes(challenge.id)) return current
+      setToast(`${challenge.title} complete. Bravo, +${challenge.reward} XP!`)
+      return [...current, challenge.id]
     })
   }
 
   return (
-    <div className="cookpal-page cookpal-community-page">
-      <h1 className="cookpal-page__title">Community</h1>
-      <p className="cookpal-page__lead">Connectez-vous, partagez et apprenez avec d'autres passionnés de cuisine.</p>
+    <div className="community-page">
+      <header className="community-header">
+        <div>
+          <h1 className="community-title">Community</h1>
+          <p className="community-lead">Connectez-vous, partagez et apprenez avec d'autres passionnes de cuisine.</p>
+        </div>
+        <div className="community-status" role="status">
+          {toast}
+        </div>
+      </header>
 
-      {/* User Stats Card */}
-      <section className="cookpal-panel" style={{ background: 'linear-gradient(135deg, #4CAF50, #45a049)', color: 'white', marginBottom: 24 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: 16 }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', marginBottom: 8 }}>⭐</div>
-            <p style={{ margin: 0 }}>{userLevel}</p>
+      <section className="community-hero" aria-label="Votre progression">
+        <div className="community-hero__stats">
+          <div>
+            <span className="community-hero__icon" aria-hidden>
+              *
+            </span>
+            <strong>Beginner</strong>
             <small>Votre niveau</small>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', marginBottom: 8 }}>✨</div>
-            <p style={{ margin: 0 }}>{userXP} XP</p>
-            <small>Points d'expérience</small>
+          <div>
+            <span className="community-hero__icon" aria-hidden>
+              XP
+            </span>
+            <strong>{userXP} XP</strong>
+            <small>Points d'experience</small>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', marginBottom: 8 }}>🏆</div>
-            <p style={{ margin: 0 }}>{participatedChallenges.length}</p>
-            <small>Défis complétés</small>
+          <div>
+            <span className="community-hero__icon" aria-hidden>
+              W
+            </span>
+            <strong>{completedChallenges.length}</strong>
+            <small>Defis completes</small>
           </div>
         </div>
-        <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.3)', borderRadius: '4px', overflow: 'hidden' }}>
-          <div style={{ width: `${(userXP / 500) * 100}%`, height: '100%', background: '#FFD700' }} />
+        <div className="community-progress" aria-label={`${progress}% du prochain niveau`}>
+          <span style={{ width: `${progress}%` }} />
         </div>
-        <small style={{ display: 'block', marginTop: 8 }}>180 XP avant le prochain niveau</small>
+        <small>{Math.max(nextLevelXP - userXP, 0)} XP avant le prochain niveau</small>
       </section>
 
-      {/* Top Chefs */}
-      <section className="cookpal-panel">
-        <h2 className="cookpal-subtitle">👨‍🍳 Chefs de la communauté</h2>
-        <p className="cookpal-page__lead" style={{ fontSize: '14px', marginBottom: 16 }}>Découvrez les meilleurs cuisinier(e)s et suivez leurs recettes.</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
-          {topChefs.map((chef) => (
-            <article
-              key={chef.id}
-              className="cookpal-panel"
-              style={{
-                borderLeft: '4px solid #4CAF50',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-4px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-              onClick={() => setSelectedChef(chef.id)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: 12 }}>
-                <div style={{ fontSize: '40px' }}>{chef.badge}</div>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: '0 0 4px 0' }}>{chef.name}</h3>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>{chef.specialty}</p>
-                </div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: '1px solid #eee' }}>
-                <span style={{ fontSize: '12px', color: '#666' }}>👥 {chef.followers} followers</span>
-                <span style={{ fontSize: '11px', background: '#4CAF50', color: 'white', padding: '4px 8px', borderRadius: '12px' }}>
-                  {chef.level}
-                </span>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+      <nav className="community-tabs" aria-label="Community sections">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className={`community-tab${activeTab === tab.id ? ' community-tab--active' : ''}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
-      {/* Trending Recipes */}
-      <section className="cookpal-panel">
-        <h2 className="cookpal-subtitle">🔥 Recettes en tendance</h2>
-        <p className="cookpal-page__lead" style={{ fontSize: '14px', marginBottom: 16 }}>Les favorites du moment dans notre communauté.</p>
-        <div style={{ display: 'grid', gap: '12px' }}>
-          {trendingRecipes.map((recipe) => (
-            <article
-              key={recipe.id}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr auto',
-                alignItems: 'center',
-                padding: '12px',
-                background: '#f9f9f9',
-                borderRadius: '8px',
-                borderLeft: recipe.trending ? '3px solid #FF6B6B' : 'none',
-              }}
-            >
+      {activeTab === 'chefs' && (
+        <section className="community-grid community-grid--chefs">
+          <div className="community-panel">
+            <div className="community-section-head">
               <div>
-                <h4 style={{ margin: '0 0 4px 0' }}>
-                  {recipe.trending && '🔥 '}
-                  {recipe.title}
-                </h4>
-                <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>par {recipe.chef}</p>
+                <h2>Chefs de la communaute</h2>
+                <p>Decouvrez les meilleurs cuisinier(e)s et suivez leurs recettes.</p>
               </div>
-              <div style={{ display: 'flex', gap: '16px', fontSize: '12px' }}>
-                <span>❤️ {recipe.likes}</span>
-                <span>💾 {recipe.saves}</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+            </div>
+            <div className="community-chef-list">
+              {topChefs.map((chef) => {
+                const isSelected = selectedChefId === chef.id
+                const isFollowing = followedChefs.includes(chef.id)
 
-      {/* Challenges */}
-      <section className="cookpal-panel">
-        <h2 className="cookpal-subtitle">🎯 Défis culinaires</h2>
-        <p className="cookpal-page__lead" style={{ fontSize: '14px', marginBottom: 16 }}>
-          Relevez des défis et gagnez de l'expérience communautaire!
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-          {challenges.map((challenge) => (
-            <article
-              key={challenge.id}
-              className="cookpal-panel"
-              style={{
-                borderTop: '4px solid #FF9800',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ fontSize: '40px' }}>{challenge.icon}</div>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    background:
-                      challenge.difficulty === 'Facile'
-                        ? '#E8F5E9'
-                        : challenge.difficulty === 'Moyen'
-                          ? '#FFF3E0'
-                          : '#FFEBEE',
-                    color:
-                      challenge.difficulty === 'Facile'
-                        ? '#2E7D32'
-                        : challenge.difficulty === 'Moyen'
-                          ? '#E65100'
-                          : '#C62828',
-                  }}
-                >
-                  {challenge.difficulty}
-                </span>
-              </div>
-              <h3 style={{ margin: '0 0 8px 0' }}>{challenge.title}</h3>
-              <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#666', flex: 1 }}>
-                {challenge.description}
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: 12, color: '#999' }}>
-                <span>👥 {challenge.participants} participants</span>
-                <span>⭐ {challenge.reward}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => toggleChallenge(challenge.id)}
-                style={{
-                  padding: '8px 12px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  background: participatedChallenges.includes(challenge.id) ? '#81C784' : '#4CAF50',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: 'bold',
-                }}
-              >
-                {participatedChallenges.includes(challenge.id) ? '✓ Participé' : 'Relever le défi'}
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
+                return (
+                  <article
+                    key={chef.id}
+                    className={`community-chef-card${isSelected ? ' community-chef-card--selected' : ''}`}
+                  >
+                    <button
+                      type="button"
+                      className="community-chef-card__main"
+                      onClick={() => {
+                        setSelectedChefId(chef.id)
+                        setToast(`${chef.name} selectionne.`)
+                      }}
+                    >
+                      <span className="community-avatar" aria-hidden>
+                        {chef.badge}
+                      </span>
+                      <span>
+                        <strong>{chef.name}</strong>
+                        <small>{chef.specialty}</small>
+                      </span>
+                    </button>
+                    <div className="community-chef-card__foot">
+                      <span>{chef.followers + (isFollowing ? 1 : 0)} followers</span>
+                      <button
+                        type="button"
+                        className={`community-mini-btn${isFollowing ? ' community-mini-btn--active' : ''}`}
+                        onClick={() => toggleFollow(chef)}
+                      >
+                        {isFollowing ? 'Suivi' : 'Suivre'}
+                      </button>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
 
-      {/* Community Stats */}
-      <section className="cookpal-panel" style={{ background: '#F5F5F5' }}>
-        <h2 className="cookpal-subtitle">📊 Statistiques communautaires</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginTop: 16 }}>
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#4CAF50' }}>2,847</p>
-            <small>Membres actifs</small>
+          <aside className="community-panel community-detail">
+            <span className="community-avatar community-avatar--large" aria-hidden>
+              {selectedChef.badge}
+            </span>
+            <h2>{selectedChef.name}</h2>
+            <p>{selectedChef.note}</p>
+            <dl>
+              <div>
+                <dt>Niveau</dt>
+                <dd>{selectedChef.level}</dd>
+              </div>
+              <div>
+                <dt>Recette phare</dt>
+                <dd>{selectedChef.recipe}</dd>
+              </div>
+            </dl>
+            <button type="button" className="community-primary-btn" onClick={() => toggleFollow(selectedChef)}>
+              {followedChefs.includes(selectedChef.id) ? 'Ne plus suivre' : 'Suivre ce chef'}
+            </button>
+          </aside>
+        </section>
+      )}
+
+      {activeTab === 'recipes' && (
+        <section className="community-panel">
+          <div className="community-section-head">
+            <div>
+              <h2>Recettes en tendance</h2>
+              <p>Les favorites du moment dans notre communaute.</p>
+            </div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#FF9800' }}>1,234</p>
-            <small>Recettes partagées</small>
+          <div className="community-recipe-list">
+            {trendingRecipes.map((recipe) => {
+              const liked = likedRecipes.includes(recipe.id)
+              const saved = savedRecipes.includes(recipe.id)
+
+              return (
+                <article key={recipe.id} className="community-recipe-card">
+                  <div>
+                    <span className="community-chip">{recipe.tag}</span>
+                    <h3>{recipe.title}</h3>
+                    <p>par {recipe.chef}</p>
+                  </div>
+                  <div className="community-recipe-actions">
+                    <button
+                      type="button"
+                      className={liked ? 'community-action-btn community-action-btn--active' : 'community-action-btn'}
+                      onClick={() => toggleLike(recipe)}
+                    >
+                      Like {recipe.likes + (liked ? 1 : 0)}
+                    </button>
+                    <button
+                      type="button"
+                      className={saved ? 'community-action-btn community-action-btn--saved' : 'community-action-btn'}
+                      onClick={() => toggleSave(recipe)}
+                    >
+                      Save {recipe.saves + (saved ? 1 : 0)}
+                    </button>
+                  </div>
+                </article>
+              )
+            })}
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#2196F3' }}>15,602</p>
-            <small>Commentaires</small>
+        </section>
+      )}
+
+      {activeTab === 'challenges' && (
+        <section className="community-panel">
+          <div className="community-section-head">
+            <div>
+              <h2>Defis culinaires</h2>
+              <p>Relevez des defis et gagnez de l'experience communautaire.</p>
+            </div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#E91E63' }}>345</p>
-            <small>Défis complétés</small>
+          <div className="community-challenge-grid">
+            {challenges.map((challenge) => {
+              const joined = joinedChallenges.includes(challenge.id)
+              const completed = completedChallenges.includes(challenge.id)
+
+              return (
+                <article key={challenge.id} className="community-challenge-card">
+                  <div className="community-challenge-card__top">
+                    <span className="community-challenge-icon">{challenge.icon}</span>
+                    <span className={`community-chip ${difficultyClass[challenge.difficulty]}`}>
+                      {challenge.difficulty}
+                    </span>
+                  </div>
+                  <h3>{challenge.title}</h3>
+                  <p>{challenge.description}</p>
+                  <div className="community-challenge-meta">
+                    <span>{challenge.participants + (joined ? 1 : 0)} participants</span>
+                    <span>{challenge.reward} XP</span>
+                  </div>
+                  <div className="community-card-actions">
+                    <button
+                      type="button"
+                      className={`community-secondary-btn${joined ? ' community-secondary-btn--active' : ''}`}
+                      onClick={() => toggleChallenge(challenge)}
+                    >
+                      {joined ? 'Quitter' : 'Rejoindre'}
+                    </button>
+                    <button
+                      type="button"
+                      className="community-primary-btn"
+                      onClick={() => completeChallenge(challenge)}
+                      disabled={completed}
+                    >
+                      {completed ? 'Complete' : 'Terminer'}
+                    </button>
+                  </div>
+                </article>
+              )
+            })}
           </div>
-        </div>
+        </section>
+      )}
+
+      <section className="community-stats" aria-label="Statistiques communautaires">
+        {communityStats.map((stat) => (
+          <div key={stat.label}>
+            <strong>{stat.value}</strong>
+            <span>{stat.label}</span>
+          </div>
+        ))}
       </section>
     </div>
   )
