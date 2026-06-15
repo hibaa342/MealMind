@@ -237,6 +237,12 @@ const Recipes = () => {
   return (
     <div className="recipes-page">
       <div className="recipes-page__header">
+        <div className="recipes-page__utensils" aria-hidden>
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
         <h1 className="recipes-page__title">Explore recipes</h1>
         <p className="recipes-page__lead">Discover dishes that match your tastes.</p>
       </div>
@@ -248,7 +254,15 @@ const Recipes = () => {
               key={r.id}
               className="recipes-page__card-wrapper"
               onClick={() => setSelectedRecipeId(r.id)}
-              style={{ cursor: 'pointer' }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setSelectedRecipeId(r.id)
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${r.title}`}
             >
               <RecipeCard 
                 recipe={r}
