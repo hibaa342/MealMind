@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 const accentClass = {
   green: 'cookpal-recipe-card--green',
@@ -59,7 +59,6 @@ const RecipeCard = ({ recipe, isFavorited = false, onFavoriteToggle }) => {
         )}
       </div>
       <div className="cookpal-recipe-card__body">
-        <img src="" alt="" />
         <div className="cookpal-recipe-card__title-row">
           <h3 className="cookpal-recipe-card__title">{title}</h3>
           {rating != null && (
