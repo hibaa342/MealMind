@@ -1,155 +1,341 @@
-.planning-container {
-    max-width: 1000px;
-    margin: 0 auto !important;
-    padding: 20px 20px 60px;
+.snapcook-planning {
+    width: 100%;
+    color: #17251d;
+}
+
+.snapcook-planning__search-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.snapcook-planning__search {
+    flex: 1;
+    min-height: 52px;
+    border: 1px solid rgba(45, 106, 79, 0.08);
+    box-shadow: 0 8px 28px rgba(27, 59, 40, 0.08);
+}
+
+.snapcook-planning__mic {
+    color: #8ba197;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.snapcook-planning__recipe-btn,
+.snapcook-planning__generate,
+.snapcook-budget-card__btn {
+    border: none;
+    background: var(--snap-forest, #1b3b28);
+    color: #fff;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(27, 59, 40, 0.22);
+    transition: filter 0.2s, transform 0.15s;
+}
+
+.snapcook-planning__recipe-btn:hover,
+.snapcook-planning__generate:hover,
+.snapcook-budget-card__btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.snapcook-planning__recipe-btn {
+    flex-shrink: 0;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.snapcook-planning__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.snapcook-planning__title {
+    margin: 0 0 6px;
+    color: #182a20;
+    font-size: 1.75rem;
+    line-height: 1.15;
+    font-weight: 800;
+}
+
+.snapcook-planning__lead {
+    max-width: 560px;
+    margin: 0;
+    color: #5c7068;
+    font-size: 0.95rem;
+}
+
+.snapcook-planning__generate {
+    flex-shrink: 0;
+    padding: 11px 18px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.snapcook-planning__alert {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #fff1f2;
+    color: #9f1239;
+    border: 1px solid #ffe4e6;
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+
+.snapcook-week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(86px, 1fr));
+    gap: 8px;
+    align-items: stretch;
+}
+
+.snapcook-day-card {
+    min-width: 0;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(45, 106, 79, 0.08);
+    border-radius: 8px;
+    padding: 10px 8px 12px;
+    box-shadow: 0 8px 26px rgba(27, 59, 40, 0.06);
+}
+
+.snapcook-day-card__title {
+    margin: 0 0 12px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid rgba(45, 106, 79, 0.08);
+    color: #182a20;
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.snapcook-day-card__meals {
     display: flex;
     flex-direction: column;
+    gap: 10px;
 }
 
-.cookpal-section__head {
-    margin-bottom: 40px;
+.snapcook-meal-slot {
+    min-width: 0;
 }
 
-.cookpal-week-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-top: 24px;
-}
-
-.day-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--saas-slate-800);
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--saas-slate-100);
-}
-
-.meal-slot {
-    margin-bottom: 12px;
-}
-
-.meal-type-label {
-    font-size: 0.75rem;
+.snapcook-meal-slot__label {
+    display: block;
+    margin-bottom: 5px;
+    color: #1d3026;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--saas-slate-400);
-    font-weight: 600;
+    text-align: center;
+}
+
+.snapcook-meal-add,
+.snapcook-meal-item {
+    width: 100%;
+    min-height: 34px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.snapcook-meal-add {
+    border: 1.5px dashed rgba(45, 106, 79, 0.24);
+    background: #f7fbf7;
+    color: #2d6a4f;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.snapcook-meal-add:hover {
+    background: #e8f5e9;
+    border-color: rgba(45, 106, 79, 0.38);
+}
+
+.snapcook-meal-add span {
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.snapcook-meal-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 7px 8px;
+    background: #e8f5e9;
+    color: #1b4332;
+    border: 1px solid rgba(45, 106, 79, 0.08);
+}
+
+.snapcook-meal-item__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.snapcook-meal-item__remove {
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(27, 59, 40, 0.12);
+    color: #1b3b28;
+    cursor: pointer;
+    font-size: 0.7rem;
+    line-height: 18px;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.snapcook-budget-card {
+    margin-top: 42px;
+    padding: 22px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid rgba(45, 106, 79, 0.09);
+    box-shadow: 0 8px 28px rgba(27, 59, 40, 0.06);
+}
+
+.snapcook-budget-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.snapcook-budget-card__title {
+    margin: 0 0 5px;
+    color: #182a20;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.snapcook-budget-card__meta {
+    margin: 0;
+    font-size: 0.84rem;
+    color: #5c7068;
+}
+
+.snapcook-budget-card__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.snapcook-budget-card__btn {
+    padding: 10px 15px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+}
+
+.snapcook-budget-card__btn--ghost {
+    background: #eef6ef;
+    color: #1b3b28;
+    box-shadow: none;
+}
+
+.snapcook-budget-card__stats {
+    display: flex;
+    gap: 34px;
+    margin-bottom: 22px;
+}
+
+.snapcook-budget-card__stat span {
     display: block;
     margin-bottom: 4px;
-}
-
-.meal-item {
-    background: var(--saas-blue-light);
-    color: var(--saas-blue-dark);
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.meal-add-placeholder {
-    width: 100%;
-    background: var(--saas-slate-50);
-    border: 1.5px dashed var(--saas-slate-200);
-    color: var(--saas-slate-400);
-    padding: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-}
-
-/* Budget Visuals */
-.budget-analytics-card {
-    margin-top: 48px;
-    padding: 24px;
-    border: 1px solid var(--saas-slate-100);
-}
-
-.budget-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.budget-meta {
-    font-size: 0.85rem;
-    color: var(--saas-slate-400);
-}
-
-.budget-stats {
-    display: flex;
-    gap: 40px;
-    margin-bottom: 24px;
-}
-
-.stat-item span {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--saas-slate-500);
+    color: #6b7f76;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    letter-spacing: 1px;
 }
 
-.stat-item strong {
-    font-size: 1.5rem;
-    color: var(--saas-slate-800);
+.snapcook-budget-card__stat strong {
+    color: #182a20;
+    font-size: 1.35rem;
 }
 
-.text-danger { color: #ef4444 !important; }
+.text-danger {
+    color: #dc2626 !important;
+}
 
-.budget-progress-bar {
-    height: 12px;
-    background: var(--saas-slate-100);
-    border-radius: 6px;
+.snapcook-budget-card__progress {
+    height: 11px;
     overflow: hidden;
+    border-radius: 999px;
+    background: #e8f5e9;
 }
 
-.budget-progress-fill {
+.snapcook-budget-card__fill {
     height: 100%;
-    background: var(--saas-blue);
+    border-radius: 999px;
+    background: linear-gradient(90deg, #74c69d, #2d6a4f);
     transition: width 0.5s ease;
 }
 
-.budget-progress-fill.over-budget {
-    background: #ef4444;
+.snapcook-budget-card__fill--over {
+    background: #dc2626;
 }
 
-.budget-labels {
+.snapcook-budget-card__labels {
     display: flex;
     justify-content: space-between;
+    gap: 10px;
     margin-top: 8px;
+    color: #7b8f86;
     font-size: 0.75rem;
-    color: var(--saas-slate-400);
 }
 
-/* Modal Styling */
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
+    inset: 0;
+    background: rgba(15, 23, 42, 0.42);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    padding: 18px;
 }
 
 .modal-content {
     width: 100%;
     max-width: 450px;
-    padding: 32px;
+    padding: 28px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 24px 60px rgba(27, 59, 40, 0.18);
+}
+
+.modal-content h2 {
+    margin: 0 0 8px;
+    color: #182a20;
 }
 
 .modal-subtitle {
-    color: var(--saas-slate-500);
+    color: #5c7068;
     margin-bottom: 20px;
 }
 
@@ -161,14 +347,55 @@
 }
 
 .modal-btn {
-    padding: 10px 20px;
+    padding: 10px 18px;
     border-radius: 8px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
 }
 
+.modal-btn--cancel {
+    border: none;
+    background: #eef6ef;
+    color: #1b3b28;
+}
+
 .modal-btn--save {
-    background: var(--saas-blue);
+    background: var(--snap-forest, #1b3b28);
     color: white;
     border: none;
+}
+
+@media (max-width: 1240px) {
+    .snapcook-week-grid {
+        grid-template-columns: repeat(4, minmax(110px, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .snapcook-planning__search-row,
+    .snapcook-planning__head,
+    .snapcook-budget-card__header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .snapcook-planning__recipe-btn,
+    .snapcook-planning__generate {
+        width: 100%;
+    }
+
+    .snapcook-week-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .snapcook-budget-card__stats {
+        flex-direction: column;
+        gap: 14px;
+    }
+}
+
+@media (max-width: 420px) {
+    .snapcook-week-grid {
+        grid-template-columns: 1fr;
+    }
 }

@@ -199,45 +199,75 @@ const PlanningPage = () => {
     setIsMealModalOpen(true);
   };
 
-  if (loading) return <div className="cookpal-page">Loading your week...</div>;
+  if (loading) return <div className="snapcook-planning">Loading your week...</div>;
 
   return (
-    <div className="planning-container fade-in">
-      <div className="cookpal-section__head">
-        <div>
-          <h1 className="cookpal-page__title">Meal Planning</h1>
-          <p className="cookpal-page__lead">Organize your weekly nutrition and stay on track with your goals.</p>
+    <div className="snapcook-planning fade-in">
+      <div className="snapcook-planning__search-row">
+        <div className="cookpal-search snapcook-planning__search">
+          <span className="cookpal-search__icon" aria-hidden>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.3-4.3" />
+            </svg>
+          </span>
+          <input
+            type="search"
+            className="cookpal-search__input"
+            placeholder="Search recipes, ingredients..."
+            aria-label="Search recipes and ingredients"
+          />
+          <span className="snapcook-planning__mic" aria-hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+          </span>
         </div>
-
-        {error && <div className="alert alert-error" style={{ marginBottom: '20px' }}>{error}</div>}
-
-        <button className="btn-saas-primary" style={{ width: 'auto' }}>
-          <span>+</span> Smart Generate
+        <button type="button" className="snapcook-planning__recipe-btn">
+          + Recipe
         </button>
       </div>
 
-      <div className="cookpal-week-grid">
+      <div className="snapcook-planning__head">
+        <div>
+          <h1 className="snapcook-planning__title">Meal Planning</h1>
+          <p className="snapcook-planning__lead">Organize your weekly nutrition and stay on track with your goals.</p>
+        </div>
+
+        <button type="button" className="snapcook-planning__generate">
+          Smart Generate
+        </button>
+      </div>
+
+      {error && <div className="snapcook-planning__alert">{error}</div>}
+
+      <div className="snapcook-week-grid">
         {DAYS.map(day => (
-          <div key={day} className="cookpal-day-card glass-panel">
-            <h3 className="day-title">{day}</h3>
+          <section key={day} className="snapcook-day-card">
+            <h3 className="snapcook-day-card__title">{day}</h3>
             
-            <div className="day-meals">
+            <div className="snapcook-day-card__meals">
               {MEAL_TYPES.map(type => {
                 const meal = (plans || []).find(p => p.dayOfWeek === day && p.mealType === type);
                 
                 return (
-                  <div key={type} className="meal-slot">
-                    <span className="meal-type-label">{type}</span>
+                  <div key={type} className="snapcook-meal-slot">
+                    <span className="snapcook-meal-slot__label">{type}</span>
                     {meal ? (
-                      <div className="meal-item fade-in">
-                        <span className="meal-name">{meal.recipeTitle}</span>
+                      <div className="snapcook-meal-item fade-in">
+                        <span className="snapcook-meal-item__name">{meal.recipeTitle}</span>
                         <button 
-                          className="meal-remove-btn" 
+                          type="button"
+                          className="snapcook-meal-item__remove" 
                           onClick={() => handleRemove(meal._id)}
+                          aria-label={`Remove ${meal.recipeTitle}`}
                         >✕</button>
                       </div>
                     ) : (
-                      <button className="meal-add-placeholder" onClick={() => openMealModal(day, type)}>
+                      <button type="button" className="snapcook-meal-add" onClick={() => openMealModal(day, type)}>
                         <span>+</span> Add
                       </button>
                     )}
@@ -245,49 +275,49 @@ const PlanningPage = () => {
                 );
               })}
             </div>
-          </div>
+          </section>
         ))}
       </div>
 
       {/* Monthly Budget Graph Section */}
-      <section className="card budget-analytics-card">
-        <div className="budget-header">
+      <section className="snapcook-budget-card">
+        <div className="snapcook-budget-card__header">
           <div>
-            <h3 className="cookpal-subtitle">Monthly Budget Overview</h3>
-            <p className="budget-meta">Combines app orders and manual grocery logs</p>
+            <h3 className="snapcook-budget-card__title">Monthly Budget Overview</h3>
+            <p className="snapcook-budget-card__meta">Combines app orders and manual grocery logs</p>
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button className="cookpal-admin-btn" style={{ background: 'var(--saas-slate-100)', color: 'var(--saas-slate-700)' }} onClick={handleUpdateBudget}>
+          <div className="snapcook-budget-card__actions">
+            <button type="button" className="snapcook-budget-card__btn snapcook-budget-card__btn--ghost" onClick={handleUpdateBudget}>
               Set Limit
             </button>
-            <button className="cookpal-admin-btn" onClick={() => setIsExpenseModalOpen(true)}>
+            <button type="button" className="snapcook-budget-card__btn" onClick={() => setIsExpenseModalOpen(true)}>
               Log Expense
             </button>
           </div>
         </div>
 
-        <div className="budget-visualizer">
-          <div className="budget-stats">
-            <div className="stat-item">
+        <div className="snapcook-budget-card__visualizer">
+          <div className="snapcook-budget-card__stats">
+            <div className="snapcook-budget-card__stat">
               <span>Total Spent</span>
               <strong className={totalSpent > budgetLimit ? 'text-danger' : ''}>
                 {totalSpent.toFixed(2)} MAD
               </strong>
             </div>
-            <div className="stat-item">
+            <div className="snapcook-budget-card__stat">
               <span>Remaining</span>
               <strong>{Math.max(budgetLimit - totalSpent, 0).toFixed(2)} MAD</strong>
             </div>
           </div>
 
-          <div className="budget-progress-container">
-            <div className="budget-progress-bar">
+          <div className="snapcook-budget-card__progress-wrap">
+            <div className="snapcook-budget-card__progress">
               <div 
-                className={`budget-progress-fill ${totalSpent > budgetLimit ? 'over-budget' : ''}`}
+                className={`snapcook-budget-card__fill ${totalSpent > budgetLimit ? 'snapcook-budget-card__fill--over' : ''}`}
                 style={{ width: `${budgetPercent}%` }}
               />
             </div>
-            <div className="budget-labels">
+            <div className="snapcook-budget-card__labels">
               <span>0 MAD</span>
               <span>Budget Limit: {budgetLimit} MAD</span>
             </div>
