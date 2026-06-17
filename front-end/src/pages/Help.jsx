@@ -2,45 +2,45 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 const TIPS = [
-  'Vous pouvez filtrer les recettes selon vos préférences depuis la page Recettes.',
-  'Utilisez le scanner pour enregistrer vos produits plus vite.',
-  'Planifiez vos repas sur une semaine pour gagner du temps.',
-  'Enregistrez vos allergies dans le profil pour des suggestions adaptées.',
+  'You can filter recipes by your preferences from the Recipes page.',
+  'Use the scanner to register your products faster.',
+  'Plan your meals for a week to save time.',
+  'Save your allergies in your profile for personalized suggestions.',
 ]
 
 const FAQ_ITEMS = [
   {
     key: 'account',
-    title: 'Compte',
+    title: 'Account',
     questions: [
-      ['Comment modifier mon profil ?', "Menu Profil, puis Modifier. Vous pouvez changer nom, préférences et objectifs."],
-      ['Mes données sont-elles supprimées si je quitte ?', 'Depuis Confidentialité dans le profil vous pouvez demander la suppression du compte lorsque cette option sera activée côté serveur.'],
+      ['How do I update my profile?', 'Go to Profile menu, then Edit. You can change your name, preferences and goals.'],
+      ['Will my data be deleted if I leave?', 'From Privacy in your profile you can request account deletion when this option is enabled on the server.'],
     ],
   },
   {
     key: 'recipes',
-    title: 'Recettes et scanner',
+    title: 'Recipes and Scanner',
     questions: [
-      ['Comment ajouter une recette aux favoris ?', "Sur une carte recette, utilisez l’icône favori pour l’enregistrer."],
-      ["Le scanner ne reconnaît pas mon produit", 'Vérifiez la lumière et le cadre du code-barres. Sinon ajoutez le produit à la main.'],
+      ['How do I add a recipe to favorites?', 'On a recipe card, use the favorite icon to save it.'],
+      ['The scanner does not recognize my product', 'Check the lighting and barcode frame. Otherwise add the product manually.'],
     ],
   },
   {
     key: 'budget',
-    title: 'Planning et commandes',
+    title: 'Planning and Orders',
     questions: [
-      ['Où voir mon planning ?', 'Ouvrez la section Planning dans le menu principal.'],
-      ['Comment préparer une commande ?', 'Les ingrédients manquants peuvent être listés dans Commande pour estimer le total.'],
+      ['Where can I see my meal plan?', 'Open the Planning section in the main menu.'],
+      ['How do I prepare an order?', 'Missing ingredients can be listed in Order to estimate the total.'],
     ],
   },
 ]
 
 const HELP_TOPICS = [
-  { id: 'start', title: 'Premiers pas', text: 'Rencontrez le tableau de bord puis explorez les recettes.' },
-  { id: 'prefs', title: 'Préférences', text: 'Rencontrez le profil pour régime, allergies et objectifs.' },
-  { id: 'plan', title: 'Planning', text: 'Organisez midi et soir par jour de la semaine.' },
-  { id: 'order', title: 'Commande', text: 'Récapitulez les ingrédients à acheter et confirmez votre panier.' },
-  { id: 'fav', title: 'Favoris', text: 'Retrouvez vos recettes enregistrées et filtrez par catégorie.' },
+  { id: 'start', title: 'Getting Started', text: 'Explore the dashboard then browse recipes.' },
+  { id: 'prefs', title: 'Preferences', text: 'Visit your profile to set diet, allergies and goals.' },
+  { id: 'plan', title: 'Planning', text: 'Organize lunch and dinner by day of the week.' },
+  { id: 'order', title: 'Orders', text: 'List ingredients to buy and confirm your cart.' },
+  { id: 'fav', title: 'Favorites', text: 'Find your saved recipes and filter by category.' },
 ]
 
 const Help = () => {
@@ -69,14 +69,14 @@ const Help = () => {
 
   const onContact = (e) => {
     e.preventDefault()
-    window.alert('Merci. Votre message a été enregistré (démo locale).')
+    window.alert('Thank you. Your message has been recorded (local demo).')
     e.target.reset()
   }
 
   return (
     <div className="cookpal-page help-page">
-      <h1 className="cookpal-page__title">Aide</h1>
-      <p className="cookpal-page__lead">Guides courts, questions fréquentes et contact.</p>
+      <h1 className="cookpal-page__title">Help</h1>
+      <p className="cookpal-page__lead">Quick guides, frequently asked questions, and contact.</p>
 
       <div className="help-search cookpal-search">
         <span className="cookpal-search__icon" aria-hidden>
@@ -88,18 +88,18 @@ const Help = () => {
         <input
           type="search"
           className="cookpal-search__input"
-          placeholder="Rechercher (planning, favoris, scanner…)"
+          placeholder="Search (planning, favorites, scanner...)"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          aria-label="Recherche dans laide"
+          aria-label="Search in help"
         />
       </div>
 
       {search.trim() && (
         <section className="cookpal-help-card help-section" aria-live="polite">
-          <h2 className="help-section__title">Résultats</h2>
+          <h2 className="help-section__title">Results</h2>
           {filteredTopics.length === 0 ? (
-            <p className="help-muted">Aucun sujet ne correspond.</p>
+            <p className="help-muted">No topics match.</p>
           ) : (
             <ul className="help-topic-list">
               {filteredTopics.map((t) => (
@@ -114,28 +114,28 @@ const Help = () => {
       )}
 
       <section className="cookpal-help-card help-section">
-        <h2 className="help-section__title">Raccourcis</h2>
+        <h2 className="help-section__title">Quick Links</h2>
         <ul className="help-shortcuts">
           <li>
-            <Link to="/recipes">Voir les recettes</Link>
+            <Link to="/recipes">View Recipes</Link>
           </li>
           <li>
-            <Link to="/planning">Planning de la semaine</Link>
+            <Link to="/planning">Weekly Planning</Link>
           </li>
           <li>
-            <Link to="/order">Ma commande</Link>
+            <Link to="/order">My Order</Link>
           </li>
           <li>
-            <Link to="/scanner">Scanner produit</Link>
+            <Link to="/scanner">Product Scanner</Link>
           </li>
           <li>
-            <Link to="/profile">Mon profil</Link>
+            <Link to="/profile">My Profile</Link>
           </li>
         </ul>
       </section>
 
       <section className="cookpal-help-card help-section">
-        <h2 className="help-section__title">Questions fréquentes</h2>
+        <h2 className="help-section__title">Frequently Asked Questions</h2>
         <div className="help-faq">
           {FAQ_ITEMS.map((cat) => (
             <div key={cat.key} className="help-faq__block">

@@ -1,20 +1,20 @@
 const Product = require('../models/ProductModel');
 
-// @desc    Obtenir tous les produits
+// @desc    Get all products
 // @route   GET /api/products
 // @access  Private
 const getProducts = async (req, res) => {
     try {
-        // IMPORTANT: On filtre par l'ID de l'utilisateur qui vient du middleware !
+        // IMPORTANT: We filter by the user ID that comes from the middleware!
         const products = await Product.find({ user: req.user.id }).sort({ createdAt: -1 });
         res.status(200).json(products);
     } catch (error) {
-        res.status(500).json({ message: 'Erreur serveur lors de la récupération' });
+        res.status(500).json({ message: 'Server error retrieving products' });
     }
 };
-// @desc    Ajouter un nouveau produit
+// @desc    Add a new product
 // @route   POST /api/products
-// @access  Public (simulé admin côté front par localhost)
+// @access  Public (simulated admin on front by localhost)
 const addProduct = async (req, res) => {
     try {
         console.log('req.body:', req.body);   // ADD THIS
@@ -22,10 +22,10 @@ const addProduct = async (req, res) => {
         const { title, time, categories, rating, tags, accent } = req.body;
         const image = req.file ? req.file.path : req.body.image;
 
-        if (!image) return res.status(400).json({ message: 'Une image est requise' });
+        if (!image) return res.status(400).json({ message: 'An image is required' });
 
         const product = await Product.create({
-            user: req.user.id, // <--- On ajoute le propriétaire ici !
+            user: req.user.id, // Add the owner here!
             title,
             time,
             categories,
@@ -38,11 +38,11 @@ const addProduct = async (req, res) => {
         res.status(201).json(product);
     }  catch (error) {
     console.error('PRODUCT ERROR:', error.message);
-    res.status(500).json({ message: 'Erreur serveur lors de la création' });
+    res.status(500).json({ message: 'Server error creating product' });
 }
 };
 
-// @desc    Mettre à jour un produit
+// @desc    Update a product
 // @route   PUT /api/products/:id
 // @access  Private
 const updateProduct = async (req, res) => {
@@ -67,19 +67,19 @@ const updateProduct = async (req, res) => {
             { new: true, runValidators: true }
         );
 
-        if (!product) return res.status(404).json({ message: 'Produit introuvable' });
+        if (!product) return res.status(404).json({ message: 'Product not found' });
         res.status(200).json(product);
     } catch (error) {
-        res.status(500).json({ message: 'Erreur serveur lors de la mise à jour' });
+        res.status(500).json({ message: 'Server error updating product' });
     }
 };
     const deleteProduct = async (req, res) => {
     try {
         const product = await Product.findOneAndDelete({ _id: req.params.id, user: req.user.id });
-        if (!product) return res.status(404).json({ message: 'Produit introuvable' });
-        res.status(200).json({ message: 'Produit supprimé' });
+        if (!product) return res.status(404).json({ message: 'Product not found' });
+        res.status(200).json({ message: 'Product deleted' });
     } catch (error) {
-        res.status(500).json({ message: 'Erreur serveur' });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 module.exports = {

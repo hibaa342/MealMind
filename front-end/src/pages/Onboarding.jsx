@@ -6,24 +6,24 @@ import './Onboarding.css'
 const TOTAL = 4
 
 const PREFERENCES_OPTIONS = [
-  'Végétarien',
-  'Végan',
+  'Vegetarian',
+  'Vegan',
   'Halal',
-  'Casher',
-  'Sans porc',
-  'Pescétarien',
+  'Kosher',
+  'No Pork',
+  'Pescatarian',
   'Omnivore',
 ]
 
-const ALLERGIES_OPTIONS = ['Gluten', 'Lactose', 'Arachides', 'Fruits à coque', 'Œufs', 'Soja', 'Poisson', 'Crustacés']
+const ALLERGIES_OPTIONS = ['Gluten', 'Lactose', 'Peanuts', 'Tree Nuts', 'Eggs', 'Soy', 'Fish', 'Shellfish']
 
 const GOALS_OPTIONS = [
-  'Perdre du poids',
-  'Manger équilibré',
-  'Prendre du muscle',
-  "Gain d'énergie",
-  'Réduire le sucre',
-  'Cuisine rapide',
+  'Lose Weight',
+  'Eat Healthy',
+  'Build Muscle',
+  'Increase Energy',
+  'Reduce Sugar',
+  'Quick Cooking',
 ]
 
 function toggleInList(list, item) {
@@ -74,9 +74,9 @@ const Onboarding = ({ user, onComplete }) => {
   return (
     <div className="onboarding">
       <div className="onboarding__panel">
-        <p className="onboarding__suggested">Suggéré</p>
+        <p className="onboarding__suggested">Suggested</p>
 
-        <div className="onboarding__progress" aria-label={`Étape ${step} sur ${TOTAL}`}>
+        <div className="onboarding__progress" aria-label={`Step ${step} of ${TOTAL}`}>
           <div className="onboarding__progress-track">
             <div className="onboarding__progress-fill" style={{ width: `${(step / TOTAL) * 100}%` }} />
           </div>
@@ -87,9 +87,9 @@ const Onboarding = ({ user, onComplete }) => {
 
         {step === 1 && (
           <section className="onboarding__step">
-            <h1 className="onboarding__title">Bienvenue ! Comment tu t’appelles ?</h1>
+            <h1 className="onboarding__title">Welcome! What's your name?</h1>
             <label className="onboarding__label" htmlFor="onboarding-name">
-              Ton prénom ou pseudo
+              Your first name or nickname
             </label>
             <input
               id="onboarding-name"
@@ -106,9 +106,9 @@ const Onboarding = ({ user, onComplete }) => {
 
         {step === 2 && (
           <section className="onboarding__step">
-            <h1 className="onboarding__title">Préférences alimentaires</h1>
-            <p className="onboarding__hint">Choisis tout ce qui s’applique (végétarien, halal…).</p>
-            <div className="onboarding__chips" role="group" aria-label="Préférences alimentaires">
+            <h1 className="onboarding__title">Dietary Preferences</h1>
+            <p className="onboarding__hint">Select everything that applies (vegetarian, halal, etc.).</p>
+            <div className="onboarding__chips" role="group" aria-label="Dietary Preferences">
               {PREFERENCES_OPTIONS.map((opt) => (
                 <button
                   key={opt}
@@ -126,7 +126,7 @@ const Onboarding = ({ user, onComplete }) => {
         {step === 3 && (
           <section className="onboarding__step">
             <h1 className="onboarding__title">Allergies</h1>
-            <p className="onboarding__hint">Sélectionne les allergènes à éviter.</p>
+            <p className="onboarding__hint">Select the allergens to avoid.</p>
             <div className="onboarding__chips" role="group" aria-label="Allergies">
               {ALLERGIES_OPTIONS.map((opt) => (
                 <button
@@ -144,9 +144,9 @@ const Onboarding = ({ user, onComplete }) => {
 
         {step === 4 && (
           <section className="onboarding__step">
-            <h1 className="onboarding__title">Objectifs</h1>
-            <p className="onboarding__hint">Qu’est-ce qui te motive ? (perdre du poids, manger équilibré…)</p>
-            <div className="onboarding__chips" role="group" aria-label="Objectifs">
+            <h1 className="onboarding__title">Goals</h1>
+            <p className="onboarding__hint">What motivates you? (lose weight, eat healthy, etc.)</p>
+            <div className="onboarding__chips" role="group" aria-label="Goals">
               {GOALS_OPTIONS.map((opt) => (
                 <button
                   key={opt}
@@ -164,7 +164,7 @@ const Onboarding = ({ user, onComplete }) => {
         <div className="onboarding__actions">
           {step > 1 && (
             <button type="button" className="onboarding__btn onboarding__btn--ghost" onClick={goPrev}>
-              Précédent
+              Previous
             </button>
           )}
           <div className="onboarding__actions-spacer" />
@@ -175,11 +175,11 @@ const Onboarding = ({ user, onComplete }) => {
               onClick={goNext}
               disabled={!canProceed()}
             >
-              Suivant
+              Next
             </button>
           ) : (
             <button type="button" className="onboarding__btn onboarding__btn--primary" onClick={handleFinish}>
-              Terminer
+              Finish
             </button>
           )}
         </div>

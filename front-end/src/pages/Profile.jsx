@@ -329,12 +329,12 @@ const Profile = ({ user, onLogout }) => {
             <p style={{ marginTop: 12 }}>
               <strong>Name</strong>
               <br />
-              {user.name || '—'}
+              {user.name || '-'}
             </p>
             <p style={{ marginTop: 12 }}>
               <strong>Email</strong>
               <br />
-              {user.email || '—'}
+              {user.email || '-'}
             </p>
             {user.title && (
               <p style={{ marginTop: 12 }}>

@@ -5,12 +5,12 @@ const topChefs = [
   {
     id: 'moroccan',
     name: 'Chef Moroccan',
-    specialty: 'Cuisine Marocaine',
+    specialty: 'Moroccan Cuisine',
     followers: 1240,
     badge: 'CM',
     level: 'Expert',
-    recipe: 'Tajine citron olive',
-    note: 'Publie des recettes familiales et des astuces epices.',
+    recipe: 'Lemon Olive Tagine',
+    note: 'Publishes family recipes and spice tips.',
   },
   {
     id: 'healthy',
@@ -19,28 +19,28 @@ const topChefs = [
     followers: 856,
     badge: 'HH',
     level: 'Master',
-    recipe: 'Buddha bowl colore',
-    note: 'Idees rapides pour manger frais avec moins de gaspillage.',
+    recipe: 'Colorful Buddha Bowl',
+    note: 'Quick ideas for fresh eating with less waste.',
   },
   {
     id: 'quick',
     name: 'Quick Meals Pro',
-    specialty: 'Recettes rapides',
+    specialty: 'Quick Recipes',
     followers: 642,
     badge: 'QP',
     level: 'Expert',
-    recipe: 'Pasta legumes 15 min',
-    note: 'Repas express pour les soirs charges.',
+    recipe: 'Vegetable Pasta 15 min',
+    note: 'Quick meals for busy nights.',
   },
   {
     id: 'veggie',
     name: 'Veggie Vibes',
-    specialty: 'Vegetarien',
+    specialty: 'Vegetarian',
     followers: 503,
     badge: 'VV',
     level: 'Advanced',
-    recipe: 'Curry pois chiches',
-    note: 'Plats veggie simples, colores et nourrissants.',
+    recipe: 'Chickpea Curry',
+    note: 'Simple, colorful and nourishing vegetarian dishes.',
   },
 ]
 
@@ -48,36 +48,36 @@ const challenges = [
   {
     id: 'five',
     title: '5 Ingredients Challenge',
-    description: 'Creez un repas delicieux avec seulement 5 ingredients.',
+    description: 'Create a delicious meal with just 5 ingredients.',
     participants: 127,
-    difficulty: 'Moyen',
+    difficulty: 'Medium',
     reward: 50,
     icon: '5',
   },
   {
     id: 'sugarfree',
-    title: 'Dessert sans sucre',
-    description: 'Preparez un dessert sans sucre raffine.',
+    title: 'Sugar-Free Dessert',
+    description: 'Prepare a dessert without refined sugar.',
     participants: 89,
-    difficulty: 'Difficile',
+    difficulty: 'Hard',
     reward: 75,
     icon: 'DS',
   },
   {
     id: 'budget',
     title: 'Budget Master',
-    description: 'Preparez un repas 3 couverts pour moins de 30 MAD.',
+    description: 'Prepare a 3-course meal for under 30 MAD.',
     participants: 203,
-    difficulty: 'Moyen',
+    difficulty: 'Medium',
     reward: 60,
     icon: 'BM',
   },
   {
     id: 'quick15',
-    title: '15 Minutes ou moins',
-    description: 'Un diner complet en 15 minutes maximum.',
+    title: '15 Minutes or Less',
+    description: 'A complete dinner in 15 minutes max.',
     participants: 156,
-    difficulty: 'Facile',
+    difficulty: 'Easy',
     reward: 40,
     icon: '15',
   },
@@ -86,7 +86,7 @@ const challenges = [
 const trendingRecipes = [
   {
     id: 'buddha',
-    title: 'Buddha Bowl Colore',
+    title: 'Colorful Buddha Bowl',
     chef: 'Healthy Hunter',
     likes: 456,
     saves: 234,
@@ -94,15 +94,15 @@ const trendingRecipes = [
   },
   {
     id: 'tajine',
-    title: 'Tajine Marocain Traditionnel',
+    title: 'Traditional Moroccan Tagine',
     chef: 'Chef Moroccan',
     likes: 623,
     saves: 412,
-    tag: 'Tradition',
+    tag: 'Traditional',
   },
   {
     id: 'pasta',
-    title: 'Pasta aux Legumes 15 Minutes',
+    title: 'Vegetable Pasta 15 Minutes',
     chef: 'Quick Meals Pro',
     likes: 289,
     saves: 145,
@@ -112,14 +112,14 @@ const trendingRecipes = [
 
 const tabs = [
   { id: 'chefs', label: 'Chefs' },
-  { id: 'recipes', label: 'Tendance' },
-  { id: 'challenges', label: 'Defis' },
+  { id: 'recipes', label: 'Trending' },
+  { id: 'challenges', label: 'Challenges' },
 ]
 
 const difficultyClass = {
-  Facile: 'community-chip--easy',
-  Moyen: 'community-chip--medium',
-  Difficile: 'community-chip--hard',
+  Easy: 'community-chip--easy',
+  Medium: 'community-chip--medium',
+  Hard: 'community-chip--hard',
 }
 
 const Community = () => {
@@ -139,10 +139,10 @@ const Community = () => {
 
   const communityStats = useMemo(
     () => [
-      { value: '2,847', label: 'Membres actifs' },
-      { value: '1,234', label: 'Recettes partagees' },
-      { value: '15,602', label: 'Commentaires' },
-      { value: String(joinedChallenges.length + completedChallenges.length), label: 'Vos defis' },
+      { value: '2,847', label: 'Active Members' },
+      { value: '1,234', label: 'Shared Recipes' },
+      { value: '15,602', label: 'Comments' },
+      { value: String(joinedChallenges.length + completedChallenges.length), label: 'Your Challenges' },
     ],
     [completedChallenges.length, joinedChallenges.length]
   )
@@ -150,7 +150,7 @@ const Community = () => {
   const toggleFollow = (chef) => {
     setFollowedChefs((current) => {
       const isFollowing = current.includes(chef.id)
-      setToast(isFollowing ? `Vous ne suivez plus ${chef.name}.` : `Vous suivez ${chef.name}.`)
+      setToast(isFollowing ? `You are no longer following ${chef.name}.` : `You are now following ${chef.name}.`)
       return isFollowing ? current.filter((id) => id !== chef.id) : [...current, chef.id]
     })
   }
@@ -158,7 +158,7 @@ const Community = () => {
   const toggleLike = (recipe) => {
     setLikedRecipes((current) => {
       const liked = current.includes(recipe.id)
-      setToast(liked ? 'Like retire.' : `${recipe.title} ajoute aux likes.`)
+      setToast(liked ? 'Like removed.' : `${recipe.title} added to likes.`)
       return liked ? current.filter((id) => id !== recipe.id) : [...current, recipe.id]
     })
   }
@@ -166,7 +166,7 @@ const Community = () => {
   const toggleSave = (recipe) => {
     setSavedRecipes((current) => {
       const saved = current.includes(recipe.id)
-      setToast(saved ? 'Recette retiree des favoris.' : `${recipe.title} sauvegardee.`)
+      setToast(saved ? 'Recipe removed from favorites.' : `${recipe.title} saved.`)
       return saved ? current.filter((id) => id !== recipe.id) : [...current, recipe.id]
     })
   }
@@ -174,7 +174,7 @@ const Community = () => {
   const toggleChallenge = (challenge) => {
     setJoinedChallenges((current) => {
       const joined = current.includes(challenge.id)
-      setToast(joined ? `Defi quitte: ${challenge.title}.` : `Defi rejoint: +${challenge.reward} XP possible.`)
+      setToast(joined ? `Challenge left: ${challenge.title}.` : `Challenge joined: +${challenge.reward} XP possible.`)
       return joined ? current.filter((id) => id !== challenge.id) : [...current, challenge.id]
     })
     setCompletedChallenges((current) => current.filter((id) => id !== challenge.id))
@@ -184,7 +184,7 @@ const Community = () => {
     setJoinedChallenges((current) => (current.includes(challenge.id) ? current : [...current, challenge.id]))
     setCompletedChallenges((current) => {
       if (current.includes(challenge.id)) return current
-      setToast(`${challenge.title} complete. Bravo, +${challenge.reward} XP!`)
+      setToast(`${challenge.title} completed. Congrats, +${challenge.reward} XP!`)
       return [...current, challenge.id]
     })
   }
@@ -194,41 +194,41 @@ const Community = () => {
       <header className="community-header">
         <div>
           <h1 className="community-title">Community</h1>
-          <p className="community-lead">Connectez-vous, partagez et apprenez avec d'autres passionnes de cuisine.</p>
+          <p className="community-lead">Connect, share, and learn with fellow cooking enthusiasts.</p>
         </div>
         <div className="community-status" role="status">
           {toast}
         </div>
       </header>
 
-      <section className="community-hero" aria-label="Votre progression">
+      <section className="community-hero" aria-label="Your Progress">
         <div className="community-hero__stats">
           <div>
             <span className="community-hero__icon" aria-hidden>
               *
             </span>
             <strong>Beginner</strong>
-            <small>Votre niveau</small>
+            <small>Your Level</small>
           </div>
           <div>
             <span className="community-hero__icon" aria-hidden>
               XP
             </span>
             <strong>{userXP} XP</strong>
-            <small>Points d'experience</small>
+            <small>Experience Points</small>
           </div>
           <div>
             <span className="community-hero__icon" aria-hidden>
               W
             </span>
             <strong>{completedChallenges.length}</strong>
-            <small>Defis completes</small>
+            <small>Challenges Completed</small>
           </div>
         </div>
-        <div className="community-progress" aria-label={`${progress}% du prochain niveau`}>
+        <div className="community-progress" aria-label={`${progress}% to next level`}>
           <span style={{ width: `${progress}%` }} />
         </div>
-        <small>{Math.max(nextLevelXP - userXP, 0)} XP avant le prochain niveau</small>
+        <small>{Math.max(nextLevelXP - userXP, 0)} XP until next level</small>
       </section>
 
       <nav className="community-tabs" aria-label="Community sections">
@@ -249,8 +249,8 @@ const Community = () => {
           <div className="community-panel">
             <div className="community-section-head">
               <div>
-                <h2>Chefs de la communaute</h2>
-                <p>Decouvrez les meilleurs cuisinier(e)s et suivez leurs recettes.</p>
+                <h2>Community Chefs</h2>
+                <p>Discover the best chefs and follow their recipes.</p>
               </div>
             </div>
             <div className="community-chef-list">
@@ -268,7 +268,7 @@ const Community = () => {
                       className="community-chef-card__main"
                       onClick={() => {
                         setSelectedChefId(chef.id)
-                        setToast(`${chef.name} selectionne.`)
+                        setToast(`${chef.name} selected.`)
                       }}
                     >
                       <span className="community-avatar" aria-hidden>
@@ -286,7 +286,7 @@ const Community = () => {
                         className={`community-mini-btn${isFollowing ? ' community-mini-btn--active' : ''}`}
                         onClick={() => toggleFollow(chef)}
                       >
-                        {isFollowing ? 'Suivi' : 'Suivre'}
+                        {isFollowing ? 'Following' : 'Follow'}
                       </button>
                     </div>
                   </article>
@@ -303,16 +303,16 @@ const Community = () => {
             <p>{selectedChef.note}</p>
             <dl>
               <div>
-                <dt>Niveau</dt>
+                <dt>Level</dt>
                 <dd>{selectedChef.level}</dd>
               </div>
               <div>
-                <dt>Recette phare</dt>
+                <dt>Featured Recipe</dt>
                 <dd>{selectedChef.recipe}</dd>
               </div>
             </dl>
             <button type="button" className="community-primary-btn" onClick={() => toggleFollow(selectedChef)}>
-              {followedChefs.includes(selectedChef.id) ? 'Ne plus suivre' : 'Suivre ce chef'}
+              {followedChefs.includes(selectedChef.id) ? 'Stop Following' : 'Follow this Chef'}
             </button>
           </aside>
         </section>
@@ -322,8 +322,8 @@ const Community = () => {
         <section className="community-panel">
           <div className="community-section-head">
             <div>
-              <h2>Recettes en tendance</h2>
-              <p>Les favorites du moment dans notre communaute.</p>
+              <h2>Trending Recipes</h2>
+              <p>Current favorites in our community.</p>
             </div>
           </div>
           <div className="community-recipe-list">
@@ -365,8 +365,8 @@ const Community = () => {
         <section className="community-panel">
           <div className="community-section-head">
             <div>
-              <h2>Defis culinaires</h2>
-              <p>Relevez des defis et gagnez de l'experience communautaire.</p>
+              <h2>Culinary Challenges</h2>
+              <p>Take on challenges and earn community experience.</p>
             </div>
           </div>
           <div className="community-challenge-grid">
@@ -394,7 +394,7 @@ const Community = () => {
                       className={`community-secondary-btn${joined ? ' community-secondary-btn--active' : ''}`}
                       onClick={() => toggleChallenge(challenge)}
                     >
-                      {joined ? 'Quitter' : 'Rejoindre'}
+                      {joined ? 'Leave' : 'Join'}
                     </button>
                     <button
                       type="button"
@@ -402,7 +402,7 @@ const Community = () => {
                       onClick={() => completeChallenge(challenge)}
                       disabled={completed}
                     >
-                      {completed ? 'Complete' : 'Terminer'}
+                      {completed ? 'Complete' : 'Finish'}
                     </button>
                   </div>
                 </article>

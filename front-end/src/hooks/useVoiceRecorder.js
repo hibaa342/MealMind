@@ -70,7 +70,7 @@ export function useVoiceRecorder() {
     const SpeechRecognition = getSpeechRecognition()
     if (!SpeechRecognition) return false
 
-    setVoiceNote('Écoute… parlez puis recliquez sur le micro pour arrêter.')
+    setVoiceNote('Listening... speak then click the mic to stop.')
     lastTranscriptRef.current = ''
 
     const recognition = new SpeechRecognition()
@@ -82,7 +82,7 @@ export function useVoiceRecorder() {
     recognition.onstart = () => {
       modeRef.current = 'speech'
       setIsRecording(true)
-      setVoiceNote('Parlez maintenant… recliquez sur le micro quand vous avez fini.')
+      setVoiceNote('Speaking now... click the mic when finished.')
     }
 
     recognition.onresult = (event) => {
@@ -95,12 +95,12 @@ export function useVoiceRecorder() {
 
     recognition.onerror = (event) => {
       if (event.error === 'no-speech') {
-        setVoiceNote('Aucune parole détectée. Réessayez en parlant plus fort.')
+        setVoiceNote('No speech detected. Please speak louder.')
       } else if (event.error !== 'aborted') {
         setVoiceNote(
           event.error === 'not-allowed'
-            ? 'Autorisez l’accès au micro pour la dictée.'
-            : `Dictée : ${event.error}`
+            ? 'Grant microphone access to use voice input.'
+            : `Error: ${event.error}`
         )
       }
       setIsRecording(false)
@@ -114,8 +114,8 @@ export function useVoiceRecorder() {
         setVoiceNote(null)
       } else {
         setVoiceNote((prev) => {
-          if (prev && !/Parlez|Écoute/i.test(prev)) return prev
-          return 'Aucun texte capté. Réessayez ou utilisez Chrome/Edge.'
+          if (prev && !/Speaking|Listening/i.test(prev)) return prev
+          return 'No text captured. Try again or use Chrome/Edge.'
         })
       }
     }
@@ -125,7 +125,7 @@ export function useVoiceRecorder() {
       recognition.start()
       return true
     } catch (err) {
-      setVoiceNote(err?.message || 'Impossible de démarrer la dictée.')
+      setVoiceNote(err?.message || 'Unable to start voice input.')
       setIsRecording(false)
       return false
     }
@@ -155,7 +155,7 @@ export function useVoiceRecorder() {
         if (!response.ok) {
           const msg = result.error || `Erreur serveur (${response.status})`
           if (isQuotaError(msg) && getSpeechRecognition()) {
-            setVoiceNote('Quota API épuisé — bascule sur la dictée du navigateur…')
+            setVoiceNote('API quota exhausted - switching to browser dictation...')
             startBrowserDictation()
             return
           }
@@ -178,7 +178,7 @@ export function useVoiceRecorder() {
         console.error('Transcription error:', error)
         const msg = error.message || 'Transcription impossible.'
         if (getSpeechRecognition() && !msg.includes('Failed to fetch')) {
-          setVoiceNote(`${msg} — essai avec la dictée du navigateur…`)
+          setVoiceNote(`${msg} - trying with browser dictation...`)
           startBrowserDictation()
         } else if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
           setVoiceNote(

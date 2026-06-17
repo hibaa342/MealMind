@@ -26,7 +26,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Connexion à la base de données
+// Database connection
 connectDB();
 
 // Routes
@@ -50,34 +50,34 @@ app.post('/api/transcribe', upload.single('file'), async (req, res) => {
 
     try {
         if (!req.file) {
-            return res.status(400).json({ error: 'Aucun fichier audio reçu.' });
+            return res.status(400).json({ error: 'No audio file received.' });
         }
 
         if (!process.env.GROQ_API_KEY) {
             cleanup();
-            return res.status(500).json({ error: 'GROQ_API_KEY manquante dans backend/.env' });
+            return res.status(500).json({ error: 'GROQ_API_KEY missing in backend/.env' });
         }
 
         const size = fs.statSync(req.file.path).size;
         if (size < 500) {
             cleanup();
-            return res.status(400).json({ error: 'Enregistrement trop court. Parlez plus longtemps.' });
+            return res.status(400).json({ error: 'Recording too short. Please speak longer.' });
         }
 
         let mime = req.file.mimetype?.startsWith('audio/') ? req.file.mimetype : 'audio/webm';
-        // Whisper préfère des types simples (pas "audio/webm;codecs=opus")
+        // Whisper prefers simple types (not "audio/webm;codecs=opus")
         if (mime.includes('webm')) mime = 'audio/webm';
         else if (mime.includes('mp4')) mime = 'audio/mp4';
         else if (mime.includes('ogg')) mime = 'audio/ogg';
         const ext = mime.includes('mp4') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
         const filename = `recording.${ext}`;
 
-        // Native FormData + Blob (Node 18+) — évite "Could not parse multipart form" avec le package form-data
+        // Native FormData + Blob (Node 18+) - avoids "Could not parse multipart form" with the form-data package
         const audioBuffer = fs.readFileSync(req.file.path);
         const form = new FormData();
         form.append('file', new Blob([audioBuffer], { type: mime }), filename);
         form.append('model', 'whisper-large-v3-turbo');
-        form.append('language', 'fr');
+        form.append('language', 'en');
 
         const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
             method: 'POST',
@@ -98,7 +98,7 @@ app.post('/api/transcribe', upload.single('file'), async (req, res) => {
 
         const text = (data.text || '').trim();
         if (!text) {
-            return res.status(422).json({ error: 'Whisper n’a renvoyé aucun texte.' });
+            return res.status(422).json({ error: 'Whisper did not return any text.' });
         }
 
         console.log('Transcription OK:', text);
@@ -115,7 +115,7 @@ app.use((err, req, res, next) => {
     console.error('Error stack:', err.stack);
     console.error('Error message:', err.message);
     res.status(500).json({
-        message: 'Erreur interne du serveur',
+        message: 'Internal server error',
         error: err.message
     });
 });
