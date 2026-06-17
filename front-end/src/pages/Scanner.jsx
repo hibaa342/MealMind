@@ -1,15 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import './Scanner.css';
 
-const MOCK_INGREDIENTS = [
-  { id: 1, name: 'Tomatoes', confidence: 97 },
-  { id: 2, name: 'Cheese', confidence: 94 },
-  { id: 3, name: 'Carrots', confidence: 91 },
-  { id: 4, name: 'Eggs', confidence: 89 },
-  { id: 5, name: 'Onions', confidence: 85 },
-  { id: 6, name: 'Milk', confidence: 82 },
-];
-
 function StepBar({ phase }) {
   const steps = ['Photo', 'Analyze', 'Results'];
   const active = [['idle', 'preview'], ['analyzing'], ['results']];
@@ -29,7 +20,9 @@ function StepBar({ phase }) {
               {label}
             </span>
           </div>
-          {index < steps.length - 1 && <div className={`scanner-step__line ${done(index) ? 'scanner-step__line--done' : ''}`} />}
+          {index < steps.length - 1 && (
+            <div className={`scanner-step__line ${done(index) ? 'scanner-step__line--done' : ''}`} />
+          )}
         </React.Fragment>
       ))}
     </div>
@@ -53,17 +46,19 @@ function IngredientChip({ ingredient, onRemove }) {
 }
 
 const ScannerPage = () => {
-  const [phase, setPhase] = useState('idle');
-  const [dragOver, setDragOver] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [ingredients, setIngredients] = useState([]);
-  const [progress, setProgress] = useState(0);
-  const [newIng, setNewIng] = useState('');
-  const [showAdd, setShowAdd] = useState(false);
-  const fileRef = useRef();
+  const [phase, setPhase]               = useState('idle');
+  const [dragOver, setDragOver]         = useState(false);
+  const [previewUrl, setPreviewUrl]     = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [ingredients, setIngredients]   = useState([]);
+  const [progress, setProgress]         = useState(0);
+  const [newIng, setNewIng]             = useState('');
+  const [showAdd, setShowAdd]           = useState(false);
+  const fileRef                         = useRef();
 
   const handleFile = (file) => {
     if (!file || !file.type.startsWith('image/')) return;
+    setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
     setPhase('preview');
   };
@@ -77,43 +72,84 @@ const ScannerPage = () => {
   const reset = () => {
     setPhase('idle');
     setPreviewUrl(null);
+    setSelectedFile(null);
     setIngredients([]);
     setProgress(0);
     setShowAdd(false);
     setNewIng('');
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
+    if (!selectedFile) return;
+
     setPhase('analyzing');
     setProgress(0);
 
+    // Animate progress bar while waiting for API
     const intervalId = setInterval(() => {
       setProgress((current) => {
-        if (current >= 100) {
+        if (current >= 90) {
           clearInterval(intervalId);
-          setIngredients(MOCK_INGREDIENTS);
-          setPhase('results');
-          return 100;
+          return 90;
         }
         return current + Math.random() * 10;
       });
     }, 180);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+
+      const response = await fetch('/api/fridge/detect', {
+        method : 'POST',
+        body   : formData,
+      });
+
+      const data = await response.json();
+
+      clearInterval(intervalId);
+      setProgress(100);
+
+      if (data.success && data.ingredients.length > 0) {
+        const mapped = data.ingredients.map((item, index) => ({
+          id         : index + 1,
+          name       : item.name,
+          confidence : item.confidence ?? null,
+        }));
+        setIngredients(mapped);
+      } else {
+        setIngredients([]);
+      }
+
+      setPhase('results');
+
+    } catch (error) {
+      console.error('Detection error:', error);
+      clearInterval(intervalId);
+      setProgress(100);
+      setIngredients([]);
+      setPhase('results');
+    }
   };
 
   const addIngredient = () => {
     if (!newIng.trim()) return;
-    setIngredients((prev) => [...prev, { id: Date.now(), name: newIng.trim(), confidence: null }]);
+    setIngredients((prev) => [
+      ...prev,
+      { id: Date.now(), name: newIng.trim(), confidence: null },
+    ]);
     setNewIng('');
     setShowAdd(false);
   };
 
-  const removeIngredient = (id) => setIngredients((prev) => prev.filter((item) => item.id !== id));
+  const removeIngredient = (id) =>
+    setIngredients((prev) => prev.filter((item) => item.id !== id));
 
   const analyzeSteps = [
-    { label: 'Object detection', done: progress > 25 },
-    { label: 'Food classification', done: progress > 55 },
-    { label: 'Quantity estimation', done: progress > 80 },
-    { label: 'Finalization', done: progress >= 100 },
+    { label: 'Object detection',     done: progress > 25 },
+    { label: 'Food classification',  done: progress > 55 },
+    { label: 'Quantity estimation',  done: progress > 80 },
+    { label: 'Finalization',         done: progress >= 100 },
   ];
 
   return (
@@ -140,10 +176,13 @@ const ScannerPage = () => {
             {previewUrl ? (
               <>
                 <img src={previewUrl} alt="Photo preview" className="scanner-preview__img" />
-                <button className="scanner-preview__change" onClick={(event) => {
-                  event.stopPropagation();
-                  reset();
-                }}>
+                <button
+                  className="scanner-preview__change"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    reset();
+                  }}
+                >
                   Change photo
                 </button>
               </>
@@ -189,7 +228,10 @@ const ScannerPage = () => {
           <p className="scanner-analyzing__sub">Identifying ingredients in the image</p>
 
           <div className="scanner-progress">
-            <div className="scanner-progress__fill" style={{ width: `${Math.min(progress, 100)}%` }} />
+            <div
+              className="scanner-progress__fill"
+              style={{ width: `${Math.min(progress, 100)}%` }}
+            />
           </div>
           <p className="scanner-progress__pct">{Math.min(Math.round(progress), 100)}%</p>
 
@@ -197,7 +239,9 @@ const ScannerPage = () => {
             {analyzeSteps.map((step) => (
               <div key={step.label} className="scanner-analyze-step">
                 <span className={`scanner-analyze-step__dot ${step.done ? 'scanner-analyze-step__dot--done' : ''}`} />
-                <span className={`scanner-analyze-step__label ${step.done ? 'scanner-analyze-step__label--done' : ''}`}>{step.label}</span>
+                <span className={`scanner-analyze-step__label ${step.done ? 'scanner-analyze-step__label--done' : ''}`}>
+                  {step.label}
+                </span>
               </div>
             ))}
           </div>
@@ -208,15 +252,29 @@ const ScannerPage = () => {
         <div className="scanner-card fade-in">
           <div className="scanner-results__header">
             <div>
-              <h2 className="scanner-results__title">{ingredients.length} ingredients detected</h2>
-              <p className="scanner-results__sub">Review and adjust the list before generating your recipe.</p>
+              <h2 className="scanner-results__title">
+                {ingredients.length} ingredients detected
+              </h2>
+              <p className="scanner-results__sub">
+                Review and adjust the list before generating your recipe.
+              </p>
             </div>
-            {previewUrl && <img src={previewUrl} alt="scan thumbnail" className="scanner-results__thumb" />}
+            {previewUrl && (
+              <img
+                src={previewUrl}
+                alt="scan thumbnail"
+                className="scanner-results__thumb"
+              />
+            )}
           </div>
 
           <div className="scanner-chips">
             {ingredients.map((ingredient) => (
-              <IngredientChip key={ingredient.id} ingredient={ingredient} onRemove={removeIngredient} />
+              <IngredientChip
+                key={ingredient.id}
+                ingredient={ingredient}
+                onRemove={removeIngredient}
+              />
             ))}
 
             {showAdd ? (
@@ -231,21 +289,41 @@ const ScannerPage = () => {
                     if (event.key === 'Enter') addIngredient();
                   }}
                 />
-                <button type="button" className="scanner-add-input__confirm" onClick={addIngredient}>Add</button>
-                <button type="button" className="scanner-add-input__cancel" onClick={() => setShowAdd(false)}>Cancel</button>
+                <button
+                  type="button"
+                  className="scanner-add-input__confirm"
+                  onClick={addIngredient}
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  className="scanner-add-input__cancel"
+                  onClick={() => setShowAdd(false)}
+                >
+                  Cancel
+                </button>
               </div>
             ) : (
-              <button type="button" className="scanner-add-btn" onClick={() => setShowAdd(true)}>
+              <button
+                type="button"
+                className="scanner-add-btn"
+                onClick={() => setShowAdd(true)}
+              >
                 Add ingredient
               </button>
             )}
           </div>
 
           <hr className="scanner-divider" />
-          <p className="scanner-note">If an ingredient is missing, add it manually before moving on.</p>
+          <p className="scanner-note">
+            If an ingredient is missing, add it manually before moving on.
+          </p>
 
           <div className="scanner-cta">
-            <button className="scanner-cancel" onClick={reset}>Scan another photo</button>
+            <button className="scanner-cancel" onClick={reset}>
+              Scan another photo
+            </button>
           </div>
         </div>
       )}
