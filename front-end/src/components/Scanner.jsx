@@ -22,15 +22,32 @@ const Scanner = ({ onScanComplete }) => {
     if (!image) return
     
     setLoading(true)
-    // Simuler l'appel API pour détecter les ingrédients
-    setTimeout(() => {
-      const mockIngredients = ['tomates', 'oignons', 'ail', 'pâtes']
-      setDetectedIngredients(mockIngredients)
-      if (onScanComplete) {
-        onScanComplete(mockIngredients)
+    try {
+      const formData = new FormData()
+      formData.append('image', image)
+
+      const response = await fetch('/api/fridge/detect', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        const ingredientNames = data.ingredients.map(item => item.name)
+        setDetectedIngredients(ingredientNames)
+        if (onScanComplete) {
+          onScanComplete(ingredientNames)
+        }
+      } else {
+        console.error('Detection failed:', data.error)
       }
+
+    } catch (error) {
+      console.error('Error:', error)
+    } finally {
       setLoading(false)
-    }, 2000)
+    }
   }
 
   return (
