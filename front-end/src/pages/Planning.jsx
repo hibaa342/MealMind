@@ -64,7 +64,7 @@ const PlanningPage = () => {
       }
     } catch (err) {
       console.error("Failed to fetch order spending", err);
-      setError('Impossible de se connecter au serveur.');
+      setError('Unable to connect to the server.');
     }
   };
 
@@ -131,7 +131,7 @@ const PlanningPage = () => {
       const data = await response.json();
       
       if (response.status === 401) {
-        setError('Session expirée ou accès refusé. Reconnectez-vous depuis le profil si le problème persiste.');
+        setError('Session expired or access denied. Log in again from your profile if the problem persists.');
         setPlans([]);
         return;
       }
@@ -139,7 +139,7 @@ const PlanningPage = () => {
       if (response.ok) setPlans(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch meal plans", err);
-      setError('Impossible de se connecter au serveur.');
+      setError('Unable to connect to the server.');
       setPlans([]);
     } finally {
       setLoading(false);
@@ -175,7 +175,7 @@ const PlanningPage = () => {
       }
     } catch (err) {
       console.error(err);
-      setError('Impossible de se connecter au serveur.');
+      setError('Unable to connect to the server.');
     }
   };
 
@@ -187,10 +187,10 @@ const PlanningPage = () => {
         headers: { 'x-auth-token': token }
       });
       if (response.ok) {
-        setPlans(prev => prev.filter(p => p._id !== id)); // Utiliser la mise à jour fonctionnelle
+        setPlans(prev => prev.filter(p => p._id !== id)); // Use functional update
       }
     } catch (err) {
-      setError('Impossible de se connecter au serveur.');
+      setError('Unable to connect to the server.');
     }
   };
 

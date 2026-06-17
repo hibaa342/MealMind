@@ -69,7 +69,7 @@ const Login = ({ onLogin }) => {
                 id="email"
                 type="email" 
                 className="snapcook-form-input"
-                placeholder="nom@exemple.com"
+                placeholder="john@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -79,7 +79,7 @@ const Login = ({ onLogin }) => {
             <div className="snapcook-form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label className="snapcook-form-label" htmlFor="password">Password</label>
-                <a href="#" style={{ fontSize: '0.82rem', color: '#1E2D24', opacity: 0.6, textDecoration: 'none' }}>Oublié ?</a>
+                <a href="#" style={{ fontSize: '0.82rem', color: '#1E2D24', opacity: 0.6, textDecoration: 'none' }}>Forgot?</a>
               </div>
               <input 
                 id="password"
@@ -101,7 +101,7 @@ const Login = ({ onLogin }) => {
           </form>
 
           <p className="snapcook-auth-footer">
-            Nouveau sur SnapCook ? <Link to="/register">Créer un compte</Link>
+            New to SnapCook? <Link to="/register">Create an account</Link>
           </p>
         </div>
       </div>

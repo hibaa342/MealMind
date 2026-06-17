@@ -1,4 +1,4 @@
-/* SnapCook dashboard — matches design mockups */
+/* SnapCook dashboard: matches design mockups */
 
 .snapcook-dashboard {
   max-width: 100%;
@@ -38,7 +38,7 @@
   filter: brightness(1.08);
 }
 
-/* Live inventory hero — split card */
+/* Live inventory hero: split card */
 .snapcook-hero {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -228,7 +228,7 @@
   text-decoration: underline;
 }
 
-/* Quick recipes — 4 columns on desktop */
+/* Quick recipes: 4 columns on desktop */
 .snapcook-quick-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -279,7 +279,7 @@
   gap: 4px;
 }
 
-/* Fresh from fridge — vertical scrollable panel */
+/* Fresh from fridge: vertical scrollable panel */
 .snapcook-fridge-panel {
   background: #fff;
   border-radius: 20px;

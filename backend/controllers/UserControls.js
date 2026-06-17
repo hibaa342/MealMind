@@ -2,7 +2,7 @@ const User = require('../models/UserModels');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// @desc    Enregistrer un nouvel utilisateur
+// @desc    Register a new user
 // @route   POST /api/users/register
 // @access  Public
 const registerUser = async (req, res) => {
@@ -11,23 +11,23 @@ const registerUser = async (req, res) => {
         let { name, surname, birthDate, city, email, password } = body;
 
         if (!email || !password) {
-            return res.status(400).json({ message: 'Veuillez remplir tous les champs' });
+            return res.status(400).json({ message: 'Please fill in all required fields' });
         }
 
-        // Normalisation de l'email
+        // Normalize email
         const normalizedEmail = email.toLowerCase().trim();
 
-        // Vérifier si l'utilisateur existe déjà
+        // Check if user already exists
         const userExists = await User.findOne({ email: normalizedEmail });
         if (userExists) {
-            return res.status(400).json({ message: 'L\'utilisateur existe déjà' });
+            return res.status(400).json({ message: 'User already exists' });
         }
 
-        // Hashage du mot de passe
+        // Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Créer l'utilisateur
+        // Create the user
         const user = await User.create({
             name,
             surname,
@@ -46,15 +46,15 @@ const registerUser = async (req, res) => {
                 token: generateToken(user._id)
             });
         } else {
-            res.status(400).json({ message: 'Données utilisateur invalides' });
+            res.status(400).json({ message: 'Invalid user data' });
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Erreur serveur lors de l\'inscription' });
+        res.status(500).json({ message: 'Server error during registration' });
     }
 };
 
-// @desc    Authentifier un utilisateur & obtenir un token
+// @desc    Authenticate a user and get a token
 // @route   POST /api/users/login
 // @access  Public
 const loginUser = async (req, res) => {
@@ -63,29 +63,29 @@ const loginUser = async (req, res) => {
         const { email, password } = body;
 
         if (!email || !password) {
-            return res.status(400).json({ message: 'Veuillez fournir un email et un mot de passe' });
+            return res.status(400).json({ message: 'Please provide an email and password' });
         }
 
-        // Normalisation de l'email pour correspondre au stockage en base
+        // Normalize email to match stored data
         const normalizedEmail = email.toLowerCase().trim();
 
-        // Trouver l'utilisateur par email
+        // Find user by email
         const user = await User.findOne({ email: normalizedEmail });
 
         if (!user) {
-            console.log(`[AUTH] Échec: Utilisateur non trouvé (${normalizedEmail})`);
-            return res.status(401).json({ message: 'Email ou mot de passe invalide' });
+            console.log(`[AUTH] Failed: User not found (${normalizedEmail})`);
+            return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        // DEBUG: Si vous venez de migrer le code, vérifiez si le MDP en base est hashé
+        // DEBUG: If you just migrated the code, check if the password in DB is hashed
         if (!user.password.startsWith('$2')) {
-            console.warn(`[AUTH] Alerte: Le mot de passe en base pour ${normalizedEmail} n'est pas hashé correctement !`);
+            console.warn(`[AUTH] Warning: The password in DB for ${normalizedEmail} is not properly hashed!`);
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (isMatch) {
-            console.log(`[AUTH] Succès: Connexion réussie pour ${normalizedEmail}`);
+            console.log(`[AUTH] Success: Login successful for ${normalizedEmail}`);
             res.json({
                 _id: user._id,
                 name: user.name,
@@ -94,25 +94,25 @@ const loginUser = async (req, res) => {
                 token: generateToken(user._id)
             });
         } else {
-            console.log(`[AUTH] Échec: Mot de passe incorrect pour ${normalizedEmail}`);
-            res.status(401).json({ message: 'Email ou mot de passe invalide' });
+            console.log(`[AUTH] Failed: Incorrect password for ${normalizedEmail}`);
+            res.status(401).json({ message: 'Invalid email or password' });
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Erreur serveur lors de la connexion' });
+        res.status(500).json({ message: 'Server error during login' });
     }
 };
 
 // Générer un JWT
 const generateToken = (id) => {
-    // Convertir l'ObjectId en string pour éviter les erreurs de payload
+    // Convert ObjectId to string to avoid payload errors
     const userId = id.toString();
     return jwt.sign({ id: userId }, process.env.JWT_SECRET || 'your_jwt_secret', {
         expiresIn: '30d',
     });
 };
 
-// @desc    Ajouter une recette aux favoris
+// @desc    Add a recipe to favorites
 // @route   POST /api/users/favorites/add
 // @access  Private
 const addFavorite = async (req, res) => {
@@ -121,18 +121,18 @@ const addFavorite = async (req, res) => {
         const { recipeId, title, image } = req.body;
 
         if (!userId || !recipeId) {
-            return res.status(400).json({ message: 'userId et recipeId sont requis' });
+            return res.status(400).json({ message: 'userId and recipeId are required' });
         }
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+            return res.status(404).json({ message: 'User not found' });
         }
 
         // Check if recipe is already in favorites
         const alreadyExists = user.favorites.some(fav => fav.id === recipeId);
         if (alreadyExists) {
-            return res.status(400).json({ message: 'Cette recette est déjà dans les favoris' });
+            return res.status(400).json({ message: 'This recipe is already in favorites' });
         }
 
         user.favorites.push({
@@ -143,14 +143,14 @@ const addFavorite = async (req, res) => {
         });
 
         await user.save();
-        res.json({ message: 'Recette ajoutée aux favoris', favorites: user.favorites });
+        res.json({ message: 'Recipe added to favorites', favorites: user.favorites });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Erreur serveur lors de l\'ajout aux favoris' });
+        res.status(500).json({ message: 'Server error adding to favorites' });
     }
 };
 
-// @desc    Supprimer une recette des favoris
+// @desc    Remove a recipe from favorites
 // @route   DELETE /api/users/favorites/:userId/:recipeId
 // @access  Private
 const removeFavorite = async (req, res) => {
@@ -158,25 +158,25 @@ const removeFavorite = async (req, res) => {
         const { userId, recipeId } = req.params;
 
         if (!userId || !recipeId) {
-            return res.status(400).json({ message: 'userId et recipeId sont requis' });
+            return res.status(400).json({ message: 'userId and recipeId are required' });
         }
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+            return res.status(404).json({ message: 'User not found' });
         }
 
         user.favorites = user.favorites.filter(fav => fav.id !== recipeId);
         await user.save();
 
-        res.json({ message: 'Recette supprimée des favoris', favorites: user.favorites });
+        res.json({ message: 'Recipe removed from favorites', favorites: user.favorites });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Erreur serveur lors de la suppression' });
+        res.status(500).json({ message: 'Server error during removal' });
     }
 };
 
-// @desc    Récupérer les favoris d'un utilisateur
+// @desc    Get a user's favorites
 // @route   GET /api/users/favorites/:userId
 // @access  Private
 const getFavorites = async (req, res) => {
@@ -184,18 +184,18 @@ const getFavorites = async (req, res) => {
         const { userId } = req.params;
 
         if (!userId) {
-            return res.status(400).json({ message: 'userId est requis' });
+            return res.status(400).json({ message: 'userId is required' });
         }
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+            return res.status(404).json({ message: 'User not found' });
         }
 
         res.json({ favorites: user.favorites });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Erreur serveur lors de la récupération des favoris' });
+        res.status(500).json({ message: 'Server error retrieving favorites' });
     }
 };
 

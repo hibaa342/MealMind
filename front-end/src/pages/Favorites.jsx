@@ -91,7 +91,7 @@ const Favorites = () => {
   return (
     <div className="cookpal-home cookpal-home--grocio">
       
-      {/* 1. En-tête unifié (Copie de l'accueil) */}
+      {/* 1. Unified header (Copy of home) */}
       <div className="grocio-search-row">
         <div className="cookpal-search grocio-search">
           <span className="cookpal-search__icon" aria-hidden>
@@ -103,7 +103,7 @@ const Favorites = () => {
           <input
             type="search"
             className="cookpal-search__input"
-            placeholder="Rechercher dans vos favoris..."
+            placeholder="Search your favorites..."
             aria-label="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -128,20 +128,20 @@ const Favorites = () => {
           </button>
         </div>
         <button type="button" className="grocio-pill-btn">
-          + Recette
+          + Recipe
         </button>
       </div>
 
-      {/* Conteneurs de recettes cohérents & Icônes actives */}
+      {/* Consistent recipe containers & Active icons */}
       <section className="grocio-section" style={{ marginTop: '36px' }}>
         <div className="grocio-section__head">
-          <h2 className="grocio-section__title">Vos recettes favorites</h2>
+          <h2 className="grocio-section__title">Your Favorite Recipes</h2>
         </div>
         
         {loading ? (
-          <p className="cookpal-empty">Chargement...</p>
+          <p className="cookpal-empty">Loading...</p>
         ) : filteredFavorites.length === 0 ? (
-          <p className="cookpal-empty">Aucune recette sauvegardée.</p>
+          <p className="cookpal-empty">No saved recipes.</p>
         ) : (
           <div className="grocio-quick-grid">
             {filteredFavorites.map((r) => (
@@ -149,10 +149,10 @@ const Favorites = () => {
                 <div className="grocio-quick-tile__img" style={{ backgroundImage: `url(${r.image})` }} />
                 <div className="grocio-quick-tile__text">
                   <span className="grocio-quick-tile__name">{r.title}</span>
-                  <span className="grocio-quick-tile__time">Sauvegardée</span>
+                  <span className="grocio-quick-tile__time">Saved</span>
                 </div>
                 
-                {/* Icône de cœur active superposée pour retirer des favoris */}
+                {/* Active heart icon overlay to remove from favorites */}
                 <button
                   type="button"
                   className="cookpal-recipe-card__heart cookpal-recipe-card__heart--on"
@@ -173,7 +173,7 @@ const Favorites = () => {
                     cursor: 'pointer',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                   }}
-                  aria-label="Retirer des favoris"
+                  aria-label="Remove from favorites"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="#e91e63" stroke="#e91e63" strokeWidth="1.75">
                     <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
