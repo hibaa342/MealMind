@@ -29,6 +29,50 @@
   font-weight: 500;
 }
 
+.recipes-page__scan-section {
+  margin-bottom: 28px;
+  padding: 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f0faf4 0%, #f8fbf9 100%);
+  border: 1px solid #d8ebe0;
+}
+
+.recipes-page__scan-head {
+  margin-bottom: 14px;
+}
+
+.recipes-page__scan-title {
+  margin: 0 0 6px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2d6a4f;
+}
+
+.recipes-page__scan-sub {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #5a6b62;
+  line-height: 1.4;
+}
+
+.recipes-page__scan-loading,
+.recipes-page__scan-empty {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #5a6b62;
+}
+
+.recipes-page__section-title {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #344d3d;
+}
+
+.recipes-page__grid--scan {
+  margin-bottom: 0;
+}
+
 .recipes-page__utensils {
   position: absolute;
   top: -14px;
