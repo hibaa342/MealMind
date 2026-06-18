@@ -19,5 +19,6 @@ export function markOnboardingComplete(user) {
 
 export function getPostAuthPath(user) {
   if (!user) return '/login'
+  if (user.role === 'admin') return '/admin/dashboard'
   return isOnboardingComplete(user) ? '/dashboard' : '/onboarding'
 }

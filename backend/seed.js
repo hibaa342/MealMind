@@ -15,7 +15,15 @@ const seed = async () => {
     const user = await User.create({
         name: 'Test', surname: 'User',
         email: 'test@mealmind.com',
-        password: await bcrypt.hash('password123', salt)
+        password: await bcrypt.hash('password123', salt),
+        role: 'user'
+    });
+
+    const admin = await User.create({
+        name: 'System', surname: 'Admin',
+        email: 'admin@mealmind.com',
+        password: await bcrypt.hash('adminpassword123', salt),
+        role: 'admin'
     });
 
     await Product.insertMany([
@@ -24,8 +32,9 @@ const seed = async () => {
         { user: user._id, title: 'Poulet Rôti', time: '45 min', categories: 'French', rating: 4.2, tags: ['chicken', 'oven'], image: 'https://via.placeholder.com/300', accent: 'red' },
     ]);
 
-    console.log(' Seeded: 1 user + 3 recipes');
-    console.log(' Login with: test@mealmind.com / password123');
+    console.log(' Seeded: 1 user + 1 admin + 3 recipes');
+    console.log(' User Login: test@mealmind.com / password123');
+    console.log(' Admin Login: admin@mealmind.com / adminpassword123');
     process.exit();
 };
 

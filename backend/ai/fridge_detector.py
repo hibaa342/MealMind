@@ -25,7 +25,7 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
 
 def run_your_model(filepath):
-    results = model(filepath, conf=0.35, iou=0.4)  # ← plus sensible
+    results = model(filepath, conf=0.10, iou=0.4)  # ← plus sensible
     detected = {}
     for r in results:
         for box in r.boxes:

@@ -43,7 +43,8 @@ const registerUser = async (req, res) => {
                 name: user.name,
                 surname: user.surname,
                 email: user.email,
-                token: generateToken(user._id)
+                role: user.role,
+                token: generateToken(user._id, user.role)
             });
         } else {
             res.status(400).json({ message: 'Invalid user data' });
@@ -91,7 +92,8 @@ const loginUser = async (req, res) => {
                 name: user.name,
                 surname: user.surname,
                 email: user.email,
-                token: generateToken(user._id)
+                role: user.role,
+                token: generateToken(user._id, user.role)
             });
         } else {
             console.log(`[AUTH] Failed: Incorrect password for ${normalizedEmail}`);
@@ -104,10 +106,10 @@ const loginUser = async (req, res) => {
 };
 
 // Générer un JWT
-const generateToken = (id) => {
+const generateToken = (id, role) => {
     // Convert ObjectId to string to avoid payload errors
     const userId = id.toString();
-    return jwt.sign({ id: userId }, process.env.JWT_SECRET || 'your_jwt_secret', {
+    return jwt.sign({ id: userId, role }, process.env.JWT_SECRET || 'your_jwt_secret', {
         expiresIn: '30d',
     });
 };
