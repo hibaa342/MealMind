@@ -19,8 +19,6 @@ import CookPalLayout from './components/CookPalLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import RequireOnboarded from './components/RequireOnboarded'
 import { getPostAuthPath } from './utils/onboardingStorage'
-import AdminRoute from './components/AdminRoute'
-import AdminDashboard from './pages/AdminDashboard'
 
 function readSessionFromStorage() {
   try {
@@ -101,9 +99,6 @@ function App() {
               <Route path="help" element={<Help />} />
               <Route path="favorites" element={<Favorites />} />
               <Route path="notifications" element={<Notifications />} />
-              <Route element={<AdminRoute user={user} />}>
-                <Route path="admin/dashboard" element={<AdminDashboard user={user} />} />
-              </Route>
             </Route>
           </Route>
         </Route>

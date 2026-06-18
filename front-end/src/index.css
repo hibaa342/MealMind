@@ -1220,7 +1220,7 @@ body {
   white-space: nowrap;
 }
 
-/* Profile: header + food preferences (diet / allergies / cuisines) */
+/* Profile — header + food preferences (diet / allergies / cuisines) */
 .cookpal-profile-panel--hero {
   padding-top: 18px;
 }
@@ -3019,7 +3019,7 @@ body {
   }
 }
 
-/* Help page: simple, avoids lots of inline styles */
+/* Help page — simple, évite beaucoup de styles inline */
 .help-page {
   max-width: 640px;
 }
