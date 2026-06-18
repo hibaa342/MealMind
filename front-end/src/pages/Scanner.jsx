@@ -1,4 +1,7 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchRecipesByIngredients, fetchMealDetail } from '../api/recipes';
+import { saveScannedIngredients, saveScannedRecipes, clearScannedData } from '../utils/scannedIngredients';
 import './Scanner.css';
 
 function StepBar({ phase }) {
@@ -45,7 +48,24 @@ function IngredientChip({ ingredient, onRemove }) {
   );
 }
 
+function MealSuggestionCard({ meal, onClick }) {
+  return (
+    <button type="button" className="scanner-meal-card" onClick={() => onClick(meal)}>
+      <img src={meal.image} alt="" className="scanner-meal-card__img" />
+      <div className="scanner-meal-card__body">
+        <span className="scanner-meal-card__title">{meal.title}</span>
+        {meal.matchedIngredients?.length > 0 && (
+          <span className="scanner-meal-card__badge">
+            {meal.matchScore} matched: {meal.matchedIngredients.join(', ')}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+}
+
 const ScannerPage = () => {
+  const navigate = useNavigate();
   const [phase, setPhase]               = useState('idle');
   const [dragOver, setDragOver]         = useState(false);
   const [previewUrl, setPreviewUrl]     = useState(null);
@@ -54,6 +74,15 @@ const ScannerPage = () => {
   const [progress, setProgress]         = useState(0);
   const [newIng, setNewIng]             = useState('');
   const [showAdd, setShowAdd]           = useState(false);
+  const [suggestedMeals, setSuggestedMeals] = useState([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [suggestionsError, setSuggestionsError] = useState(null);
+  const [matchedIngredients, setMatchedIngredients] = useState({});
+  const [unresolvedIngredients, setUnresolvedIngredients] = useState([]);
+  const [localSuggestionsNote, setLocalSuggestionsNote] = useState(null);
+  const [selectedMeal, setSelectedMeal] = useState(null);
+  const [mealDetail, setMealDetail]     = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const fileRef                         = useRef();
 
   const handleFile = (file) => {
@@ -77,6 +106,13 @@ const ScannerPage = () => {
     setProgress(0);
     setShowAdd(false);
     setNewIng('');
+    setSuggestedMeals([]);
+    setSuggestionsError(null);
+    setMatchedIngredients({});
+    setUnresolvedIngredients([]);
+    setLocalSuggestionsNote(null);
+    setSelectedMeal(null);
+    setMealDetail(null);
   };
 
   const handleAnalyze = async () => {
@@ -84,6 +120,8 @@ const ScannerPage = () => {
 
     setPhase('analyzing');
     setProgress(0);
+    clearScannedData();
+    setSuggestedMeals([]);
 
     // Animate progress bar while waiting for API
     const intervalId = setInterval(() => {
@@ -144,6 +182,84 @@ const ScannerPage = () => {
 
   const removeIngredient = (id) =>
     setIngredients((prev) => prev.filter((item) => item.id !== id));
+
+  const loadSuggestions = useCallback(async (ingredientList) => {
+    const names = ingredientList.map((item) => item.name).filter(Boolean);
+    if (names.length === 0) {
+      setSuggestedMeals([]);
+      setMatchedIngredients({});
+      setUnresolvedIngredients([]);
+      return;
+    }
+
+    setSuggestionsLoading(true);
+    setSuggestionsError(null);
+    setLocalSuggestionsNote(null);
+
+    try {
+      const { recipes, matchedBy, unresolved, needMoreIngredients, foundCount, requiredCount, includesLocalSuggestions } =
+        await fetchRecipesByIngredients(names);
+      setSuggestedMeals(recipes);
+      setMatchedIngredients(matchedBy);
+      setUnresolvedIngredients(unresolved);
+      saveScannedIngredients(names);
+      saveScannedRecipes(recipes, names);
+
+      if (includesLocalSuggestions) {
+        setLocalSuggestionsNote(
+          'Fruit salad & smoothie suggested from your scan (not in TheMealDB).'
+        );
+      }
+
+      if (needMoreIngredients) {
+        setSuggestionsError(
+          `At least ${requiredCount} recognized ingredients are needed (${foundCount} found). Add more manually or scan again.`
+        );
+      } else if (recipes.length === 0) {
+        const resolved = Object.values(matchedBy)
+        if (resolved.length === 0) {
+          setSuggestionsError(
+            unresolved.length > 0
+              ? `No TheMealDB match for: ${unresolved.join(', ')}. Try English names (apple, banana, orange).`
+              : 'No recipes found for these ingredients.'
+          )
+        } else {
+          setSuggestionsError(
+            `No recipe uses at least 3 of these ingredients: ${resolved.join(', ')}. Try different items.`
+          )
+        }
+      }
+    } catch (error) {
+      console.error('Suggestion error:', error);
+      setSuggestedMeals([]);
+      setSuggestionsError('Could not load recipe suggestions. Check your connection.');
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (phase !== 'results') return;
+    loadSuggestions(ingredients);
+  }, [phase, ingredients, loadSuggestions]);
+
+  const openMealDetail = async (meal) => {
+    setSelectedMeal(meal);
+    setMealDetail(null);
+    if (meal.isLocal && meal.localDetail) {
+      setMealDetail(meal.localDetail);
+      return;
+    }
+    setDetailLoading(true);
+    try {
+      const detail = await fetchMealDetail(meal.id);
+      setMealDetail(detail);
+    } catch (error) {
+      console.error('Meal detail error:', error);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const analyzeSteps = [
     { label: 'Object detection',     done: progress > 25 },
@@ -320,10 +436,116 @@ const ScannerPage = () => {
             If an ingredient is missing, add it manually before moving on.
           </p>
 
+          <section className="scanner-suggestions" aria-live="polite">
+            <div className="scanner-suggestions__head">
+              <h3 className="scanner-suggestions__title">Suggested meals</h3>
+              <p className="scanner-suggestions__sub">
+                Recipes that use at least 3 of your detected ingredients
+              </p>
+              {Object.keys(matchedIngredients).length > 0 && (
+                <p className="scanner-suggestions__mapped">
+                  Matched:{' '}
+                  {Object.entries(matchedIngredients)
+                    .map(([raw, db]) => `${raw} → ${db}`)
+                    .join(' · ')}
+                </p>
+              )}
+              {unresolvedIngredients.length > 0 && (
+                <p className="scanner-suggestions__warn">
+                  Not in TheMealDB: {unresolvedIngredients.join(', ')}
+                </p>
+              )}
+            </div>
+
+            {suggestionsLoading && (
+              <p className="scanner-suggestions__status">Finding recipes…</p>
+            )}
+
+            {!suggestionsLoading && localSuggestionsNote && (
+              <p className="scanner-suggestions__mapped">{localSuggestionsNote}</p>
+            )}
+
+            {!suggestionsLoading && suggestionsError && (
+              <p className="scanner-suggestions__error" role="alert">{suggestionsError}</p>
+            )}
+
+            {!suggestionsLoading && suggestedMeals.length > 0 && (
+              <>
+                <div className="scanner-meal-grid">
+                  {suggestedMeals.map((meal) => (
+                    <MealSuggestionCard key={meal.id} meal={meal} onClick={openMealDetail} />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="scanner-suggestions__link"
+                  onClick={() => navigate('/recipes', { state: { fromScan: true } })}
+                >
+                  See all on Recipes page →
+                </button>
+              </>
+            )}
+          </section>
+
           <div className="scanner-cta">
             <button className="scanner-cancel" onClick={reset}>
               Scan another photo
             </button>
+          </div>
+        </div>
+      )}
+
+      {selectedMeal && (
+        <div
+          className="scanner-modal-backdrop"
+          role="presentation"
+          onClick={() => setSelectedMeal(null)}
+        >
+          <div
+            className="scanner-modal"
+            role="dialog"
+            aria-labelledby="scanner-meal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="scanner-modal__close"
+              onClick={() => setSelectedMeal(null)}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+            <h2 id="scanner-meal-title" className="scanner-modal__title">{selectedMeal.title}</h2>
+            <img
+              src={selectedMeal.image}
+              alt={selectedMeal.title}
+              className="scanner-modal__img"
+            />
+            {detailLoading ? (
+              <p className="scanner-modal__loading">Loading details…</p>
+            ) : mealDetail ? (
+              <>
+                <h3 className="scanner-modal__heading">Ingredients</h3>
+                <ul className="scanner-modal__list">
+                  {mealDetail.ingredients
+                    ? mealDetail.ingredients.map((item, i) => (
+                        <li key={i}>{item.measure} {item.name}</li>
+                      ))
+                    : Array.from({ length: 20 }).map((_, i) => {
+                        const ing = mealDetail[`strIngredient${i + 1}`];
+                        const measure = mealDetail[`strMeasure${i + 1}`];
+                        if (!ing?.trim()) return null;
+                        return (
+                          <li key={i}>{measure?.trim()} {ing}</li>
+                        );
+                      })}
+                </ul>
+                <h3 className="scanner-modal__heading">Instructions</h3>
+                <p className="scanner-modal__instructions">{mealDetail.strInstructions}</p>
+              </>
+            ) : (
+              <p className="scanner-modal__loading">Details unavailable.</p>
+            )}
           </div>
         </div>
       )}
