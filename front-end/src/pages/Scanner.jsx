@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchRecipesByIngredients, fetchMealDetail } from '../api/recipes';
+import { fetchRecipesByIngredients, fetchRecipeDetail } from '../api/recipes';
 import { saveScannedIngredients, saveScannedRecipes, clearScannedData } from '../utils/scannedIngredients';
+import MissingIngredientsPanel from '../components/MissingIngredientsPanel';
 import './Scanner.css';
 
 function StepBar({ phase }) {
@@ -246,13 +247,9 @@ const ScannerPage = () => {
   const openMealDetail = async (meal) => {
     setSelectedMeal(meal);
     setMealDetail(null);
-    if (meal.isLocal && meal.localDetail) {
-      setMealDetail(meal.localDetail);
-      return;
-    }
     setDetailLoading(true);
     try {
-      const detail = await fetchMealDetail(meal.id);
+      const detail = await fetchRecipeDetail(meal);
       setMealDetail(detail);
     } catch (error) {
       console.error('Meal detail error:', error);
@@ -542,9 +539,18 @@ const ScannerPage = () => {
                 </ul>
                 <h3 className="scanner-modal__heading">Instructions</h3>
                 <p className="scanner-modal__instructions">{mealDetail.strInstructions}</p>
+
+                {mealDetail && (
+                  <MissingIngredientsPanel
+                    mealId={selectedMeal.isLocal ? undefined : selectedMeal.id}
+                    recipeDetail={mealDetail}
+                    recipeTitle={selectedMeal.title}
+                    fridgeIngredients={ingredients.map((i) => i.name)}
+                  />
+                )}
               </>
             ) : (
-              <p className="scanner-modal__loading">Details unavailable.</p>
+              <p className="scanner-modal__loading">Details unavailable — try again or pick another recipe.</p>
             )}
           </div>
         </div>

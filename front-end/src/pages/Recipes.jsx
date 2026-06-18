@@ -2,8 +2,9 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import RecipeCard from '../components/RecipeCard'
 import { getUserRecipes } from '../utils/userRecipes'
-import { fetchRecipesByIngredients } from '../api/recipes'
+import { fetchRecipesByIngredients, fetchRecipeDetail } from '../api/recipes'
 import { getScannedIngredients, saveScannedRecipes } from '../utils/scannedIngredients'
+import MissingIngredientsPanel from '../components/MissingIngredientsPanel'
 import './Recipes.css'
 
 // Color accent cycling for recipes
@@ -180,38 +181,52 @@ const Recipes = () => {
   const selectedRecipe = samples.find((r) => r.id === selectedRecipeId)
   const [recipeDetail, setRecipeDetail] = useState(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
+  const [detailError, setDetailError] = useState('')
 
   // Fetch detailed recipe info when a recipe is selected
   useEffect(() => {
     if (!selectedRecipeId) {
       setRecipeDetail(null)
+      setDetailError('')
       return
     }
 
     const selected = samples.find((r) => r.id === selectedRecipeId)
-    if (selected?.isLocal && selected.localDetail) {
-      setRecipeDetail(selected.localDetail)
-      setLoadingDetail(false)
+    if (!selected) {
+      setRecipeDetail(null)
+      setDetailError('Recipe not found.')
       return
     }
 
-    const fetchDetail = async () => {
+    let cancelled = false
+
+    const loadDetail = async () => {
+      setLoadingDetail(true)
+      setDetailError('')
+      setRecipeDetail(null)
+
       try {
-        setLoadingDetail(true)
-        const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${selectedRecipeId}`)
-        const data = await res.json()
-        if (data.meals && data.meals[0]) {
-          setRecipeDetail(data.meals[0])
+        const detail = await fetchRecipeDetail(selected)
+        if (cancelled) return
+        if (detail) {
+          setRecipeDetail(detail)
+        } else {
+          setDetailError('Could not load this recipe from TheMealDB. Try again or pick another meal.')
         }
       } catch (error) {
-        console.error('Error fetching recipe detail:', error)
-        setRecipeDetail(null)
+        if (!cancelled) {
+          console.error('Error fetching recipe detail:', error)
+          setDetailError('Network error while loading recipe details.')
+        }
       } finally {
-        setLoadingDetail(false)
+        if (!cancelled) setLoadingDetail(false)
       }
     }
 
-    fetchDetail()
+    loadDetail()
+    return () => {
+      cancelled = true
+    }
   }, [selectedRecipeId, samples])
 
   // Handle adding favorite with complete authorization headers
@@ -478,12 +493,23 @@ const Recipes = () => {
                     {recipeDetail.strInstructions}
                   </p>
                 </div>
+
+                {!String(selectedRecipeId).startsWith('user-') && (
+                  <MissingIngredientsPanel
+                    mealId={selectedRecipe.isLocal ? undefined : selectedRecipeId}
+                    recipeDetail={recipeDetail}
+                    recipeTitle={selectedRecipe.title}
+                    fridgeIngredients={scanIngredients}
+                  />
+                )}
               </>
             ) : (
-              <p className="recipes-page__modal-no-details">Recipe details unavailable.</p>
+              <p className="recipes-page__modal-no-details">
+                {detailError || 'Recipe details unavailable.'}
+              </p>
             )}
 
-            {!selectedRecipe?.isLocal && (
+            {!selectedRecipe?.isLocal && !String(selectedRecipeId).startsWith('user-') && recipeDetail && (
               <a
                 href={recipeDetail?.strSource || '#'}
                 target="_blank"

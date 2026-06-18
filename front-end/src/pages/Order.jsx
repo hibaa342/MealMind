@@ -1,18 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { GROCERY_CATALOG } from '../data/groceryCatalog';
+import { loadPendingCart, clearPendingCart } from '../utils/orderCart';
 import './Order.css';
 
-const availableIngredients = [
-  { id: 1, name: 'Tomatoes', unit: 'kg', pricePerUnit: 18 },
-  { id: 2, name: 'Chicken', unit: 'kg', pricePerUnit: 120 },
-  { id: 3, name: 'Cheese', unit: 'kg', pricePerUnit: 95 },
-  { id: 4, name: 'Olive oil', unit: 'L', pricePerUnit: 45 },
-  { id: 5, name: 'Bread', unit: 'piece', pricePerUnit: 5 },
-  { id: 6, name: 'Eggs', unit: 'dozen', pricePerUnit: 22 },
-  { id: 7, name: 'Milk', unit: 'L', pricePerUnit: 12 },
-  { id: 8, name: 'Onions', unit: 'kg', pricePerUnit: 8 },
-  { id: 9, name: 'Garlic', unit: 'kg', pricePerUnit: 15 },
-  { id: 10, name: 'Rice', unit: 'kg', pricePerUnit: 25 },
-];
+const availableIngredients = GROCERY_CATALOG;
 
 const recentOrdersSeed = [
   { id: 'ORD-2026-102', date: '24/05/2026', total: 132 },
@@ -26,8 +17,18 @@ const Order = () => {
   const [selectedIngredientId, setSelectedIngredientId] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [recipeContext, setRecipeContext] = useState(null);
 
   const selectedIngredient = availableIngredients.find((ing) => ing.id === selectedIngredientId);
+
+  useEffect(() => {
+    const pending = loadPendingCart();
+    if (pending.items.length > 0) {
+      setCart(pending.items);
+      setRecipeContext(pending.recipeTitle);
+      clearPendingCart();
+    }
+  }, []);
 
   const addToCart = () => {
     if (!selectedIngredient || quantity <= 0) return;
@@ -94,6 +95,7 @@ const Order = () => {
 
     setRecentOrders((prev) => [newOrder, ...prev].slice(0, 5));
     setCart([]);
+    setRecipeContext(null);
     setOrderPlaced(true);
 
     setTimeout(() => setOrderPlaced(false), 3000);
@@ -107,6 +109,12 @@ const Order = () => {
           Select ingredients, add them to your cart, and place your order.
         </p>
       </div>
+
+      {recipeContext && cart.length > 0 && (
+        <div className="order-recipe-banner" role="status">
+          Missing ingredients for <strong>{recipeContext}</strong> were added to your cart.
+        </div>
+      )}
 
       <div className="order-page__container">
         <div className="order-page__left">
@@ -171,7 +179,9 @@ const Order = () => {
             {cart.length === 0 ? (
               <div className="order-empty">
                 <p>Your cart is empty</p>
-                <p className="order-empty__hint">Select ingredients from the list to add them</p>
+                <p className="order-empty__hint">
+                  Pick a recipe from Scanner or Recipes and order missing ingredients.
+                </p>
               </div>
             ) : (
               <>
@@ -180,6 +190,9 @@ const Order = () => {
                     <div key={item.id} className="order-cart-item">
                       <div className="order-cart-item__info">
                         <p className="order-cart-item__name">{item.name}</p>
+                        {item.fromRecipe && (
+                          <p className="order-cart-item__recipe">For: {item.fromRecipe}</p>
+                        )}
                         <p className="order-cart-item__price">{item.pricePerUnit} DH/{item.unit}</p>
                       </div>
 
