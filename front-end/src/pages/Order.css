@@ -231,6 +231,24 @@
   color: #6d747e;
 }
 
+.order-cart-item__recipe {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: #b42318;
+  font-style: italic;
+}
+
+.order-recipe-banner {
+  max-width: 1400px;
+  margin: 0 auto 20px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+  color: #067647;
+  font-size: 0.95rem;
+}
+
 .order-cart-item__quantity {
   display: flex;
   gap: 6px;
