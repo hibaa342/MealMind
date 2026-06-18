@@ -275,7 +275,7 @@ const Recipes = () => {
 
   // Check if recipe is favorited
   const isFavorited = (recipeId) => {
-    return favorites.some(fav => fav.id === recipeId)
+    return favorites.some(fav => String(fav.id) === String(recipeId))
   }
 
   if (loading) {
@@ -417,7 +417,7 @@ const Recipes = () => {
               </div>
               <div className="recipes-page__meta-item">
                 <span className="recipes-page__meta-label">⭐ Rating</span>
-                <p>{selectedRecipe.rating.toFixed(1)}/5</p>
+                <p>{selectedRecipe.rating != null ? Number(selectedRecipe.rating).toFixed(1) : 'N/A'}/5</p>
               </div>
               <div className="recipes-page__meta-item">
                 <button

@@ -18,6 +18,7 @@ import { NotificationsProvider } from './context/NotificationsContext'
 import CookPalLayout from './components/CookPalLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import RequireOnboarded from './components/RequireOnboarded'
+import ErrorBoundary from './components/ErrorBoundary'
 import { getPostAuthPath } from './utils/onboardingStorage'
 
 function readSessionFromStorage() {
@@ -89,7 +90,7 @@ function App() {
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="scanner" element={<Scanner user={user} />} />
-              <Route path="recipes" element={<Recipes user={user} />} />
+              <Route path="recipes" element={<ErrorBoundary><Recipes user={user} /></ErrorBoundary>} />
               {/* --- Vos routes ajoutées --- */}
               <Route path="order" element={<Order user={user} />} />
               <Route path="community" element={<Community user={user} />} />
