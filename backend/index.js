@@ -127,3 +127,8 @@ const port = process.env.PORT || 5000;
 app.listen(port, () => {
     console.log('Server is running on port ' + port);
 });
+
+
+
+// Export the Express app for Vercel
+module.exports = app;
