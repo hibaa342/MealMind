@@ -11,6 +11,7 @@ const productRoutes = require('./routes/ProductRoutes');
 const planningRoutes = require('./routes/planning');
 const notificationRoutes = require('./routes/NotificationRoutes');
 const fridgeRoutes = require('./routes/fridgeRoutes');
+const adminRoutes = require('./routes/AdminRoutes');
 
 const app = express();
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -35,6 +36,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/planning', planningRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/fridge', fridgeRoutes);
+app.use('/api/admin', adminRoutes);
 
 
 // Temporary route to prevent PlanningPage fetch errors

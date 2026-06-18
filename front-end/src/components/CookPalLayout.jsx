@@ -127,6 +127,12 @@ const IconUser = () => (
   </svg>
 )
 
+const IconShield = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  </svg>
+)
+
 const navItems = [
   { to: '/dashboard', label: 'Home', Icon: IconHome },
   { to: '/recipes', label: 'Recipes', Icon: IconRecipe },
@@ -203,6 +209,11 @@ const CookPalLayout = ({ user }) => {
   const location = useLocation()
   const { unreadCount } = useNotifications()
   const [preferName, setPreferName] = useState(() => getPreferredDisplayName())
+
+  const activeNavItems = [...navItems]
+  if (user?.role === 'admin') {
+    activeNavItems.push({ to: '/admin/dashboard', label: 'Admin Panel', Icon: IconShield })
+  }
 
   useEffect(() => {
     const sync = () => setPreferName(getPreferredDisplayName())
@@ -282,7 +293,7 @@ const CookPalLayout = ({ user }) => {
         </div>
 
         <nav className="snapcook-nav" aria-label="Main">
-          {navItems.map(({ to, label, Icon }) => (
+          {activeNavItems.map(({ to, label, Icon }) => (
             <NavLink
               key={to}
               to={to}

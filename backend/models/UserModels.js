@@ -48,6 +48,11 @@ const userSchema = new mongoose.Schema({
             communityActivity: { type: Boolean, default: true },
             newRecipes: { type: Boolean, default: true }
         }
+    },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
     }
 }, {
     timestamps: true
