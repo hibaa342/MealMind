@@ -14,8 +14,9 @@ const Notifications = () => {
 
   const fetchSettings = async () => {
     const token = localStorage.getItem('token')
+    const API_URL = import.meta.env.VITE_API_URL
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/notifications/settings', {
+      const res = await fetch(`${API_URL}/api/notifications/settings`, {
         headers: { 'x-auth-token': token }
       })
       if (res.ok) setSettings(await res.json())
@@ -26,9 +27,10 @@ const Notifications = () => {
 
   const updateSettings = async (newSettings) => {
     const token = localStorage.getItem('token')
+    const API_URL = import.meta.env.VITE_API_URL
     setSettings(newSettings)
     try {
-      await fetch('http://127.0.0.1:5000/api/notifications/settings', {
+      await fetch(`${API_URL}/api/notifications/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
         body: JSON.stringify(newSettings)

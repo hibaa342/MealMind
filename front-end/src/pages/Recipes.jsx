@@ -56,6 +56,7 @@ const Recipes = () => {
   const [userRecipes, setUserRecipes] = useState(() => getUserRecipes())
   const [favorites, setFavorites] = useState([])
   const [userId, setUserId] = useState(null)
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
   // Fetch user favorites from backend using native FETCH and a direct ID parameter
   const fetchFavorites = async (currentUserId) => {
@@ -63,7 +64,7 @@ const Recipes = () => {
     try {
       const token = localStorage.getItem('token') 
       
-      const res = await fetch(`http://localhost:5000/api/users/favorites/${currentUserId}`, {
+      const res = await fetch(`${API_BASE}/api/users/favorites/${currentUserId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +170,7 @@ const Recipes = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:5000/api/users/favorites/add/${userId}`, {
+      const res = await fetch(`${API_BASE}/api/users/favorites/add/${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -200,7 +201,7 @@ const Recipes = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:5000/api/users/favorites/${userId}/${recipeId}`, {
+      const res = await fetch(`${API_BASE}/api/users/favorites/${userId}/${recipeId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

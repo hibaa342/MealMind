@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from 'react'
 
 const NotificationsContext = createContext(null)
+const API_URL = import.meta.env.VITE_API_URL
 
 export function NotificationsProvider({ children }) {
   const [notifications, setNotifications] = useState([])
@@ -11,7 +12,7 @@ export function NotificationsProvider({ children }) {
     if (!token) return
     
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/notifications', {
+      const res = await fetch(`${API_URL}/api/notifications`, {
         headers: { 'x-auth-token': token }
       })
       const data = await res.json()
@@ -30,7 +31,7 @@ export function NotificationsProvider({ children }) {
   const markAsRead = useCallback(async (id) => {
     const token = localStorage.getItem('token')
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/notifications/${id}`, {
+      const res = await fetch(`${API_URL}/api/notifications/${id}`, {
         method: 'PATCH',
         headers: { 'x-auth-token': token }
       })

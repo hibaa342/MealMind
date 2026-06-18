@@ -25,12 +25,14 @@ const PlanningPage = () => {
     fetchBudgetData();
   }, []);
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const fetchBudgetData = async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/planning/budget-data', {
+      const response = await fetch(`${API_URL}/api/planning/budget-data`, {
         headers: { 'x-auth-token': token }
       });
       const data = await response.json();
@@ -54,7 +56,7 @@ const PlanningPage = () => {
 
     try {
       // Fetching orders from your 'commande' part
-      const response = await fetch('http://127.0.0.1:5000/api/orders', {
+      const response = await fetch(`${API_URL}/api/orders`, {
         headers: { 'x-auth-token': token }
       });
       const orders = await response.json();
@@ -74,7 +76,7 @@ const PlanningPage = () => {
     if (!expenseInput || isNaN(expenseInput)) return;
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/planning/expenses', {
+      const response = await fetch(`${API_URL}/api/planning/expenses`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -99,7 +101,7 @@ const PlanningPage = () => {
 
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/planning/budget-limit', {
+      const response = await fetch(`${API_URL}/api/planning/budget-limit`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -125,7 +127,7 @@ const PlanningPage = () => {
     setError('');
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/planning', {
+      const response = await fetch(`${API_URL}/api/planning`, {
         headers: { 'x-auth-token': token }
       });
       const data = await response.json();
@@ -153,7 +155,7 @@ const PlanningPage = () => {
 
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/planning', {
+      const response = await fetch(`${API_URL}/api/planning`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -182,7 +184,7 @@ const PlanningPage = () => {
   const handleRemove = async (id) => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`http://127.0.0.1:5000/api/planning/${id}`, {
+      const response = await fetch(`${API_URL}/api/planning/${id}`, {
         method: 'DELETE',
         headers: { 'x-auth-token': token }
       });
