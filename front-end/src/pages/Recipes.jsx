@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { useLocation } from 'react-router-dom'
 import RecipeCard from '../components/RecipeCard'
 import { getUserRecipes } from '../utils/userRecipes'
+import { fetchRecipesByIngredients } from '../api/recipes'
+import { getScannedIngredients, saveScannedRecipes } from '../utils/scannedIngredients'
 import './Recipes.css'
 
 // Color accent cycling for recipes
@@ -51,8 +54,12 @@ const fetchTheMealDBRecipes = async () => {
 }
 
 const Recipes = () => {
+  const location = useLocation()
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [scanRecipes, setScanRecipes] = useState([])
+  const [scanIngredients, setScanIngredients] = useState(() => getScannedIngredients())
+  const [scanLoading, setScanLoading] = useState(false)
   const [userRecipes, setUserRecipes] = useState(() => getUserRecipes())
   const [favorites, setFavorites] = useState([])
   const [userId, setUserId] = useState(null)
@@ -100,6 +107,43 @@ const Recipes = () => {
     }
   }, [])
 
+  const refreshScanSuggestions = useCallback(async () => {
+    const ingredients = getScannedIngredients()
+    setScanIngredients(ingredients)
+    if (ingredients.length === 0) {
+      setScanRecipes([])
+      return
+    }
+
+    setScanLoading(true)
+    try {
+      const { recipes, needMoreIngredients } = await fetchRecipesByIngredients(ingredients)
+      setScanRecipes(recipes)
+      saveScannedRecipes(recipes, ingredients)
+      if (needMoreIngredients) {
+        setScanRecipes([])
+      }
+    } catch (error) {
+      console.error('Error loading scan suggestions:', error)
+      setScanRecipes([])
+    } finally {
+      setScanLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    refreshScanSuggestions()
+    const onScanUpdate = () => refreshScanSuggestions()
+    window.addEventListener('mealmind-scan-updated', onScanUpdate)
+    return () => window.removeEventListener('mealmind-scan-updated', onScanUpdate)
+  }, [refreshScanSuggestions])
+
+  useEffect(() => {
+    if (location.state?.fromScan) {
+      refreshScanSuggestions()
+    }
+  }, [location.state, refreshScanSuggestions])
+
   // Fetch recipes from TheMealDB on mount
   useEffect(() => {
     const loadRecipes = async () => {
@@ -124,10 +168,13 @@ const Recipes = () => {
     return () => window.removeEventListener('cookpal-user-recipes-changed', sync)
   }, [])
 
-  const samples = useMemo(
-    () => [...recipes, ...userRecipes],
-    [recipes, userRecipes]
-  )
+  const samples = useMemo(() => {
+    const scanIds = new Set(scanRecipes.map((r) => r.id))
+    const general = recipes.filter((r) => !scanIds.has(r.id))
+    return [...scanRecipes, ...general, ...userRecipes]
+  }, [recipes, scanRecipes, userRecipes])
+
+  const scanIds = useMemo(() => new Set(scanRecipes.map((r) => r.id)), [scanRecipes])
 
   const [selectedRecipeId, setSelectedRecipeId] = useState(null)
   const selectedRecipe = samples.find((r) => r.id === selectedRecipeId)
@@ -138,6 +185,13 @@ const Recipes = () => {
   useEffect(() => {
     if (!selectedRecipeId) {
       setRecipeDetail(null)
+      return
+    }
+
+    const selected = samples.find((r) => r.id === selectedRecipeId)
+    if (selected?.isLocal && selected.localDetail) {
+      setRecipeDetail(selected.localDetail)
+      setLoadingDetail(false)
       return
     }
 
@@ -158,7 +212,7 @@ const Recipes = () => {
     }
 
     fetchDetail()
-  }, [selectedRecipeId])
+  }, [selectedRecipeId, samples])
 
   // Handle adding favorite with complete authorization headers
   const handleAddFavorite = async (recipeId, title, image) => {
@@ -247,9 +301,62 @@ const Recipes = () => {
         <p className="recipes-page__lead">Discover dishes that match your tastes.</p>
       </div>
 
+      {scanIngredients.length > 0 && (
+        <section className="recipes-page__scan-section">
+          <div className="recipes-page__scan-head">
+            <h2 className="recipes-page__scan-title">From your fridge</h2>
+            <p className="recipes-page__scan-sub">
+              {scanIngredients.length >= 3
+                ? `Recipes using at least 3 of: ${scanIngredients.join(', ')}`
+                : `${scanIngredients.length} ingredient(s) detected — scan or add at least 3.`}
+            </p>
+          </div>
+          {scanLoading && scanRecipes.length === 0 ? (
+            <p className="recipes-page__scan-loading">Loading suggestions…</p>
+          ) : scanRecipes.length > 0 ? (
+            <div className="recipes-page__grid recipes-page__grid--scan">
+              {scanRecipes.map((r) => (
+                <div
+                  key={`scan-${r.id}`}
+                  className="recipes-page__card-wrapper"
+                  onClick={() => setSelectedRecipeId(r.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setSelectedRecipeId(r.id)
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open ${r.title}`}
+                >
+                  <RecipeCard
+                    recipe={r}
+                    isFavorited={isFavorited(r.id)}
+                    onFavoriteToggle={() => {
+                      if (isFavorited(r.id)) {
+                        handleRemoveFavorite(r.id)
+                      } else {
+                        handleAddFavorite(r.id, r.title, r.image)
+                      }
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="recipes-page__scan-empty">
+              No recipe uses at least 3 of these ingredients. Try scanning different items.
+            </p>
+          )}
+        </section>
+      )}
+
+      <h2 className="recipes-page__section-title">All recipes</h2>
+
       <div className="recipes-page__grid">
-        {samples.length > 0 ? (
-          samples.map((r) => (
+        {samples.filter((r) => !scanIds.has(r.id)).length > 0 ? (
+          samples.filter((r) => !scanIds.has(r.id)).map((r) => (
             <div
               key={r.id}
               className="recipes-page__card-wrapper"
@@ -283,8 +390,6 @@ const Recipes = () => {
           </div>
         )}
       </div>
-
-      {/* Modal - Recipe Details */}
       {selectedRecipeId && selectedRecipe && (
         <div className="recipes-page__modal-overlay" onClick={() => setSelectedRecipeId(null)}>
           <section className="recipes-page__modal-content" onClick={(e) => e.stopPropagation()}>
@@ -345,19 +450,25 @@ const Recipes = () => {
                 <div className="recipes-page__modal-section">
                   <h3 className="recipes-page__modal-heading">🥘 Ingredients</h3>
                   <ul className="recipes-page__ingredients-list">
-                    {Array.from({ length: 20 })
-                      .map((_, idx) => {
-                        const ingredientKey = `strIngredient${idx + 1}`
-                        const measureKey = `strMeasure${idx + 1}`
-                        const ingredient = recipeDetail[ingredientKey]
-                        const measure = recipeDetail[measureKey]
-                        return ingredient && ingredient.trim() ? (
+                    {recipeDetail.ingredients
+                      ? recipeDetail.ingredients.map((item, idx) => (
                           <li key={idx} className="recipes-page__ingredient-item">
-                            {measure?.trim() || ''} {ingredient}
+                            {item.measure} {item.name}
                           </li>
-                        ) : null
-                      })
-                      .filter(Boolean)}
+                        ))
+                      : Array.from({ length: 20 })
+                          .map((_, idx) => {
+                            const ingredientKey = `strIngredient${idx + 1}`
+                            const measureKey = `strMeasure${idx + 1}`
+                            const ingredient = recipeDetail[ingredientKey]
+                            const measure = recipeDetail[measureKey]
+                            return ingredient && ingredient.trim() ? (
+                              <li key={idx} className="recipes-page__ingredient-item">
+                                {measure?.trim() || ''} {ingredient}
+                              </li>
+                            ) : null
+                          })
+                          .filter(Boolean)}
                   </ul>
                 </div>
 
@@ -372,14 +483,16 @@ const Recipes = () => {
               <p className="recipes-page__modal-no-details">Recipe details unavailable.</p>
             )}
 
-            <a
-              href={recipeDetail?.strSource || '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="recipes-page__modal-btn"
-            >
-              View Full Recipe
-            </a>
+            {!selectedRecipe?.isLocal && (
+              <a
+                href={recipeDetail?.strSource || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="recipes-page__modal-btn"
+              >
+                View Full Recipe
+              </a>
+            )}
           </section>
         </div>
       )}
