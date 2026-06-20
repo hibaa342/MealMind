@@ -71,7 +71,7 @@ const Recipes = () => {
     try {
       const token = localStorage.getItem('token') 
       
-      const res = await fetch(`http://localhost:5000/api/users/favorites/${currentUserId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/${currentUserId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -238,7 +238,7 @@ const Recipes = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:5000/api/users/favorites/add/${userId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/add/${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -269,7 +269,7 @@ const Recipes = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:5000/api/users/favorites/${userId}/${recipeId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/${userId}/${recipeId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
