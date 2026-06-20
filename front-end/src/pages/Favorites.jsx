@@ -35,7 +35,7 @@ const Favorites = () => {
       setLoading(true)
       const token = localStorage.getItem('token') // Grab fresh token
 
-      const res = await fetch(`http://localhost:5000/api/users/favorites/${uid}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/${uid}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ const Favorites = () => {
     try {
       const token = localStorage.getItem('token') // Grab fresh token
 
-      const res = await fetch(`http://localhost:5000/api/users/favorites/${userId}/${recipeId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/${userId}/${recipeId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}` // Protect custom routes
