@@ -13,6 +13,7 @@ const notificationRoutes = require('./routes/NotificationRoutes');
 const fridgeRoutes = require('./routes/fridgeRoutes');
 const adminRoutes = require('./routes/AdminRoutes');
 const ingredientRoutes = require('./routes/ingredientRoutes');
+const stripeRoutes = require('./routes/stripeRoutes');
 
 const app = express();
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -39,7 +40,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/fridge', fridgeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ingredients', ingredientRoutes);
-
+app.use('/api/stripe', stripeRoutes);
 
 // Temporary route to prevent PlanningPage fetch errors
 app.get('/api/orders', (req, res) => res.json([]));
