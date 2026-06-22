@@ -363,6 +363,105 @@
   font-size: 0.9rem;
 }
 
+/* ==========================================================================
+   Fresh From Fridge - Dropdown Selection Menu Fixes
+   ========================================================================== */
+
+.dash-fridge-dropdown-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+  z-index: 100; /* Ensures the item panel mounts safely over recipes cards */
+}
+
+.dash-fridge-dropdown-btn {
+  background: #e8f5e9;
+  color: #1b3b28;
+  border: 1px solid rgba(45, 106, 79, 0.15);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s, box-shadow 0.15s;
+}
+
+.dash-fridge-dropdown-btn:hover {
+  background: #d8f3dc;
+  box-shadow: 0 4px 12px rgba(27, 59, 40, 0.05);
+}
+
+.dash-fridge-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 210px;
+  max-width: 280px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid rgba(45, 106, 79, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(27, 59, 40, 0.12);
+  padding: 4px 0;
+}
+
+.dash-fridge-dropdown-menu::-webkit-scrollbar {
+  width: 5px;
+}
+
+.dash-fridge-dropdown-menu::-webkit-scrollbar-thumb {
+  background: #b7e4c7;
+  border-radius: 4px;
+}
+
+.dash-fridge-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  transition: background-color 0.15s;
+}
+
+.dash-fridge-dropdown-item:not(:last-child) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.dash-fridge-dropdown-item:hover {
+  background-color: #f4faf6;
+}
+
+.dash-fridge-dot {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.dash-fridge-item-name {
+  font-size: 0.9rem;
+  color: #1a2e24;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.dash-fridge-see-more {
+  display: inline-block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+/* ==========================================================================
+   Responsive Viewport Interceptions
+   ========================================================================== */
+
 @media (max-width: 900px) {
   .snapcook-quick-grid {
     grid-template-columns: repeat(2, 1fr);
