@@ -17,6 +17,15 @@ const Order = () => {
   const [selectedIngredientId, setSelectedIngredientId] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [clientSecret, setClientSecret] = useState('');
+  const [checkoutAmount, setCheckoutAmount] = useState(0);
+  const [checkoutError, setCheckoutError] = useState('');
+
+  const isLocalhost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+  const apiBase = isLocalhost
+    ? '/api'
+    : import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '/api';
   const [recipeContext, setRecipeContext] = useState(null);
 
   const selectedIngredient = availableIngredients.find((ing) => ing.id === selectedIngredientId);
@@ -51,6 +60,7 @@ const Order = () => {
           name: selectedIngredient.name,
           unit: selectedIngredient.unit,
           pricePerUnit: selectedIngredient.pricePerUnit,
+          imageUrl: selectedIngredient.imageUrl,
           quantity,
         },
       ]);
@@ -80,7 +90,38 @@ const Order = () => {
     return cart.reduce((sum, item) => sum + item.pricePerUnit * item.quantity, 0);
   }, [cart]);
 
-  const placeOrder = () => {
+  const placeOrder = async () => {
+    if (cart.length === 0) return;
+
+   const MAD_TO_EUR = 0.093; // 1 DH ≈ 0.093€
+const amountInEuro = Math.max(0.50, parseFloat((total * MAD_TO_EUR).toFixed(2)));
+    setCheckoutError('');
+
+    const checkoutUrl = isLocalhost
+      ? '/api/stripe/create-payment-intent'
+      : `${apiBase}/api/stripe/create-payment-intent`;
+
+    try {
+      const response = await fetch(checkoutUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: amountInEuro, currency: 'eur' }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Impossible de créer le paiement.');
+      }
+
+      setClientSecret(data.clientSecret);
+      setCheckoutAmount(amountInEuro);
+      setShowPaymentModal(true);
+    } catch (error) {
+      setCheckoutError(error.message || 'Impossible d’initier le paiement.');
+    }
+  };
+
+  const finalizeOrder = () => {
     if (cart.length === 0) return;
 
     const now = new Date();
@@ -97,12 +138,72 @@ const Order = () => {
     setCart([]);
     setRecipeContext(null);
     setOrderPlaced(true);
+    setShowPaymentModal(false);
 
     setTimeout(() => setOrderPlaced(false), 3000);
   };
 
+  const handlePaymentSuccess = () => {
+    finalizeOrder();
+  };
+
   return (
     <div className="order-page">
+      {showPaymentModal && (
+        <div className="order-payment-modal-overlay">
+          <div className="order-payment-modal">
+            <div className="order-payment-modal__header">
+              <div>
+                <h2>Paiement de la commande</h2>
+                <p className="order-payment-modal__subtitle">Finaliser votre achat en toute sécurité.</p>
+              </div>
+              <button
+                className="order-payment-modal__close"
+                onClick={() => setShowPaymentModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="order-payment-modal__content">
+              <div className="order-payment-modal__summary">
+                <div className="order-payment-modal__summary-header">
+                  <h3>Résumé de la commande</h3>
+                </div>
+                <div className="order-payment-summary-card">
+                  {cart.map((item) => (
+                    <div key={item.id} className="order-payment-summary-item">
+                      <div className="order-payment-summary-item__image">
+                        <img src={item.imageUrl} alt={item.name} />
+                      </div>
+                      <div className="order-payment-summary-item__info">
+                        <span className="order-payment-summary-item__name">{item.name}</span>
+                        <span className="order-payment-summary-item__detail">{item.quantity} x {item.unit === 'L' ? 'Bouteille 500ml' : `${item.quantity} ${item.unit}`}</span>
+                      </div>
+                      <span className="order-payment-summary-item__price">{item.pricePerUnit * item.quantity} DH</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="order-payment-rate">
+                  <span>Taux de change (€/DH)</span>
+                  <span className="order-payment-rate__value">Total : €{checkoutAmount.toFixed(2)} <span className="order-payment-check">✓</span></span>
+                </div>
+              </div>
+
+              <Elements stripe={stripePromise}>
+                <CheckoutForm
+                  clientSecret={clientSecret}
+                  amount={checkoutAmount}
+                  onSuccess={handlePaymentSuccess}
+                  onCancel={() => setShowPaymentModal(false)}
+                />
+              </Elements>
+              {checkoutError && <div className="checkout-message error">{checkoutError}</div>}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="order-page__header">
         <h1 className="cookpal-page__title">Shopping</h1>
         <p className="cookpal-page__lead">
@@ -235,6 +336,8 @@ const Order = () => {
                 <button className="order-place-btn" onClick={placeOrder}>
                   Place order
                 </button>
+
+                {checkoutError && <div className="checkout-message error" style={{ marginTop: '16px' }}>{checkoutError}</div>}
 
                 {orderPlaced && <div className="order-success">Order placed successfully</div>}
               </>
