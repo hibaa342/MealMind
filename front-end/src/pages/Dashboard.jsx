@@ -1,43 +1,325 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useOutletContext, Link } from 'react-router-dom'
 import { addUserRecipe } from '../utils/userRecipes'
+import {
+  getScannedIngredients,
+  getScannedRecipes,
+} from '../utils/scannedIngredients'
+import { fetchRecipesByIngredients, fetchMealDetail } from '../api/recipes'
 import './Dashboard.css'
 
 import imgKitchenDecor from '../assets/images/kitchen-decor.jpg'
-import imgVeggieStirfry from '../assets/images/veggie-stirfry.jpg'
 import imgTacoSalad from '../assets/images/taco-salad.jpg'
-import imgTomatoSoup from '../assets/images/tomato-soup.jpg'
-import imgFreshEggs from '../assets/images/fresh-eggs.jpg'
-import imgFreshSpinach from '../assets/images/fresh-spinach.jpg'
-import imgChickenBreast from '../assets/images/chicken-breast.jpg'
-import imgGreekYogurt from '../assets/images/greek-yogurt.jpg'
-import imgCheddarCheese from '../assets/images/cheddar-cheese.jpg'
-import imgBellPeppers from '../assets/images/bell-peppers.jpg'
-import imgSalad from '../assets/images/salad_1777065578678.png'
 
-const QUICK_RECIPES = [
-  { title: 'Taco salad bowl', time: '15 min', img: imgTacoSalad },
-  { title: 'Tomato soup', time: '25 min', img: imgTomatoSoup },
-  { title: 'Veggie stir fry', time: '20 min', img: imgVeggieStirfry },
-  { title: 'Garden salad', time: '10 min', img: imgSalad },
-]
+// ---------------------------------------------------------------------------
+// Fridge Recipe Detail Modal
+// ---------------------------------------------------------------------------
+function FridgeRecipeModal({ meal, onClose }) {
+  const [detail, setDetail] = useState(null)
+  const [loading, setLoading] = useState(false)
 
-/** Placeholder inventory until AI detection is wired up */
-const FRIDGE_INVENTORY = [
-  { id: 'eggs', name: 'Organic Eggs', quantity: '8 eggs', daysLeft: 5, img: imgFreshEggs },
-  { id: 'spinach', name: 'Baby Spinach', quantity: '200g', daysLeft: 4, img: imgFreshSpinach },
-  { id: 'chicken', name: 'Chicken Breast', quantity: '450g', daysLeft: 3, img: imgChickenBreast },
-  { id: 'yogurt', name: 'Greek Yogurt', quantity: '500ml', daysLeft: 2, img: imgGreekYogurt },
-  { id: 'cheese', name: 'Cheddar Cheese', quantity: '120g', daysLeft: 1, img: imgCheddarCheese },
-  { id: 'peppers', name: 'Bell Peppers', quantity: '3 peppers', daysLeft: 5, img: imgBellPeppers },
-]
+  useEffect(() => {
+    if (!meal) return
+    if (meal.isLocal && meal.localDetail) {
+      setDetail(meal.localDetail)
+      return
+    }
+    setLoading(true)
+    fetchMealDetail(meal.id)
+      .then((d) => setDetail(d))
+      .catch(() => setDetail(null))
+      .finally(() => setLoading(false))
+  }, [meal])
 
-function daysLeftLabel(days) {
-  if (days <= 0) return 'Use today'
-  if (days === 1) return '1 day left'
-  return `${days} days left`
+  if (!meal) return null
+
+  const ingredients = detail?.ingredients
+    ? detail.ingredients
+    : Array.from({ length: 20 }, (_, i) => {
+        const name = detail?.[`strIngredient${i + 1}`]
+        const measure = detail?.[`strMeasure${i + 1}`]
+        return name?.trim() ? { name, measure: measure?.trim() } : null
+      }).filter(Boolean)
+
+  return (
+    <div
+      className="cookpal-modal-backdrop"
+      style={{ zIndex: 1000 }}
+      role="presentation"
+      onClick={onClose}
+    >
+      <div
+        className="cookpal-modal cookpal-panel"
+        role="dialog"
+        aria-labelledby="dash-fridge-meal-title"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: 600, maxHeight: '90vh', overflow: 'auto', padding: 24 }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            position: 'absolute', top: 16, right: 16,
+            background: 'none', border: 'none', fontSize: 24, cursor: 'pointer',
+          }}
+          aria-label="Close"
+        >
+          ✕
+        </button>
+
+        <h2 id="dash-fridge-meal-title" className="cookpal-subtitle" style={{ marginTop: 0 }}>
+          {meal.title}
+        </h2>
+
+        <img
+          src={meal.image}
+          alt={meal.title}
+          style={{ width: '100%', height: 260, objectFit: 'cover', borderRadius: 12, marginBottom: 16 }}
+        />
+
+        {meal.matchedIngredients?.length > 0 && (
+          <p style={{ marginBottom: 14, fontSize: '0.85rem', color: '#2d6a4f', fontWeight: 600 }}>
+            ✅ Matches from your fridge: {meal.matchedIngredients.join(', ')}
+          </p>
+        )}
+
+        {loading && <p style={{ color: '#5c7068' }}>Loading details…</p>}
+
+        {!loading && detail && (
+          <>
+            <h3 style={{ marginBottom: 8 }}>Ingredients</h3>
+            <ul style={{ marginLeft: 20, marginTop: 0, marginBottom: 18 }}>
+              {ingredients.map((item, i) => (
+                <li key={i} style={{ marginBottom: 5 }}>
+                  {item.measure} {item.name}
+                </li>
+              ))}
+            </ul>
+            <h3 style={{ marginBottom: 8 }}>Instructions</h3>
+            <p style={{ whiteSpace: 'pre-line', lineHeight: 1.65 }}>
+              {detail.strInstructions}
+            </p>
+          </>
+        )}
+
+        {!loading && !detail && (
+          <p style={{ color: '#5c7068' }}>Recipe details unavailable.</p>
+        )}
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="cookpal-modal__btn cookpal-modal__btn--primary"
+          style={{ marginTop: 20, width: '100%' }}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  )
 }
 
+// ---------------------------------------------------------------------------
+// Fresh‑from‑fridge recipe card (compact, clickable)
+// ---------------------------------------------------------------------------
+function FridgeRecipeCard({ recipe, onClick }) {
+  return (
+    <button
+      type="button"
+      className="snapcook-quick-card cookpal-recipe-select-btn"
+      style={{ border: 'none', cursor: 'pointer', textAlign: 'left' }}
+      onClick={() => onClick(recipe)}
+    >
+      <img
+        src={recipe.image}
+        alt=""
+        className="snapcook-quick-card__img"
+      />
+      <span className="snapcook-quick-card__name">{recipe.title}</span>
+      {recipe.matchedIngredients?.length > 0 && (
+        <span className="snapcook-quick-card__time" style={{ fontSize: '0.72rem', color: '#2d6a4f' }}>
+          {recipe.matchedIngredients.length} ingredient{recipe.matchedIngredients.length !== 1 ? 's' : ''} matched
+        </span>
+      )}
+    </button>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// "Fresh from your fridge" section
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// "Fresh from your fridge" section (with dropdown list)
+// ---------------------------------------------------------------------------
+function FreshFromFridge() {
+  const navigate = useNavigate()
+  const [ingredients, setIngredients] = useState(() => getScannedIngredients())
+  const [recipes, setRecipes] = useState(() => getScannedRecipes())
+  const [loading, setLoading] = useState(false)
+  const [selectedRecipe, setSelectedRecipe] = useState(null)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  
+  const dropdownRef = useRef(null)
+  const lastKeyRef = useRef(null)
+
+  // Auto-close dropdown when clicking anywhere outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const loadFridgeRecipes = useCallback(async (names) => {
+    const key = [...names].sort().join('|')
+    if (key === lastKeyRef.current) return
+    lastKeyRef.current = key
+    const cached = getScannedRecipes(names)
+    if (cached.length > 0) {
+      setRecipes(cached)
+      return
+    }
+    if (names.length === 0) {
+      setRecipes([])
+      return
+    }
+    setLoading(true)
+    try {
+      const { recipes: fetched } = await fetchRecipesByIngredients(names)
+      setRecipes(fetched)
+    } catch {
+      setRecipes([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleScanUpdate = () => {
+      const newIngredients = getScannedIngredients()
+      setIngredients(newIngredients)
+      lastKeyRef.current = null
+      setRecipes([])
+      loadFridgeRecipes(newIngredients)
+    }
+    window.addEventListener('mealmind-scan-updated', handleScanUpdate)
+    loadFridgeRecipes(ingredients)
+    return () => window.removeEventListener('mealmind-scan-updated', handleScanUpdate)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const hasIngredients = ingredients.length > 0
+  const hasRecipes = recipes.length > 0
+
+  // Label helper logic: "Pepper, Egg +2 ▼"
+  const getDropdownLabel = () => {
+    if (ingredients.length === 0) return "0 Ingredients"
+    const firstTwo = ingredients.slice(0, 2).map(i => i.charAt(0).toUpperCase() + i.slice(1))
+    const remaining = ingredients.length - 2
+    return remaining > 0 
+      ? `${firstTwo.join(', ')} +${remaining} ▼`
+      : `${firstTwo.join(', ')} ▼`
+  }
+
+  return (
+    <>
+      <section className="snapcook-section">
+        <div className="snapcook-section__head">
+          <h2 className="snapcook-section__title">Fresh from your fridge</h2>
+          <Link to="/scanner" className="snapcook-section__link">
+            Scan again
+          </Link>
+        </div>
+
+        {/* --- Dropdown Container --- */}
+        {hasIngredients && (
+          <div className="dash-fridge-dropdown-container" ref={dropdownRef}>
+            <button 
+              type="button" 
+              className="dash-fridge-dropdown-btn"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              aria-expanded={dropdownOpen}
+            >
+              🥬 {getDropdownLabel()}
+            </button>
+
+            {dropdownOpen && (
+              <div className="dash-fridge-dropdown-menu">
+                {ingredients.map((name) => (
+                  <div key={name} className="dash-fridge-dropdown-item">
+                    <span className="dash-fridge-dot">🟢</span>
+                    <span className="dash-fridge-item-name">{name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* States */}
+        {!hasIngredients && !loading && (
+          <div className="snapcook-fridge-panel">
+            <p className="snapcook-fridge-empty">
+              No fridge scan yet.{' '}
+              <Link to="/scanner" style={{ color: '#2d6a4f', fontWeight: 600 }}>
+                Open the scanner
+              </Link>{' '}
+              to detect ingredients.
+            </p>
+          </div>
+        )}
+
+        {loading && (
+          <div className="snapcook-fridge-panel">
+            <p className="snapcook-fridge-empty">
+              <span className="dash-fridge-spinner" aria-hidden /> Finding recipes…
+            </p>
+          </div>
+        )}
+
+        {!loading && hasIngredients && !hasRecipes && (
+          <div className="snapcook-fridge-panel" style={{ marginTop: '14px' }}>
+            <p className="snapcook-fridge-empty">
+              No matching recipes. Try{' '}
+              <Link to="/scanner" style={{ color: '#2d6a4f', fontWeight: 600 }}>
+                scanning again
+              </Link>.
+            </p>
+          </div>
+        )}
+
+        {!loading && hasRecipes && (
+          <>
+            <div className="snapcook-quick-grid">
+              {recipes.slice(0, 4).map((recipe) => (
+                <FridgeRecipeCard
+                  key={recipe.id}
+                  recipe={recipe}
+                  onClick={setSelectedRecipe}
+                />
+              ))}
+            </div>
+            {recipes.length > 4 && (
+              <button
+                type="button"
+                className="snapcook-section__link dash-fridge-see-more"
+                onClick={() => navigate('/scanner')}
+              >
+                See all {recipes.length} suggestions →
+              </button>
+            )}
+          </>
+        )}
+      </section>
+      <FridgeRecipeModal meal={selectedRecipe} onClose={() => setSelectedRecipe(null)} />
+    </>
+  )
+}
+// ---------------------------------------------------------------------------
+// Main Dashboard
+// ---------------------------------------------------------------------------
 const Dashboard = () => {
   const navigate = useNavigate()
   const { voice } = useOutletContext() || {}
@@ -52,8 +334,6 @@ const Dashboard = () => {
   const [searchResults, setSearchResults] = useState(null)
   const [isSearching, setIsSearching] = useState(false)
   const [selectedMeal, setSelectedMeal] = useState(null)
-
-  const [fridgeItems] = useState(FRIDGE_INVENTORY)
 
   const isRecording = Boolean(voice?.isRecording)
   const isTranscribing = Boolean(voice?.isTranscribing)
@@ -244,83 +524,12 @@ const Dashboard = () => {
             </div>
           </section>
 
-          <Link to="/recipes" className="snapcook-featured">
-            <img src={imgVeggieStirfry} alt="" className="snapcook-featured__thumb" />
-            <div className="snapcook-featured__body">
-              <h3 className="snapcook-featured__title">Veggie stir fry</h3>
-              <div className="snapcook-featured__meta">
-                <span className="snapcook-featured__kcal">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                    <path d="M12 2c1 4 4 6 4 10a4 4 0 0 1-8 0c0-4 3-6 4-10z" />
-                  </svg>
-                  270 kcal
-                </span>
-                <span className="snapcook-pill">Healthy</span>
-                <span className="snapcook-pill">Low fat</span>
-              </div>
-              <p className="snapcook-featured__foot">8 ingredients · matches your fridge</p>
-            </div>
-          </Link>
-
-          <section className="snapcook-section">
-            <div className="snapcook-section__head">
-              <h2 className="snapcook-section__title">Quick recipes</h2>
-              <Link to="/recipes" className="snapcook-section__link">
-                See all
-              </Link>
-            </div>
-            <div className="snapcook-quick-grid">
-              {QUICK_RECIPES.map((r, i) => (
-                <Link key={`${r.title}-${i}`} to="/recipes" className="snapcook-quick-card">
-                  <img src={r.img} alt="" className="snapcook-quick-card__img" />
-                  <span className="snapcook-quick-card__name">{r.title}</span>
-                  <span className="snapcook-quick-card__time">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M12 7v5l3 2" />
-                    </svg>
-                    {r.time}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          <section className="snapcook-section">
-            <div className="snapcook-section__head">
-              <h2 className="snapcook-section__title">Fresh from your fridge</h2>
-              <Link to="/scanner" className="snapcook-section__link">
-                Scan again
-              </Link>
-            </div>
-            <div className="snapcook-fridge-panel" role="list" aria-label="Detected ingredients">
-              {fridgeItems.length === 0 ? (
-                <p className="snapcook-fridge-empty">
-                  No ingredients yet. Use the scanner to detect what&apos;s in your fridge.
-                </p>
-              ) : (
-                fridgeItems.map((item) => (
-                  <div key={item.id} className="snapcook-fridge-item" role="listitem">
-                    <img src={item.img} alt="" className="snapcook-fridge-item__thumb" />
-                    <div className="snapcook-fridge-item__info">
-                      <span className="snapcook-fridge-item__name">{item.name}</span>
-                      <span className="snapcook-fridge-item__qty">{item.quantity}</span>
-                    </div>
-                    <span
-                      className={`snapcook-fridge-item__badge${
-                        item.daysLeft <= 1 ? ' snapcook-fridge-item__badge--urgent' : ''
-                      }`}
-                    >
-                      {daysLeftLabel(item.daysLeft)}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
+          {/* Dynamic fridge-based recipe recommendations */}
+          <FreshFromFridge />
         </>
       )}
 
+      {/* Create Recipe Modal */}
       {createOpen && (
         <div className="cookpal-modal-backdrop" role="presentation" onClick={closeCreate}>
           <div
@@ -384,6 +593,7 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Search result detail modal */}
       {selectedMeal && (
         <div
           className="cookpal-modal-backdrop"
