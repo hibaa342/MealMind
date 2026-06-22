@@ -394,7 +394,7 @@ export async function fetchRecipesByIngredients(ingredientNames, { limit = 12 } 
 
 export async function fetchMealDetail(mealId) {
   try {
-    const res = await fetch(`${MEALDB_BASE}/lookup.php?i=${mealId}`)
+    const res = await fetch(`${MEALDB_BASE}/lookup.php?i=${encodeURIComponent(mealId)}`)
     if (!res.ok) {
       console.warn(`TheMealDB lookup error for meal ${mealId}: ${res.status}`)
       return null
@@ -405,4 +405,59 @@ export async function fetchMealDetail(mealId) {
     console.warn(`Failed to fetch meal detail for ${mealId}:`, error)
     return null
   }
+}
+
+export async function fetchMealDetailByTitle(title) {
+  if (!title?.trim()) return null
+  try {
+    const res = await fetch(`${MEALDB_BASE}/search.php?s=${encodeURIComponent(title.trim())}`)
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.meals?.[0] ?? null
+  } catch (error) {
+    console.warn(`Failed to search meal by title "${title}":`, error)
+    return null
+  }
+}
+
+function buildUserRecipeDetail(recipe) {
+  const hasIngredients = Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0
+  const hasInstructions = Boolean(recipe.instructions?.trim())
+
+  return {
+    strMeal: recipe.title,
+    strInstructions: hasInstructions
+      ? recipe.instructions.trim()
+      : 'This is a custom recipe. Add ingredients and instructions when creating a recipe from the dashboard.',
+    ingredients: hasIngredients
+      ? recipe.ingredients
+      : [{ measure: '', name: 'No ingredients listed for this custom recipe' }],
+    strSource: null,
+    isUserRecipe: true,
+  }
+}
+
+/**
+ * Load full recipe details for any card type: TheMealDB, local scan, or user-created.
+ */
+export async function fetchRecipeDetail(recipe) {
+  if (!recipe) return null
+
+  if (recipe.isLocal && recipe.localDetail) {
+    return recipe.localDetail
+  }
+
+  if (String(recipe.id).startsWith('user-')) {
+    return buildUserRecipeDetail(recipe)
+  }
+
+  const byId = await fetchMealDetail(recipe.id)
+  if (byId) return byId
+
+  if (recipe.title) {
+    const byTitle = await fetchMealDetailByTitle(recipe.title)
+    if (byTitle) return byTitle
+  }
+
+  return null
 }

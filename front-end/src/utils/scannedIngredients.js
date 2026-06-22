@@ -35,7 +35,9 @@ export function saveScannedRecipes(recipes, ingredients = getScannedIngredients(
       recipes,
     })
   )
-  window.dispatchEvent(new CustomEvent('mealmind-scan-updated'))
+  // NOTE: do NOT dispatch 'mealmind-scan-updated' here — this function only
+  // caches fetched recipe results. Dispatching the event would re-trigger
+  // refreshScanSuggestions → saveScannedRecipes → event → infinite loop.
 }
 
 export function getScannedRecipes(currentIngredients = getScannedIngredients()) {

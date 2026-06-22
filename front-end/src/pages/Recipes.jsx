@@ -2,8 +2,9 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import RecipeCard from '../components/RecipeCard'
 import { getUserRecipes } from '../utils/userRecipes'
-import { fetchRecipesByIngredients } from '../api/recipes'
+import { fetchRecipesByIngredients, fetchRecipeDetail } from '../api/recipes'
 import { getScannedIngredients, saveScannedRecipes } from '../utils/scannedIngredients'
+import MissingIngredientsPanel from '../components/MissingIngredientsPanel'
 import './Recipes.css'
 
 // Color accent cycling for recipes
@@ -70,7 +71,7 @@ const Recipes = () => {
     try {
       const token = localStorage.getItem('token') 
       
-      const res = await fetch(`http://localhost:5000/api/users/favorites/${currentUserId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/${currentUserId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -180,38 +181,52 @@ const Recipes = () => {
   const selectedRecipe = samples.find((r) => r.id === selectedRecipeId)
   const [recipeDetail, setRecipeDetail] = useState(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
+  const [detailError, setDetailError] = useState('')
 
   // Fetch detailed recipe info when a recipe is selected
   useEffect(() => {
     if (!selectedRecipeId) {
       setRecipeDetail(null)
+      setDetailError('')
       return
     }
 
     const selected = samples.find((r) => r.id === selectedRecipeId)
-    if (selected?.isLocal && selected.localDetail) {
-      setRecipeDetail(selected.localDetail)
-      setLoadingDetail(false)
+    if (!selected) {
+      setRecipeDetail(null)
+      setDetailError('Recipe not found.')
       return
     }
 
-    const fetchDetail = async () => {
+    let cancelled = false
+
+    const loadDetail = async () => {
+      setLoadingDetail(true)
+      setDetailError('')
+      setRecipeDetail(null)
+
       try {
-        setLoadingDetail(true)
-        const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${selectedRecipeId}`)
-        const data = await res.json()
-        if (data.meals && data.meals[0]) {
-          setRecipeDetail(data.meals[0])
+        const detail = await fetchRecipeDetail(selected)
+        if (cancelled) return
+        if (detail) {
+          setRecipeDetail(detail)
+        } else {
+          setDetailError('Could not load this recipe from TheMealDB. Try again or pick another meal.')
         }
       } catch (error) {
-        console.error('Error fetching recipe detail:', error)
-        setRecipeDetail(null)
+        if (!cancelled) {
+          console.error('Error fetching recipe detail:', error)
+          setDetailError('Network error while loading recipe details.')
+        }
       } finally {
-        setLoadingDetail(false)
+        if (!cancelled) setLoadingDetail(false)
       }
     }
 
-    fetchDetail()
+    loadDetail()
+    return () => {
+      cancelled = true
+    }
   }, [selectedRecipeId, samples])
 
   // Handle adding favorite with complete authorization headers
@@ -223,7 +238,7 @@ const Recipes = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:5000/api/users/favorites/add/${userId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/add/${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -254,7 +269,7 @@ const Recipes = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:5000/api/users/favorites/${userId}/${recipeId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/${userId}/${recipeId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -275,7 +290,7 @@ const Recipes = () => {
 
   // Check if recipe is favorited
   const isFavorited = (recipeId) => {
-    return favorites.some(fav => fav.id === recipeId)
+    return favorites.some(fav => String(fav.id) === String(recipeId))
   }
 
   if (loading) {
@@ -417,7 +432,7 @@ const Recipes = () => {
               </div>
               <div className="recipes-page__meta-item">
                 <span className="recipes-page__meta-label">⭐ Rating</span>
-                <p>{selectedRecipe.rating.toFixed(1)}/5</p>
+                <p>{selectedRecipe.rating != null ? Number(selectedRecipe.rating).toFixed(1) : 'N/A'}/5</p>
               </div>
               <div className="recipes-page__meta-item">
                 <button
@@ -478,12 +493,23 @@ const Recipes = () => {
                     {recipeDetail.strInstructions}
                   </p>
                 </div>
+
+                {!String(selectedRecipeId).startsWith('user-') && (
+                  <MissingIngredientsPanel
+                    mealId={selectedRecipe.isLocal ? undefined : selectedRecipeId}
+                    recipeDetail={recipeDetail}
+                    recipeTitle={selectedRecipe.title}
+                    fridgeIngredients={scanIngredients}
+                  />
+                )}
               </>
             ) : (
-              <p className="recipes-page__modal-no-details">Recipe details unavailable.</p>
+              <p className="recipes-page__modal-no-details">
+                {detailError || 'Recipe details unavailable.'}
+              </p>
             )}
 
-            {!selectedRecipe?.isLocal && (
+            {!selectedRecipe?.isLocal && !String(selectedRecipeId).startsWith('user-') && recipeDetail && (
               <a
                 href={recipeDetail?.strSource || '#'}
                 target="_blank"

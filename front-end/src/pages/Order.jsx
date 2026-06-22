@@ -1,83 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import CheckoutForm from '../components/CheckoutForm';
+import React, { useState, useMemo, useEffect } from 'react';
+import { GROCERY_CATALOG } from '../data/groceryCatalog';
+import { loadPendingCart, clearPendingCart } from '../utils/orderCart';
 import './Order.css';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
-
-const availableIngredients = [
-  {
-    id: 1,
-    name: 'Tomatoes',
-    unit: 'kg',
-    pricePerUnit: 18,
-    imageUrl: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 2,
-    name: 'Chicken',
-    unit: 'kg',
-    pricePerUnit: 120,
-    imageUrl: 'https://images.unsplash.com/photo-1604908553944-590218fb0d3d?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 3,
-    name: 'Cheese',
-    unit: 'kg',
-    pricePerUnit: 95,
-    imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 4,
-    name: 'Olive oil',
-    unit: 'L',
-    pricePerUnit: 45,
-    imageUrl: 'https://images.unsplash.com/photo-1516684669134-de6d6d4ab358?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 5,
-    name: 'Bread',
-    unit: 'piece',
-    pricePerUnit: 5,
-    imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 6,
-    name: 'Eggs',
-    unit: 'dozen',
-    pricePerUnit: 22,
-    imageUrl: 'https://images.unsplash.com/photo-1518976024611-4885b8f5d9d4?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 7,
-    name: 'Milk',
-    unit: 'L',
-    pricePerUnit: 12,
-    imageUrl: 'https://images.unsplash.com/photo-1547434216-3f0a7ed77fed?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 8,
-    name: 'Onions',
-    unit: 'kg',
-    pricePerUnit: 8,
-    imageUrl: 'https://images.unsplash.com/photo-1615938385898-048d1f8a999b?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 9,
-    name: 'Garlic',
-    unit: 'kg',
-    pricePerUnit: 15,
-    imageUrl: 'https://images.unsplash.com/photo-1516893842207-4417f1eea264?auto=format&fit=crop&w=120&q=80',
-  },
-  {
-    id: 10,
-    name: 'Rice',
-    unit: 'kg',
-    pricePerUnit: 25,
-    imageUrl: 'https://images.unsplash.com/photo-1543353071-873f17a7a088?auto=format&fit=crop&w=120&q=80',
-  },
-];
+const availableIngredients = GROCERY_CATALOG;
 
 const recentOrdersSeed = [
   { id: 'ORD-2026-102', date: '24/05/2026', total: 132 },
@@ -100,8 +26,18 @@ const Order = () => {
   const apiBase = isLocalhost
     ? '/api'
     : import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '/api';
+  const [recipeContext, setRecipeContext] = useState(null);
 
   const selectedIngredient = availableIngredients.find((ing) => ing.id === selectedIngredientId);
+
+  useEffect(() => {
+    const pending = loadPendingCart();
+    if (pending.items.length > 0) {
+      setCart(pending.items);
+      setRecipeContext(pending.recipeTitle);
+      clearPendingCart();
+    }
+  }, []);
 
   const addToCart = () => {
     if (!selectedIngredient || quantity <= 0) return;
@@ -200,6 +136,7 @@ const amountInEuro = Math.max(0.50, parseFloat((total * MAD_TO_EUR).toFixed(2)))
 
     setRecentOrders((prev) => [newOrder, ...prev].slice(0, 5));
     setCart([]);
+    setRecipeContext(null);
     setOrderPlaced(true);
     setShowPaymentModal(false);
 
@@ -274,6 +211,12 @@ const amountInEuro = Math.max(0.50, parseFloat((total * MAD_TO_EUR).toFixed(2)))
         </p>
       </div>
 
+      {recipeContext && cart.length > 0 && (
+        <div className="order-recipe-banner" role="status">
+          Missing ingredients for <strong>{recipeContext}</strong> were added to your cart.
+        </div>
+      )}
+
       <div className="order-page__container">
         <div className="order-page__left">
           <div className="order-card">
@@ -337,7 +280,9 @@ const amountInEuro = Math.max(0.50, parseFloat((total * MAD_TO_EUR).toFixed(2)))
             {cart.length === 0 ? (
               <div className="order-empty">
                 <p>Your cart is empty</p>
-                <p className="order-empty__hint">Select ingredients from the list to add them</p>
+                <p className="order-empty__hint">
+                  Pick a recipe from Scanner or Recipes and order missing ingredients.
+                </p>
               </div>
             ) : (
               <>
@@ -346,6 +291,9 @@ const amountInEuro = Math.max(0.50, parseFloat((total * MAD_TO_EUR).toFixed(2)))
                     <div key={item.id} className="order-cart-item">
                       <div className="order-cart-item__info">
                         <p className="order-cart-item__name">{item.name}</p>
+                        {item.fromRecipe && (
+                          <p className="order-cart-item__recipe">For: {item.fromRecipe}</p>
+                        )}
                         <p className="order-cart-item__price">{item.pricePerUnit} DH/{item.unit}</p>
                       </div>
 
