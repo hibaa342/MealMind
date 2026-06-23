@@ -13,6 +13,7 @@ import Favorites from './pages/Favorites'
 import Order from './pages/Order'
 import Notifications from './pages/Notifications'
 import Onboarding from './pages/Onboarding'
+import AdminDashboard from './pages/AdminDashboard'
 import SiteNavbar from './components/SiteNavbar'
 import { NotificationsProvider } from './context/NotificationsContext'
 import CookPalLayout from './components/CookPalLayout'
@@ -21,24 +22,23 @@ import RequireOnboarded from './components/RequireOnboarded'
 import ErrorBoundary from './components/ErrorBoundary'
 import { getPostAuthPath } from './utils/onboardingStorage'
 
-function readSessionFromStorage() {
-  try {
-    const token = localStorage.getItem('token')
-    const userData = localStorage.getItem('user')
-    if (token && userData) {
-      return { isAuthenticated: true, user: JSON.parse(userData) }
-    }
-  } catch {
-    /* ignore corrupt storage */
-  }
-  return { isAuthenticated: false, user: null }
-}
-
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => readSessionFromStorage().isAuthenticated
-  )
-  const [user, setUser] = useState(() => readSessionFromStorage().user)
+  // On lit la session sauvegardée dans le navigateur (localStorage)
+  const savedToken = localStorage.getItem('token')
+  const savedUserText = localStorage.getItem('user')
+
+  let savedUser = null
+  if (savedToken && savedUserText) {
+    try {
+      savedUser = JSON.parse(savedUserText)
+    } catch {
+      // Si les données sont corrompues, on considère qu'il n'y a pas de session
+      savedUser = null
+    }
+  }
+
+  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(savedToken && savedUser))
+  const [user, setUser] = useState(savedUser)
 
   const handleLogin = (userData, token) => {
     localStorage.setItem('token', token)
@@ -59,24 +59,33 @@ function App() {
     setUser(updatedUser)
   }
 
-  const isAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register'
+  const isAuthPage =
+    window.location.pathname === '/login' ||
+    window.location.pathname === '/register'
 
   return (
     <div className="app">
       {!isAuthenticated && !isAuthPage && <SiteNavbar />}
       <Routes>
+        {/* ── Pages publiques ── */}
         <Route
           path="/login"
           element={
-            !isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to={getPostAuthPath(user)} replace />
+            !isAuthenticated
+              ? <Login onLogin={handleLogin} />
+              : <Navigate to={getPostAuthPath(user)} replace />
           }
         />
         <Route
           path="/register"
           element={
-            !isAuthenticated ? <Register onRegister={handleLogin} /> : <Navigate to={getPostAuthPath(user)} replace />
+            !isAuthenticated
+              ? <Register onRegister={handleLogin} />
+              : <Navigate to={getPostAuthPath(user)} replace />
           }
         />
+
+        {/* ── Application protégée ── */}
         <Route path="/" element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
           <Route path="onboarding" element={<Onboarding user={user} onComplete={handleOnboardingComplete} />} />
           <Route element={<RequireOnboarded />}>
@@ -91,19 +100,31 @@ function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="scanner" element={<Scanner user={user} />} />
               <Route path="recipes" element={<ErrorBoundary><Recipes user={user} /></ErrorBoundary>} />
-              {/* --- Vos routes ajoutées --- */}
               <Route path="order" element={<Order user={user} />} />
               <Route path="community" element={<Community user={user} />} />
-              {/* --------------------------- */}
               <Route path="planning" element={<Planning user={user} />} />
               <Route path="profile" element={<Profile user={user} onLogout={handleLogout} />} />
               <Route path="help" element={<Help />} />
               <Route path="favorites" element={<Favorites />} />
               <Route path="notifications" element={<Notifications />} />
+
+              {/* ── Route admin — intégrée dans le layout utilisateur ── */}
+              <Route
+                path="admin/dashboard"
+                element={
+                  user && user.role === 'admin'
+                    ? <AdminDashboard />
+                    : <Navigate to="/dashboard" replace />
+                }
+              />
             </Route>
           </Route>
         </Route>
-        <Route path="*" element={<Navigate to={isAuthenticated ? getPostAuthPath(user) : '/login'} replace />} />
+
+        <Route
+          path="*"
+          element={<Navigate to={isAuthenticated ? getPostAuthPath(user) : '/login'} replace />}
+        />
       </Routes>
     </div>
   )
