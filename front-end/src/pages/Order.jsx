@@ -1,7 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import CheckoutForm from '../components/CheckoutForm';
 import { GROCERY_CATALOG } from '../data/groceryCatalog';
 import { loadPendingCart, clearPendingCart } from '../utils/orderCart';
 import './Order.css';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_51TkujR3V0dDY2sXFPYhEK6uh4bMx9znmv4lgsdKG6mphPMLQmkNHuDHTjcseKCaaxMsGiU6Q7DaGgwtWbz2ucixQ00zqpDFZSo');
 
 const availableIngredients = GROCERY_CATALOG;
 

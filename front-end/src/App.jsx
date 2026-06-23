@@ -13,7 +13,7 @@ import Favorites from './pages/Favorites'
 import Order from './pages/Order'
 import Notifications from './pages/Notifications'
 import Onboarding from './pages/Onboarding'
-import SiteNavbar from './components/SiteNavbar'
+/*import SiteNavbar from './components/SiteNavbar'*/
 import { NotificationsProvider } from './context/NotificationsContext'
 import CookPalLayout from './components/CookPalLayout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -63,7 +63,7 @@ function App() {
 
   return (
     <div className="app">
-      {!isAuthenticated && !isAuthPage && <SiteNavbar />}
+      {/* {!isAuthenticated && !isAuthPage && <SiteNavbar />} */}
       <Routes>
         <Route
           path="/login"
