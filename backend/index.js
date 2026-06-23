@@ -16,8 +16,12 @@ const ingredientRoutes = require('./routes/ingredientRoutes');
 const stripeRoutes = require('./routes/stripeRoutes');
 
 const app = express();
+
+// On crée le dossier "uploads" s'il n'existe pas encore
 const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
 const upload = multer({ dest: uploadsDir });
 
 // Middleware
@@ -29,7 +33,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Database connection
+// Connexion à la base de données
 connectDB();
 
 // Routes
@@ -42,45 +46,66 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/stripe', stripeRoutes);
 
-// Temporary route to prevent PlanningPage fetch errors
+// Route temporaire pour éviter des erreurs de fetch sur la page Planning
 app.get('/api/orders', (req, res) => res.json([]));
 
-// Route Whisper transcription
+// Route de transcription audio (Whisper via Groq)
 app.post('/api/transcribe', upload.single('file'), async (req, res) => {
-    const cleanup = () => {
-        if (req.file?.path && fs.existsSync(req.file.path)) {
+
+    // Supprime le fichier audio temporaire après traitement
+    const deleteTempFile = () => {
+        if (req.file && req.file.path && fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
         }
     };
 
     try {
+        // Étape 1 : vérifier qu'un fichier a bien été envoyé
         if (!req.file) {
             return res.status(400).json({ error: 'No audio file received.' });
         }
 
+        // Étape 2 : vérifier que la clé API Groq est configurée
         if (!process.env.GROQ_API_KEY) {
-            cleanup();
+            deleteTempFile();
             return res.status(500).json({ error: 'GROQ_API_KEY missing in backend/.env' });
         }
 
-        const size = fs.statSync(req.file.path).size;
-        if (size < 500) {
-            cleanup();
+        // Étape 3 : vérifier que l'enregistrement n'est pas trop court
+        const fileSize = fs.statSync(req.file.path).size;
+        if (fileSize < 500) {
+            deleteTempFile();
             return res.status(400).json({ error: 'Recording too short. Please speak longer.' });
         }
 
-        let mime = req.file.mimetype?.startsWith('audio/') ? req.file.mimetype : 'audio/webm';
-        // Whisper prefers simple types (not "audio/webm;codecs=opus")
-        if (mime.includes('webm')) mime = 'audio/webm';
-        else if (mime.includes('mp4')) mime = 'audio/mp4';
-        else if (mime.includes('ogg')) mime = 'audio/ogg';
-        const ext = mime.includes('mp4') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
-        const filename = `recording.${ext}`;
+        // Étape 4 : déterminer le type audio (Whisper préfère les types simples,
+        // sans les détails type "codecs=opus" ajoutés par le navigateur)
+        let mimeType = 'audio/webm';
+        if (req.file.mimetype && req.file.mimetype.startsWith('audio/')) {
+            mimeType = req.file.mimetype;
+        }
 
-        // Native FormData + Blob (Node 18+) - avoids "Could not parse multipart form" with the form-data package
+        if (mimeType.includes('webm')) {
+            mimeType = 'audio/webm';
+        } else if (mimeType.includes('mp4')) {
+            mimeType = 'audio/mp4';
+        } else if (mimeType.includes('ogg')) {
+            mimeType = 'audio/ogg';
+        }
+
+        let fileExtension = 'webm';
+        if (mimeType.includes('mp4')) {
+            fileExtension = 'm4a';
+        } else if (mimeType.includes('ogg')) {
+            fileExtension = 'ogg';
+        }
+
+        const filename = `recording.${fileExtension}`;
+
+        // Étape 5 : envoyer le fichier audio à l'API Whisper (Groq)
         const audioBuffer = fs.readFileSync(req.file.path);
         const form = new FormData();
-        form.append('file', new Blob([audioBuffer], { type: mime }), filename);
+        form.append('file', new Blob([audioBuffer], { type: mimeType }), filename);
         form.append('model', 'whisper-large-v3-turbo');
         form.append('language', 'en');
 
@@ -93,12 +118,16 @@ app.post('/api/transcribe', upload.single('file'), async (req, res) => {
         });
 
         const data = await response.json();
-        cleanup();
+        deleteTempFile();
 
+        // Étape 6 : vérifier que la réponse de Whisper est correcte
         if (!response.ok) {
-            const msg = data?.error?.message || `Whisper HTTP ${response.status}`;
-            console.error('Whisper API error:', msg);
-            return res.status(response.status).json({ error: msg });
+            let errorMessage = `Whisper HTTP ${response.status}`;
+            if (data && data.error && data.error.message) {
+                errorMessage = data.error.message;
+            }
+            console.error('Whisper API error:', errorMessage);
+            return res.status(response.status).json({ error: errorMessage });
         }
 
         const text = (data.text || '').trim();
@@ -108,14 +137,15 @@ app.post('/api/transcribe', upload.single('file'), async (req, res) => {
 
         console.log('Transcription OK:', text);
         res.json({ text });
+
     } catch (err) {
         console.error('Whisper error:', err);
-        cleanup();
+        deleteTempFile();
         res.status(500).json({ error: err.message || 'Transcription failed' });
     }
 });
 
-// Error Handler
+// Gestion globale des erreurs
 app.use((err, req, res, next) => {
     console.error('Error stack:', err.stack);
     console.error('Error message:', err.message);

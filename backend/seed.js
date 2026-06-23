@@ -27,9 +27,9 @@ const seed = async () => {
     });
 
     await Product.insertMany([
-        { user: user._id, title: 'Pasta Carbonara', time: '20 min', categories: 'Italian', rating: 4.5, tags: ['pasta', 'egg'], image: 'https://via.placeholder.com/300', accent: 'orange' },
-        { user: user._id, title: 'Salade Marocaine', time: '10 min', categories: 'Moroccan', rating: 4.8, tags: ['healthy', 'vegan'], image: 'https://via.placeholder.com/300', accent: 'green' },
-        { user: user._id, title: 'Poulet Rôti', time: '45 min', categories: 'French', rating: 4.2, tags: ['chicken', 'oven'], image: 'https://via.placeholder.com/300', accent: 'red' },
+        { user: user._id, title: 'Pasta Carbonara', time: '20 min', categories: 'Italian', rating: 4.5, tags: ['pasta', 'egg'], image: 'https://placehold.co/300x300?text=Pasta', accent: 'orange' },
+        { user: user._id, title: 'Salade Marocaine', time: '10 min', categories: 'Moroccan', rating: 4.8, tags: ['healthy', 'vegan'], image: 'https://placehold.co/300x300?text=Salade', accent: 'green' },
+        { user: user._id, title: 'Poulet Rôti', time: '45 min', categories: 'French', rating: 4.2, tags: ['chicken', 'oven'], image: 'https://placehold.co/300x300?text=Poulet', accent: 'red' },    
     ]);
 
     console.log(' Seeded: 1 user + 1 admin + 3 recipes');

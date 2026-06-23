@@ -1,0 +1,512 @@
+/* Wrapper Principal & Espacements globaux */
+.snapcook-profile-global-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+/* 1. PROFILE HEADER (Top Area) */
+.snapcook-profile-main-header {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  border: 1px solid #edf2f7;
+}
+
+.snapcook-profile-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.snapcook-header-title-block h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 4px 0;
+}
+
+.snapcook-header-title-block p {
+  font-size: 14px;
+  color: #718096;
+  margin: 0;
+}
+
+.snapcook-header-actions-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.snapcook-btn-edit-toggle {
+  background: #edf2f7;
+  color: #2d3748;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.snapcook-btn-edit-toggle:hover {
+  background: #e2e8f0;
+}
+
+.snapcook-icon-settings-btn {
+  background: #edf2f7;
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.snapcook-icon-settings-btn:hover {
+  background: #e2e8f0;
+}
+
+/* Formulaire Inline d'Édition */
+.snapcook-profile-edit-inline-panel {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #edf2f7;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.snapcook-profile-edit-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.snapcook-profile-edit-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.snapcook-profile-edit-form__field span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.form-input-modern {
+  border: 1px solid #e2e8f0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.form-input-modern:focus {
+  border-color: #38a169;
+}
+
+.snapcook-profile-edit-form__actions {
+  margin-top: 16px;
+  text-align: right;
+}
+
+.btn-primary {
+  background: #2f855a;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background: #276749;
+}
+
+/* 2. DISPOSITION BI-COLONNES (Grid Layout System) */
+.snapcook-profile-two-columns-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Flux de gauche */
+.snapcook-profile-main-content-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Design des Panneaux / Cartes Bento */
+.cookpal-panel {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #edf2f7;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.01);
+  box-sizing: border-box;
+}
+
+.cookpal-pref-section__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 6px 0;
+}
+
+.cookpal-pref-section__hint {
+  font-size: 13px;
+  color: #718096;
+  margin: 0 0 16px 0;
+}
+
+/* Pastilles sélectionnables */
+.cookpal-pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cookpal-pill {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.cookpal-pill:hover {
+  background: #edf2f7;
+}
+
+.cookpal-pill--selected {
+  background: #2f855a;
+  color: #ffffff;
+  border-color: #2f855a;
+}
+
+.cookpal-pill--selected:hover {
+  background: #276749;
+}
+
+.cookpal-pill-list--compact {
+  margin-bottom: 12px;
+}
+
+/* Zone Cuisines */
+.cookpal-cuisine-list {
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid #edf2f7;
+  border-radius: 12px;
+  padding: 6px;
+  background: #f7fafc;
+}
+
+.cookpal-cuisine-list__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  text-align: left;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #4a5568;
+}
+
+.cookpal-cuisine-list__item:hover {
+  background: #edf2f7;
+}
+
+.cookpal-cuisine-list__item--selected {
+  background: #f0fff4;
+  color: #276749;
+  font-weight: 600;
+}
+
+/* Bloc Compte / Navigation */
+.cookpal-account-card__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.cookpal-account-card__hint {
+  font-size: 12px;
+  color: #718096;
+  margin: 4px 0 12px 0;
+}
+
+.cookpal-account-card__input-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cookpal-account-card__details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  background: #f7fafc;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.cookpal-account-card__detail {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #2d3748;
+}
+
+.cookpal-account-card__detail-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a0aec0;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.cookpal-account-logout {
+  width: 100%;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #e53e3e;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cookpal-account-logout:hover {
+  background: #fff5f5;
+  opacity: 0.9;
+}
+
+/* Grille des recettes sauvegardées */
+.cookpal-saved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.cookpal-saved-card {
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.01);
+}
+
+.cookpal-saved-card__img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+}
+
+.cookpal-saved-card__img--placeholder {
+  height: 110px;
+  background: #edf2f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.cookpal-saved-card__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d3748;
+  padding: 10px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cookpal-show-more-btn {
+  display: block;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2f855a;
+  text-decoration: none;
+}
+
+.cookpal-show-more-btn:hover {
+  text-decoration: underline;
+}
+
+/* 3. COLONNE DE DROITE : EXISTING STICKY SIDEBAR */
+.snapcook-profile-reused-sidebar {
+  position: sticky;
+  top: 24px;
+}
+
+.snapcook-sidebar-sticky-container {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #edf2f7;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+/* Sous-bloc identité de la Sidebar */
+.snapcook-sidebar-identity-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.snapcook-sidebar-avatar {
+  width: 80px;
+  height: 80px;
+  background: #2f855a;
+  color: #ffffff;
+  border-radius: 50%;
+  font-size: 32px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(47, 133, 90, 0.2);
+}
+
+.snapcook-sidebar-user-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 4px 0;
+}
+
+.snapcook-sidebar-user-bio {
+  font-size: 13px;
+  color: #718096;
+  margin: 0;
+}
+
+.snapcook-sidebar-divider {
+  border: 0;
+  height: 1px;
+  background: #edf2f7;
+  margin: 0 0 20px 0;
+}
+
+/* Zone récapitulative de la Sidebar */
+.snapcook-sidebar-summary-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.snapcook-sidebar-summary-group h4 {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a0aec0;
+  letter-spacing: 0.05em;
+  margin: 0 0 8px 0;
+}
+
+.snapcook-sidebar-badges-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.snapcook-summary-badge {
+  background: #f0fff4;
+  color: #22543d;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #c6f6d5;
+}
+
+.snapcook-summary-badge--allergy {
+  background: #fff5f5;
+  color: #742a2a;
+  border-color: #fed7d7;
+}
+
+.snapcook-summary-badge--cuisine {
+  background: #ebf8ff;
+  color: #2b6cb0;
+  border-color: #bee3f8;
+}
+
+.snapcook-summary-badge--goal {
+  background: #faf5ff;
+  color: #553c9a;
+  border-color: #e9d8fd;
+}
+
+.snapcook-summary-empty-text {
+  font-size: 12px;
+  color: #a0aec0;
+  font-style: italic;
+}
+
+/* Keyframes d'animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 4. RESPONSIVE MEDIA QUERIES */
+@media (max-width: 992px) {
+  .snapcook-profile-two-columns-layout {
+    grid-template-columns: 1fr;
+  }
+  .snapcook-profile-reused-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 576px) {
+  .snapcook-profile-global-wrapper {
+    padding: 12px;
+  }
+  .snapcook-profile-main-header {
+    padding: 16px;
+  }
+  .cookpal-panel {
+    padding: 16px;
+  }
+  .cookpal-saved-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
