@@ -201,9 +201,84 @@ const getFavorites = async (req, res) => {
     }
 };
 
+// @desc    Get authenticated user profile
+// @route   GET /api/user/profile
+// @access  Private
+const getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password -__v');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json(user);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error retrieving profile' });
+    }
+};
+
+// @desc    Update authenticated user profile
+// @route   PUT /api/user/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+    try {
+        const updates = req.body || {};
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        Object.assign(user, updates);
+        const updatedUser = await user.save();
+        const safeUser = updatedUser.toObject();
+        delete safeUser.password;
+        delete safeUser.__v;
+
+        res.json(safeUser);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error updating profile' });
+    }
+};
+
+// @desc    Get the user's top recipes for profile page
+// @route   GET /api/user/profile/top-recipes
+// @access  Private
+const getTopRecipes = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('favorites');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const recipes = (user.favorites || []).slice(0, 8).map((fav) => ({
+            id: fav.id || fav._id || `${fav.title}-${Math.random()}`,
+            title: fav.title || 'Favorite recipe',
+            category: fav.category || 'Saved',
+        }));
+
+        const fallbackRecipes = [
+            { id: 'fallback-1', title: 'Tajine de legumes', category: 'Moroccan' },
+            { id: 'fallback-2', title: 'Poulet citron', category: 'Protein' },
+            { id: 'fallback-3', title: 'Bowl quinoa', category: 'Healthy' },
+            { id: 'fallback-4', title: 'Soupe lentilles', category: 'Comfort' },
+        ];
+
+        res.json({ recipes: recipes.length ? recipes : fallbackRecipes });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error retrieving top recipes' });
+    }
+};
+
 module.exports = {
     registerUser,
     loginUser,
+    getProfile,
+    updateProfile,
+    getTopRecipes,
     addFavorite,
     removeFavorite,
     getFavorites

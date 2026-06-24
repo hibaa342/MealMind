@@ -7,6 +7,7 @@ const path = require('path');
 
 const connectDB = require('./config/connectDb');
 const userRoutes = require('./routes/UserRoutes');
+const userProfileRoutes = require('./routes/userProfileRoutes');
 const productRoutes = require('./routes/ProductRoutes');
 const planningRoutes = require('./routes/planning');
 const notificationRoutes = require('./routes/NotificationRoutes');
@@ -38,6 +39,7 @@ connectDB();
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/user', userProfileRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/planning', planningRoutes);
 app.use('/api/notifications', notificationRoutes);

@@ -21,6 +21,7 @@ import CookPalLayout from './components/CookPalLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import RequireOnboarded from './components/RequireOnboarded'
 import ErrorBoundary from './components/ErrorBoundary'
+import { UserProvider } from './context/UserContext'
 import { getPostAuthPath } from './utils/onboardingStorage'
 
 function App() {
@@ -92,9 +93,11 @@ function App() {
           <Route element={<RequireOnboarded />}>
             <Route
               element={
-                <NotificationsProvider>
-                  <CookPalLayout user={user} onLogout={handleLogout} />
-                </NotificationsProvider>
+                <UserProvider sessionUser={user}>
+                  <NotificationsProvider>
+                    <CookPalLayout user={user} onLogout={handleLogout} />
+                  </NotificationsProvider>
+                </UserProvider>
               }
             >
               <Route index element={<Navigate to="dashboard" replace />} />

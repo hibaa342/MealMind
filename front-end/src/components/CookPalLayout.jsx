@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { useUser } from '../context/UserContext'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useNotifications } from '../context/NotificationsContext'
 import { loadSidebarPrefs, saveSidebarPrefs } from '../utils/sidebarPrefs'
@@ -133,21 +134,18 @@ const PrefsSections = ({ prefs, openAdd }) => (
       <h3 className="snapcook-prefs__label">DIET</h3>
       <div className="cookpal-prefs__row">
         {prefs.diets.map((label, i) => <PrefPill key={`diet-${label}-${i}`} label={label} variant="diet" />)}
-        <button type="button" className="snapcook-prefs__add" aria-label="Add diet" onClick={() => openAdd('diet')}>+</button>
       </div>
     </section>
     <section className="cookpal-prefs snapcook-prefs">
       <h3 className="snapcook-prefs__label">ALLERGIES</h3>
       <div className="cookpal-prefs__row">
         {prefs.allergies.map((label, i) => <PrefPill key={`allergy-${label}-${i}`} label={label} variant="allergy" />)}
-        <button type="button" className="snapcook-prefs__add" aria-label="Add allergy" onClick={() => openAdd('allergy')}>+</button>
       </div>
     </section>
     <section className="cookpal-prefs snapcook-prefs">
       <h3 className="snapcook-prefs__label">CUISINES</h3>
       <div className="cookpal-prefs__row">
         {prefs.cuisines.map((label, i) => <PrefPill key={`cuisine-${label}-${i}`} label={label} variant="cuisine" />)}
-        <button type="button" className="snapcook-prefs__add" aria-label="Add cuisine" onClick={() => openAdd('cuisine')}>+</button>
       </div>
     </section>
     <section className="cookpal-prefs snapcook-prefs snapcook-prefs--goals">
@@ -155,7 +153,6 @@ const PrefsSections = ({ prefs, openAdd }) => (
       <ul className="snapcook-goals-list">
         {prefs.goals.map((label, i) => <li key={`goal-${label}-${i}`}>{label}</li>)}
       </ul>
-      <button type="button" className="snapcook-prefs__add snapcook-prefs__add--inline" aria-label="Add goal" onClick={() => openAdd('goal')}>+</button>
     </section>
   </>
 )
@@ -172,6 +169,14 @@ const ADD_SECTION_LABEL = {
 const CookPalLayout = ({ user, onLogout }) => {
   const location = useLocation()
   const { unreadCount } = useNotifications()
+  // Prefer server-backed displayName from UserContext; fallback to localStorage key
+  let userCtx = null
+  try {
+    userCtx = useUser()
+  } catch (e) {
+    userCtx = null
+  }
+
   const [preferName, setPreferName] = useState(() => getPreferredDisplayName())
 
   useEffect(() => {
@@ -180,16 +185,35 @@ const CookPalLayout = ({ user, onLogout }) => {
     return () => window.removeEventListener('cookpal-display-name-changed', sync)
   }, [])
 
-  const displayName = preferName || getDisplayNameFromUser(user)
-  const subtitle = getSubtitleFromUser(user)
+  const displayName = userCtx?.displayName || preferName || getDisplayNameFromUser(user)
+  const subtitle = userCtx?.profile ? getSubtitleFromUser(userCtx.profile) : getSubtitleFromUser(user)
 
   const voice = useVoiceRecorder()
   const [prefsDrawer, setPrefsDrawer] = useState(false)
   const [prefs, setPrefs] = useState(loadSidebarPrefs)
+  // Read server-backed sidebar prefs from UserContext (when available)
+  let sidebarPrefs = null
+  try {
+    const userCtx = useUser()
+    sidebarPrefs = userCtx?.sidebarPrefs ?? null
+  } catch (e) {
+    sidebarPrefs = null
+  }
   const [addOpen, setAddOpen] = useState(null)
   const [addValue, setAddValue] = useState('')
 
   useEffect(() => { saveSidebarPrefs(prefs) }, [prefs])
+
+  // Keep layout sidebar prefs in sync with server-backed user prefs when available
+  useEffect(() => {
+    if (!sidebarPrefs) return
+    // sidebarPrefs keys already match `{ diets, allergies, cuisines, goals }`
+    setPrefs((prev) => {
+      // Only update when different to avoid overwriting local edits
+      const same = JSON.stringify({ ...prev }) === JSON.stringify(sidebarPrefs)
+      return same ? prev : { ...sidebarPrefs }
+    })
+  }, [sidebarPrefs])
 
   const openAdd = (section) => { setAddOpen(section); setAddValue('') }
   const closeAdd = useCallback(() => { setAddOpen(null); setAddValue('') }, [])
