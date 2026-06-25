@@ -461,7 +461,6 @@ const Profile = ({ user, onLogout }) => {
                 placeholder={`e.g. ${addModal.group === 'goals' ? 'Save Money' : 'Italian'}`}
                 autoFocus
               />
-
               <div className="cookpal-modal__actions">
                 <button type="button" className="cookpal-modal__btn cookpal-modal__btn--ghost" onClick={handleCloseAdd}>Cancel</button>
                 <button type="button" className="cookpal-modal__btn cookpal-modal__btn--primary" onClick={handleSubmitAdd}>Add</button>
