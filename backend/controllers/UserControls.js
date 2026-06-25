@@ -201,10 +201,101 @@ const getFavorites = async (req, res) => {
     }
 };
 
+// @desc    Get user profile
+// @route   GET /api/user/profile
+// @access  Private
+const getProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId).select('-password');
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({
+            _id: user._id,
+            name: user.name,
+            surname: user.surname,
+            email: user.email,
+            diet: user.diet || [],
+            allergies: user.allergies || [],
+            cuisines: user.cuisines || [],
+            goals: user.goals || [],
+            nameSidebarOverride: user.nameSidebarOverride || ''
+        });
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        res.status(500).json({ message: 'Server error fetching profile' });
+    }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/user/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const updates = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update allowed fields
+        if (updates.diet !== undefined) user.diet = updates.diet;
+        if (updates.allergies !== undefined) user.allergies = updates.allergies;
+        if (updates.cuisines !== undefined) user.cuisines = updates.cuisines;
+        if (updates.goals !== undefined) user.goals = updates.goals;
+        if (updates.nameSidebarOverride !== undefined) user.nameSidebarOverride = updates.nameSidebarOverride;
+
+        await user.save();
+
+        res.json({
+            _id: user._id,
+            name: user.name,
+            surname: user.surname,
+            email: user.email,
+            diet: user.diet || [],
+            allergies: user.allergies || [],
+            cuisines: user.cuisines || [],
+            goals: user.goals || [],
+            nameSidebarOverride: user.nameSidebarOverride || ''
+        });
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        res.status(500).json({ message: 'Server error updating profile' });
+    }
+};
+
+// @desc    Get user's top recipes
+// @route   GET /api/user/profile/top-recipes
+// @access  Private
+const getTopRecipes = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Return empty array for now - can be populated later with actual recipe logic
+        res.json({ recipes: user.favorites || [] });
+    } catch (error) {
+        console.error('Error fetching top recipes:', error);
+        res.status(500).json({ message: 'Server error fetching recipes' });
+    }
+};
+
 module.exports = {
     registerUser,
     loginUser,
     addFavorite,
     removeFavorite,
-    getFavorites
+    getFavorites,
+    getProfile,
+    updateProfile,
+    getTopRecipes
 };

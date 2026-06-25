@@ -273,6 +273,45 @@ const Profile = ({ user, onLogout }) => {
   const pageCount = Math.max(1, Math.ceil(recipesList.length / 4))
   const recipePageItems = recipesList.slice(recipePage * 4, recipePage * 4 + 4)
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="cookpal-page cookpal-profile-page">
+        <div className="profile-page-content">
+          <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <p>Loading profile...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error && !profile) {
+    return (
+      <div className="cookpal-page cookpal-profile-page">
+        <div className="profile-page-content">
+          <div style={{ padding: '2rem', textAlign: 'center', color: '#d53f3f' }}>
+            <p>Unable to load profile: {error}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show blank state if no profile data
+  if (!profile) {
+    return (
+      <div className="cookpal-page cookpal-profile-page">
+        <div className="profile-page-content">
+          <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <p>No profile data available</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="cookpal-page cookpal-profile-page">
       <div className="profile-page-content">

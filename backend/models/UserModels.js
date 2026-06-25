@@ -53,6 +53,26 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['user', 'admin'],
         default: 'user'
+    },
+    diet: {
+        type: [String],
+        default: []
+    },
+    allergies: {
+        type: [String],
+        default: []
+    },
+    cuisines: {
+        type: [String],
+        default: []
+    },
+    goals: {
+        type: [String],
+        default: []
+    },
+    nameSidebarOverride: {
+        type: String,
+        default: ''
     }
 }, {
     timestamps: true
