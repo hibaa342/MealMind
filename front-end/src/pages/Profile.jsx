@@ -1,351 +1,473 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { getDisplayNameFromUser, getPreferredDisplayName, setPreferredDisplayName } from '../utils/userDisplay'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useUser } from '../context/UserContext'
+import { ALLERGY_OPTIONS, CUISINE_OPTIONS, DIET_OPTIONS, GOAL_OPTIONS, labelForId } from '../constants/profileOptions'
+import { getDisplayNameFromUser } from '../utils/userDisplay'
+import './Profile.css'
 
-const PREFS_STORAGE_KEY = 'cookpal-food-preferences-v1'
+const GOAL_ICON_MAP = {
+  'weight-loss': '🔥',
+  'muscle': '💪',
+  'balance': '🥗',
+  'reduce-waste': '♻️',
+  'eat-healthier': '🌱',
+  'save-money': '💰',
+  'quick-meals': '⚡',
+}
 
-const DIET_OPTIONS = [
-  {
-    id: 'meat',
-    label: 'Viande',
-    hint: 'Meat',
-    image: 'https://images.unsplash.com/photo-1603048297172-c92544798d5a?w=240&q=80',
-  },
-  {
-    id: 'soup',
-    label: 'Soupe',
-    hint: 'Soup',
-    image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=240&q=80',
-  },
-  {
-    id: 'vegan',
-    label: 'Végétalien',
-    hint: 'Vegan',
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=240&q=80',
-  },
-  {
-    id: 'gluten-free',
-    label: 'Sans gluten',
-    hint: 'Gluten-Free',
-    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=240&q=80',
-  },
-]
+const CUISINE_OPTION_ITEMS = CUISINE_OPTIONS.map((label) => ({ id: label, label }))
 
-const ALLERGY_OPTIONS = [
-  {
-    id: 'wheat',
-    label: 'Blé',
-    hint: 'Wheat',
-    image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=240&q=80',
-  },
-  {
-    id: 'dairy',
-    label: 'Produits laitiers',
-    hint: 'Dairy',
-    image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=240&q=80',
-  },
-  {
-    id: 'peanuts',
-    label: 'Arachides',
-    hint: 'Peanuts',
-    image: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=240&q=80',
-  },
-  {
-    id: 'eggs',
-    label: 'Œufs',
-    hint: 'Eggs',
-    image: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=240&q=80',
-  },
-]
+const optionItems = (options) => options.map((option) => (
+  typeof option === 'string' ? { id: option, label: option } : option
+))
 
-const CUISINE_OPTIONS = [
-  {
-    id: 'american',
-    label: 'Américaine',
-    image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&q=80',
-  },
-  {
-    id: 'italian',
-    label: 'Italienne',
-    image: 'https://images.unsplash.com/photo-1598866594230-e79c228a9e11?w=400&q=80',
-  },
-]
+const mergeCustomOptions = (baseOptions, selectedIds = []) => {
+  const knownIds = new Set(baseOptions.map((option) => option.id))
+  const customItems = selectedIds
+    .filter((id) => !knownIds.has(id))
+    .map((id) => ({ id, label: id }))
+
+  return [...baseOptions, ...customItems]
+}
 
 const savedRecipes = [
-  { id: 1, title: 'Tajine de legumes', category: 'Marocain' },
+  { id: 1, title: 'Tajine de legumes', category: 'Moroccan' },
   { id: 2, title: 'Poulet citron', category: 'Protein' },
   { id: 3, title: 'Bowl quinoa', category: 'Healthy' },
   { id: 4, title: 'Soupe lentilles', category: 'Comfort' },
 ]
 
-function loadPrefs() {
-  try {
-    const raw = localStorage.getItem(PREFS_STORAGE_KEY)
-    if (!raw) return null
-    const data = JSON.parse(raw)
-    return {
-      diet: new Set(Array.isArray(data.diet) ? data.diet : []),
-      allergies: new Set(Array.isArray(data.allergies) ? data.allergies : []),
-      cuisines: new Set(Array.isArray(data.cuisines) ? data.cuisines : []),
-    }
-  } catch {
-    return null
-  }
-}
-
-function savePrefs(diet, allergies, cuisines) {
-  try {
-    localStorage.setItem(
-      PREFS_STORAGE_KEY,
-      JSON.stringify({
-        diet: [...diet],
-        allergies: [...allergies],
-        cuisines: [...cuisines],
-      })
-    )
-  } catch {
-    /* ignore */
-  }
-}
+const allDietItems = optionItems(DIET_OPTIONS)
+const allAllergyItems = optionItems(ALLERGY_OPTIONS)
+const allGoalItems = GOAL_OPTIONS.map((goal) => ({
+  ...goal,
+}))
 
 const Profile = ({ user, onLogout }) => {
-  const shownName = getPreferredDisplayName() || getDisplayNameFromUser(user)
-  const initials = shownName ? shownName.charAt(0).toUpperCase() : 'C'
+  const { profile, topRecipes, loading, updateProfile, error, displayName, setProfile } = useUser()
+  const rawDisplayName = displayName || getDisplayNameFromUser(user)
+  const shownName = rawDisplayName
+  const initials = rawDisplayName ? rawDisplayName.charAt(0).toUpperCase() : 'C'
 
-  const [preferInput, setPreferInput] = useState(() => getPreferredDisplayName())
+  const [displayNameOverride, setDisplayNameOverride] = useState('')
+  const [addModal, setAddModal] = useState({ open: false, group: 'cuisines', value: '' })
+  const [recipePage, setRecipePage] = useState(0)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState('')
+  const accountSectionRef = useRef(null)
+  const displayNameInputRef = useRef(null)
+  const navigate = useNavigate()
+
   useEffect(() => {
-    const sync = () => setPreferInput(getPreferredDisplayName())
-    window.addEventListener('cookpal-display-name-changed', sync)
-    return () => window.removeEventListener('cookpal-display-name-changed', sync)
-  }, [])
+    if (!profile) return
+    setDisplayNameOverride(profile.nameSidebarOverride ?? '')
+  }, [profile])
 
-  const [selectedDiet, setSelectedDiet] = useState(() => loadPrefs()?.diet ?? new Set(['meat', 'soup']))
-  const [selectedAllergies, setSelectedAllergies] = useState(
-    () => loadPrefs()?.allergies ?? new Set(['wheat', 'dairy'])
+  useEffect(() => {
+    setRecipePage(0)
+  }, [topRecipes])
+
+  const saveProfile = useCallback(
+    async (updates) => {
+      setIsSaving(true)
+      setSaveMessage('')
+      try {
+        await updateProfile(updates)
+        setSaveMessage('Saved successfully')
+      } catch (err) {
+        setSaveMessage('Unable to save changes')
+      } finally {
+        setIsSaving(false)
+      }
+    },
+    [updateProfile]
   )
-  const [selectedCuisines, setSelectedCuisines] = useState(() => loadPrefs()?.cuisines ?? new Set())
 
-  useEffect(() => {
-    savePrefs(selectedDiet, selectedAllergies, selectedCuisines)
-  }, [selectedDiet, selectedAllergies, selectedCuisines])
+  const currentDietSet = useMemo(() => new Set(profile?.diet ?? []), [profile?.diet])
+  const currentAllergiesSet = useMemo(() => new Set(profile?.allergies ?? []), [profile?.allergies])
+  const currentCuisinesSet = useMemo(() => new Set(profile?.cuisines ?? []), [profile?.cuisines])
+  const currentGoalsSet = useMemo(() => new Set(profile?.goals ?? []), [profile?.goals])
 
-  const toggleInSet = useCallback((setter, id) => {
-    setter((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }, [])
+  const toggleProfileArrayValue = useCallback(
+    async (fieldName, value, currentValues = []) => {
+      const normalized = Array.isArray(currentValues) ? currentValues : []
+      const nextValues = normalized.includes(value)
+        ? normalized.filter((item) => item !== value)
+        : [...normalized, value]
 
-  const goals = ['Perte de poids', 'Muscle', 'Equilibre']
+      // Optimistic UI update
+      const prev = profile
+      try {
+        if (profile) setProfile({ ...profile, [fieldName]: nextValues })
+        await saveProfile({ [fieldName]: nextValues })
+      } catch (err) {
+        // revert on failure
+        if (prev) setProfile(prev)
+        throw err
+      }
+    },
+    [saveProfile, profile, setProfile]
+  )
+
+  const handleToggleDiet = (id) => toggleProfileArrayValue('diet', id, profile?.diet)
+  const handleToggleAllergy = (id) => toggleProfileArrayValue('allergies', id, profile?.allergies)
+  const handleToggleCuisine = (id) => toggleProfileArrayValue('cuisines', id, profile?.cuisines)
+  const handleToggleGoal = (id) => toggleProfileArrayValue('goals', id, profile?.goals)
+
+  const handleSaveDisplayName = async () => {
+    await saveProfile({ nameSidebarOverride: displayNameOverride })
+    setTimeout(() => setSaveMessage(''), 3000)
+  }
+
+  const handleEditProfile = () => {
+    if (accountSectionRef.current) {
+      accountSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      // focus the input shortly after scrolling
+      setTimeout(() => {
+        displayNameInputRef.current?.focus()
+      }, 220)
+    }
+  }
+
+  const handleOpenAdd = (group) => setAddModal({ open: true, group, value: '' })
+  const handleCloseAdd = () => setAddModal((prev) => ({ ...prev, open: false, value: '' }))
+
+  const handleSubmitAdd = async () => {
+    const trimmed = addModal.value.trim()
+    if (!trimmed || !profile) return
+
+    const currentValues = profile[addModal.group] ?? []
+    if (currentValues.includes(trimmed)) {
+      handleCloseAdd()
+      return
+    }
+
+    const nextValues = [...currentValues, trimmed]
+    // optimistic update: show immediately in UI
+    const prev = profile
+    try {
+      if (profile) setProfile({ ...profile, [addModal.group]: nextValues })
+      await saveProfile({ [addModal.group]: nextValues })
+    } catch (err) {
+      if (prev) setProfile(prev)
+    } finally {
+      handleCloseAdd()
+    }
+  }
+
+  const allCuisineItems = useMemo(
+    () => mergeCustomOptions(CUISINE_OPTION_ITEMS, profile?.cuisines),
+    [profile?.cuisines]
+  )
+
+  /* --- New UI components (local) --- */
+  const MultiSelect = ({ label, items, selectedSet, onToggle }) => {
+    const [open, setOpen] = useState(false)
+    return (
+      <div className="multi-select">
+        <div className="multi-select__header">
+          <strong>{label}</strong>
+          <button type="button" className="profile-icon-btn" onClick={() => setOpen((s) => !s)} aria-expanded={open}>
+            {open ? '▴' : '▾'}
+          </button>
+        </div>
+        <div className="multi-select__tags">
+          {Array.from(selectedSet).map((id) => (
+            <span key={id} className="profile-pill profile-pill--active">{labelForId(DIET_OPTIONS, id)}</span>
+          ))}
+        </div>
+        {open && (
+          <div className="multi-select__dropdown">
+            {items.map((it) => {
+              const selected = selectedSet.has(it.id)
+              return (
+                <button key={it.id} type="button" className={`multi-select__item ${selected ? 'selected' : ''}`} onClick={() => onToggle(it.id)}>
+                  <span className="multi-select__check">{selected ? '✓' : '○'}</span>
+                  <span>{it.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const SearchableSelect = ({ label, items, selectedSet, onToggle, placeholder = 'Search...' }) => {
+    const [query, setQuery] = useState('')
+    const filtered = items.filter((it) => it.label.toLowerCase().includes(query.toLowerCase()))
+    return (
+      <div className="searchable-select">
+        <div className="searchable-select__header">
+          <strong>{label}</strong>
+          <input className="searchable-select__input" placeholder={placeholder} value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+        <div className="searchable-select__list">
+          {filtered.map((it) => {
+            const selected = selectedSet.has(it.id)
+            return (
+              <button key={it.id} type="button" className={`searchable-select__item ${selected ? 'selected' : ''}`} onClick={() => onToggle(it.id)}>
+                <span className="searchable-select__check">{selected ? '✓' : '○'}</span>
+                <span>{it.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  const AutocompleteCuisines = ({ items, selectedSet, onToggle, onAdd }) => {
+    const [value, setValue] = useState('')
+    const suggestions = items.filter((it) => it.label.toLowerCase().includes(value.toLowerCase())).slice(0, 8)
+    const submit = async () => {
+      const trimmed = value.trim()
+      if (!trimmed) return
+      if (selectedSet.has(trimmed)) { setValue(''); return }
+      // If suggestion exists, toggle it; otherwise add as custom cuisine
+      if (items.some((it) => it.id === trimmed)) {
+        onToggle(trimmed)
+      } else {
+        // Add custom cuisine to profile immediately
+        const next = [...(profile?.cuisines ?? []), trimmed]
+        const prev = profile
+        try {
+          if (profile) setProfile({ ...profile, cuisines: next })
+          await saveProfile({ cuisines: next })
+        } catch (err) {
+          if (prev) setProfile(prev)
+        }
+      }
+      setValue('')
+    }
+    return (
+      <div className="autocomplete-cuisines">
+        <div className="autocomplete-cuisines__row">
+          <input className="form-input-modern" placeholder="Add or search cuisines" value={value} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} />
+          <button type="button" className="profile-btn profile-btn--secondary" onClick={submit}>Add</button>
+        </div>
+        {value && suggestions.length > 0 && (
+          <div className="autocomplete-cuisines__suggestions">
+            {suggestions.map((s) => (
+              <button key={s.id} type="button" className="autocomplete-cuisines__suggestion" onClick={() => { onToggle(s.id); setValue('') }}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const currentSelection = useMemo(
+    () => ({
+      Diet: (profile?.diet ?? []).map((id) => labelForId(DIET_OPTIONS, id)),
+      Allergies: (profile?.allergies ?? []).map((id) => labelForId(ALLERGY_OPTIONS, id)),
+      Cuisines: profile?.cuisines ?? [],
+      Goals: (profile?.goals ?? []).map((id) => labelForId(GOAL_OPTIONS, id)),
+    }),
+    [profile]
+  )
+
+  const recipesList = topRecipes?.length ? topRecipes : savedRecipes
+  const pageCount = Math.max(1, Math.ceil(recipesList.length / 4))
+  const recipePageItems = recipesList.slice(recipePage * 4, recipePage * 4 + 4)
 
   return (
     <div className="cookpal-page cookpal-profile-page">
-      <section className="cookpal-panel cookpal-profile-panel--hero">
-        <div className="cookpal-profile-header">
-          {user?.photo ? (
-            <img src={user.photo} alt="" className="cookpal-profile-header__avatar" />
-          ) : (
-            <div className="cookpal-profile-header__avatar cookpal-profile-header__avatar--initial" aria-hidden>
+      <div className="profile-page-content">
+        <section className="profile-card profile-card--header">
+          <div className="profile-card__hero">
+            <div className="profile-avatar" aria-hidden>
               {initials}
             </div>
-          )}
-          <div className="cookpal-profile-header__main">
-            <div className="cookpal-profile-header__title-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <h1 className="cookpal-profile-header__name">{shownName}</h1>
-              <button type="button" className="cookpal-profile-header__edit" onClick={() => {}}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
-                  <path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-                </svg>
-                Edit Profile
-              </button>
-              <button type="button" className="cookpal-profile-header__icon-btn" aria-label="Settings" onClick={() => {}} style={{ background: 'transparent', width: 'auto', height: 'auto', padding: 0 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" color="#6b7c8a">
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
-                </svg>
-              </button>
+            <div className="profile-card__title-block">
+              <p className="profile-card__eyebrow">Smarter meals, less waste.</p>
+              <h1 className="profile-card__name">{shownName}</h1>
+              <p className="profile-card__meta">Joined July 2024</p>
             </div>
-            <p className="cookpal-profile-header__tagline">Smarter meals, less waste.</p>
           </div>
-        </div>
-      </section>
+            <div className="profile-card__actions">
+              <button type="button" className="profile-btn profile-btn--primary" onClick={handleEditProfile}>Edit Profile</button>
+          </div>
+        </section>
 
-      <section className="cookpal-panel cookpal-pref-section">
-        <div className="cookpal-pref-section__head">
-          <h2 className="cookpal-pref-section__title">Régime alimentaire</h2>
-          <button type="button" className="cookpal-pref-section__manage">
-            Ajouter et gérer
-            <span className="cookpal-pref-section__plus" aria-hidden>
-              +
-            </span>
-          </button>
-        </div>
-        <div className="cookpal-pref-grid">
-          {DIET_OPTIONS.map((item) => {
-            const selected = selectedDiet.has(item.id)
-            return (
+        <div className="profile-layout-grid">
+          <main className="profile-main">
+            <section className="profile-card profile-card--section">
+              <div className="profile-section-header">
+                <div>
+                  <h2>Dietary Preferences</h2>
+                  <p className="profile-section__hint">Selected diets are shown as active chips.</p>
+                </div>
+              </div>
+                <div className="profile-pill-list">
+                  <MultiSelect label="Diets" items={allDietItems} selectedSet={currentDietSet} onToggle={handleToggleDiet} />
+                </div>
+            </section>
+
+            <section className="profile-card profile-card--section">
+              <div className="profile-section-header">
+                <div>
+                  <h2>Allergies</h2>
+                  <p className="profile-section__hint">Avoid the allergens that matter most.</p>
+                </div>
+              </div>
+              <div className="profile-pill-list">
+                <SearchableSelect label="Allergies" items={allAllergyItems} selectedSet={currentAllergiesSet} onToggle={handleToggleAllergy} placeholder="Filter allergies" />
+              </div>
+            </section>
+
+            <section className="profile-card profile-card--section">
+              <div className="profile-section-header">
+                <div>
+                  <h2>Cuisines</h2>
+                  <p className="profile-section__hint">Tap to save your favorite cuisine styles.</p>
+                </div>
+              </div>
+              <div className="profile-pill-list">
+                <AutocompleteCuisines items={allCuisineItems} selectedSet={currentCuisinesSet} onToggle={handleToggleCuisine} />
+              </div>
+            </section>
+
+            <section className="profile-card profile-card--section">
+              <div className="profile-section-header">
+                <div>
+                  <h2>Goals</h2>
+                  <p className="profile-section__hint">Track the goals that keep your meals on target.</p>
+                </div>
+              </div>
+              <div className="profile-goal-grid">
+                {allGoalItems.map((goal) => {
+                  const selected = currentGoalsSet.has(goal.id)
+                  return (
+                    <button
+                      key={goal.id}
+                      type="button"
+                      className={`profile-goal-card ${selected ? 'profile-goal-card--selected' : ''}`}
+                      onClick={() => handleToggleGoal(goal.id)}
+                      aria-pressed={selected}
+                    >
+                      <span className="profile-goal-card__label">
+                        {goal.label}
+                      </span>
+                      <span className="profile-goal-card__action">+</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+
+            <section className="profile-card profile-card--section saved-recipes-section">
+              <div className="saved-recipes-header">
+                <div>
+                  <h2>Saved Recipes</h2>
+                  <p className="profile-section__hint">Quick access to your meal ideas.</p>
+                </div>
+                <div className="saved-recipes-controls">
+                  <button
+                    type="button"
+                    className="icon-button"
+                    aria-label="Previous"
+                    onClick={() => setRecipePage((current) => Math.max(0, current - 1))}
+                    disabled={recipePage === 0}
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-button"
+                    aria-label="Next"
+                    onClick={() => setRecipePage((current) => Math.min(pageCount - 1, current + 1))}
+                    disabled={recipePage >= pageCount - 1}
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+              <div className="saved-recipes-row">
+                {recipePageItems.map((recipe) => (
+                  <article key={recipe.id} className="saved-recipe-card">
+                    <div className="saved-recipe-card__badge">{recipe.category}</div>
+                    <h3 className="saved-recipe-card__title">{recipe.title}</h3>
+                  </article>
+                ))}
+              </div>
               <button
-                key={item.id}
                 type="button"
-                className={`cookpal-pref-card ${selected ? 'cookpal-pref-card--selected' : ''}`}
-                onClick={() => toggleInSet(setSelectedDiet, item.id)}
-                aria-pressed={selected}
+                className="profile-link-btn"
+                onClick={() => navigate('/recipes')}
+                disabled={!recipesList.length}
               >
-                <span className="cookpal-pref-card__thumb-wrap">
-                  <img src={item.image} alt="" className="cookpal-pref-card__thumb" loading="lazy" />
-                </span>
-                <span className="cookpal-pref-card__text">
-                  {item.label} <span className="cookpal-pref-card__hint">({item.hint})</span>
-                </span>
+                Show More
               </button>
-            )
-          })}
-        </div>
-      </section>
+            </section>
 
-      <section className="cookpal-panel cookpal-pref-section">
-        <div className="cookpal-pref-section__head">
-          <h2 className="cookpal-pref-section__title">Allergies</h2>
-          <button type="button" className="cookpal-pref-section__manage">
-            Ajouter et gérer
-            <span className="cookpal-pref-section__plus" aria-hidden>
-              +
-            </span>
-          </button>
-        </div>
-        <div className="cookpal-pref-grid">
-          {ALLERGY_OPTIONS.map((item) => {
-            const selected = selectedAllergies.has(item.id)
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className={`cookpal-pref-card ${selected ? 'cookpal-pref-card--selected' : ''}`}
-                onClick={() => toggleInSet(setSelectedAllergies, item.id)}
-                aria-pressed={selected}
-              >
-                <span className="cookpal-pref-card__thumb-wrap">
-                  <img src={item.image} alt="" className="cookpal-pref-card__thumb" loading="lazy" />
-                </span>
-                <span className="cookpal-pref-card__text">
-                  {item.label} <span className="cookpal-pref-card__hint">({item.hint})</span>
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </section>
+            <section className="profile-card profile-card--settings">
+              <div className="profile-section-header">
+                <div>
+                  <h2>Account</h2>
+                  <p className="profile-section__hint">Adjust display name and review your account details.</p>
+                </div>
+              </div>
+              <div className="profile-settings-row" ref={accountSectionRef}>
+                <label htmlFor="cookpal-prefer-name">Sidebar custom name</label>
+                <div className="profile-settings-input-row">
+                  <input
+                    id="cookpal-prefer-name"
+                    type="text"
+                    className="form-input-modern"
+                    value={displayNameOverride}
+                    onChange={(e) => setDisplayNameOverride(e.target.value)}
+                    placeholder={getDisplayNameFromUser(user)}
+                    ref={displayNameInputRef}
+                  />
+                  <button type="button" className="profile-btn profile-btn--secondary" onClick={handleSaveDisplayName} disabled={isSaving}>
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              </div>
+              {saveMessage && <p className="profile-section__hint">{saveMessage}</p>}
+              {error && <p className="profile-section__hint" style={{ color: '#d53f3f' }}>{error}</p>}
+              <div className="profile-settings-info">
+                <div>
+                  <span>Name</span>
+                  <strong>{profile?.name || user?.name || '-'}</strong>
+                </div>
+                <div>
+                  <span>Email</span>
+                  <strong>{profile?.email || user?.email || '-'}</strong>
+                </div>
+              </div>
+            </section>
 
-      <section className="cookpal-panel cookpal-pref-section">
-        <div className="cookpal-pref-section__head">
-          <h2 className="cookpal-pref-section__title">Cuisines</h2>
-          <button type="button" className="cookpal-pref-section__manage">
-            Ajouter et gérer
-            <span className="cookpal-pref-section__plus" aria-hidden>
-              +
-            </span>
-          </button>
-        </div>
-        <div className="cookpal-cuisine-grid">
-          {CUISINE_OPTIONS.map((item) => {
-            const selected = selectedCuisines.has(item.id)
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className={`cookpal-cuisine-card ${selected ? 'cookpal-cuisine-card--selected' : ''}`}
-                onClick={() => toggleInSet(setSelectedCuisines, item.id)}
-                aria-pressed={selected}
-              >
-                <span className="cookpal-cuisine-card__media">
-                  <img src={item.image} alt="" className="cookpal-cuisine-card__img" loading="lazy" />
-                </span>
-                <span className="cookpal-cuisine-card__label">{item.label}</span>
-              </button>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="cookpal-panel">
-        <h2 className="cookpal-subtitle">Objectifs</h2>
-        <div className="cookpal-tag-list">
-          {goals.map((item) => (
-            <span key={item} className="cookpal-chip">
-              {item}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section className="cookpal-panel">
-        <h2 className="cookpal-subtitle">Recettes sauvegardees</h2>
-        <div className="cookpal-mini-cards">
-          {savedRecipes.map((recipe) => (
-            <article className="cookpal-mini-card" key={recipe.id}>
-              <h3>{recipe.title}</h3>
-              <span>{recipe.category}</span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <button type="button" className="btn cookpal-logout-btn" onClick={onLogout}>
-        Se deconnecter
-      </button>
-
-      <div className="cookpal-help-card">
-        <h2>Settings</h2>
-        <p>Account details</p>
-        <div style={{ marginTop: 16 }}>
-          <label htmlFor="cookpal-prefer-name" style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>
-            Name in sidebar
-          </label>
-          <p style={{ margin: '0 0 8px 0', fontSize: '0.88rem', color: 'var(--cookpal-text-muted, #6b7c8a)' }}>
-            Override the name shown top-right (e.g. if your account name is wrong). Leave empty to use your account name or email.
-          </p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-            <input
-              id="cookpal-prefer-name"
-              type="text"
-              className="form-input-modern"
-              style={{ flex: '1 1 200px', minWidth: 0, maxWidth: '100%' }}
-              value={preferInput}
-              onChange={(e) => setPreferInput(e.target.value)}
-              placeholder={getDisplayNameFromUser(user)}
-            />
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => setPreferredDisplayName(preferInput)}
-            >
-              Save
+            <button type="button" className="profile-logout-btn" onClick={onLogout}>
+              Log Out Account
             </button>
-          </div>
+          </main>
         </div>
-        {user ? (
-          <>
-            <p style={{ marginTop: 12 }}>
-              <strong>Name</strong>
-              <br />
-              {user.name || '-'}
-            </p>
-            <p style={{ marginTop: 12 }}>
-              <strong>Email</strong>
-              <br />
-              {user.email || '-'}
-            </p>
-            {user.title && (
-              <p style={{ marginTop: 12 }}>
-                <strong>Title</strong>
-                <br />
-                {user.title}
-              </p>
-            )}
-          </>
-        ) : (
-          <p style={{ marginTop: 12 }}>No user information.</p>
+
+        {addModal.open && (
+          <div className="cookpal-modal-backdrop" role="presentation" onClick={handleCloseAdd}>
+            <div className="cookpal-modal cookpal-panel" role="dialog" aria-labelledby="add-pref-title" onClick={(e) => e.stopPropagation()}>
+              <h2 id="add-pref-title" className="cookpal-subtitle">Add {addModal.group}</h2>
+              <label className="cookpal-modal__label" htmlFor="add-pref-input">Name</label>
+              <input
+                id="add-pref-input"
+                className="cookpal-modal__input"
+                value={addModal.value}
+                onChange={(e) => setAddModal((prev) => ({ ...prev, value: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && handleSubmitAdd()}
+                placeholder={`e.g. ${addModal.group === 'goals' ? 'Save Money' : 'Italian'}`}
+                autoFocus
+              />
+
+              <div className="cookpal-modal__actions">
+                <button type="button" className="cookpal-modal__btn cookpal-modal__btn--ghost" onClick={handleCloseAdd}>Cancel</button>
+                <button type="button" className="cookpal-modal__btn cookpal-modal__btn--primary" onClick={handleSubmitAdd}>Add</button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
