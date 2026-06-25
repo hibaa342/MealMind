@@ -510,7 +510,6 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
-
 /* --- Compact Profile Page Design --- */
 .profile-page-content {
   max-width: 1200px;
