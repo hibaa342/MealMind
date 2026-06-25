@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useNotifications } from '../context/NotificationsContext'
+import { useUser } from '../context/UserContext'
 import { loadSidebarPrefs, saveSidebarPrefs } from '../utils/sidebarPrefs'
 import { getDisplayNameFromUser, getPreferredDisplayName, getSubtitleFromUser } from '../utils/userDisplay'
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder'
@@ -172,6 +173,7 @@ const ADD_SECTION_LABEL = {
 const CookPalLayout = ({ user, onLogout }) => {
   const location = useLocation()
   const { unreadCount } = useNotifications()
+  const { sidebarPrefs: userSidebarPrefs, profile } = useUser()
   const [preferName, setPreferName] = useState(() => getPreferredDisplayName())
 
   useEffect(() => {
@@ -185,9 +187,15 @@ const CookPalLayout = ({ user, onLogout }) => {
 
   const voice = useVoiceRecorder()
   const [prefsDrawer, setPrefsDrawer] = useState(false)
-  const [prefs, setPrefs] = useState(loadSidebarPrefs)
+  const [prefs, setPrefs] = useState(() => userSidebarPrefs || loadSidebarPrefs())
   const [addOpen, setAddOpen] = useState(null)
   const [addValue, setAddValue] = useState('')
+
+  useEffect(() => {
+    if (userSidebarPrefs) {
+      setPrefs(userSidebarPrefs)
+    }
+  }, [userSidebarPrefs])
 
   useEffect(() => { saveSidebarPrefs(prefs) }, [prefs])
 
