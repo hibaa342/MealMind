@@ -35,6 +35,30 @@ const userSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
+    diet: {
+        type: [String],
+        default: []
+    },
+    allergies: {
+        type: [String],
+        default: []
+    },
+    cuisines: {
+        type: [String],
+        default: []
+    },
+    goals: {
+        type: [String],
+        default: []
+    },
+    nameSidebarOverride: {
+        type: String,
+        default: ''
+    },
+    onboarded: {
+        type: Boolean,
+        default: false
+    },
     notificationSettings: {
         pauseAll: { type: Boolean, default: false },
         quietMode: {
