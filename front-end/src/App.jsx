@@ -13,7 +13,8 @@ import Favorites from './pages/Favorites'
 import Order from './pages/Order'
 import Onboarding from './pages/Onboarding'
 import AdminDashboard from './pages/AdminDashboard'
-import SiteNavbar from './components/SiteNavbar'
+// ── Suppression de l'import de SiteNavbar ici ──
+import { NotificationsProvider } from './context/NotificationsContext'
 import { UserProvider } from './context/UserContext'
 import CookPalLayout from './components/CookPalLayout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -23,7 +24,6 @@ import { getPostAuthPath } from './utils/onboardingStorage'
 import ChatbotWidget from './components/ChatbotWidget'
 
 function App() {
-  // On lit la session sauvegardée dans le navigateur (localStorage)
   const savedToken = localStorage.getItem('token')
   const savedUserText = localStorage.getItem('user')
 
@@ -32,7 +32,6 @@ function App() {
     try {
       savedUser = JSON.parse(savedUserText)
     } catch {
-      // Si les données sont corrompues, on considère qu'il n'y a pas de session
       savedUser = null
     }
   }
@@ -59,13 +58,9 @@ function App() {
     setUser(updatedUser)
   }
 
-  const isAuthPage =
-    window.location.pathname === '/login' ||
-    window.location.pathname === '/register'
-
   return (
     <div className="app">
-      {!isAuthenticated && !isAuthPage && <SiteNavbar />}
+      {/* ── La ligne contenant SiteNavbar a été supprimée d'ici ── */}
       <Routes>
         {/* ── Pages publiques ── */}
         <Route
@@ -107,7 +102,6 @@ function App() {
               <Route path="help" element={<Help />} />
               <Route path="favorites" element={<Favorites />} />
 
-              {/* ── Route admin — intégrée dans le layout utilisateur ── */}
               <Route
                 path="admin/dashboard"
                 element={
@@ -125,7 +119,6 @@ function App() {
           element={<Navigate to={isAuthenticated ? getPostAuthPath(user) : '/login'} replace />}
         />
       </Routes>
-      {/* ── AI Chatbot Widget (floating, visible when logged in) ── */}
       {isAuthenticated && <ChatbotWidget />}
     </div>
   )
