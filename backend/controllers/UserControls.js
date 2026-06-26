@@ -85,20 +85,26 @@ const loginUser = async (req, res) => {
 
         const isMatch = await bcrypt.compare(password, user.password);
 
-        if (isMatch) {
-            console.log(`[AUTH] Success: Login successful for ${normalizedEmail}`);
-            res.json({
-                _id: user._id,
-                name: user.name,
-                surname: user.surname,
-                email: user.email,
-                role: user.role,
-                token: generateToken(user._id, user.role)
-            });
-        } else {
+        if (!isMatch) {
             console.log(`[AUTH] Failed: Incorrect password for ${normalizedEmail}`);
-            res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(401).json({ message: 'Invalid email or password' });
         }
+
+        // Block login if the account has been deactivated by an admin
+        if (user.isActive === false) {
+            console.log(`[AUTH] Blocked: Account deactivated for ${normalizedEmail}`);
+            return res.status(403).json({ message: 'This account has been deactivated. Please contact support.' });
+        }
+
+        console.log(`[AUTH] Success: Login successful for ${normalizedEmail}`);
+        res.json({
+            _id: user._id,
+            name: user.name,
+            surname: user.surname,
+            email: user.email,
+            role: user.role,
+            token: generateToken(user._id, user.role)
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error during login' });

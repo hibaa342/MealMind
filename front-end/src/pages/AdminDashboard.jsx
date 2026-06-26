@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import './AdminDashboard.css'
 
-// ── Icônes ────────────────────────────────────────────────────────────────────
+// ── Icons ────────────────────────────────────────────────────────────────────
 
 const IconUsers = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -21,12 +21,6 @@ const IconRecipe = () => (
 const IconActivity = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-  </svg>
-)
-
-const IconIngredient = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <path d="M12 2a9 9 0 0 1 9 9c0 4.17-3.58 7.83-9 11-5.42-3.17-9-6.83-9-11a9 9 0 0 1 9-9z" />
   </svg>
 )
 
@@ -61,15 +55,40 @@ const IconShield = () => (
   </svg>
 )
 
-// ── Mini graphique en barres ───────────────────────────────────────────────────
-// data est une liste d'objets du type { _id: "lundi", count: 5 }
+const IconClipboard = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="8" y="2" width="8" height="4" rx="1" />
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+    <line x1="9" y1="12" x2="15" y2="12" />
+    <line x1="9" y1="16" x2="15" y2="16" />
+  </svg>
+)
+
+const IconChartBar = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <line x1="12" y1="20" x2="12" y2="10" />
+    <line x1="18" y1="20" x2="18" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="16" />
+  </svg>
+)
+
+const IconServer = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="2" y="3" width="20" height="6" rx="1" />
+    <rect x="2" y="15" width="20" height="6" rx="1" />
+    <line x1="6" y1="6" x2="6" y2="6" />
+    <line x1="6" y1="18" x2="6" y2="18" />
+  </svg>
+)
+
+// ── Mini bar chart ─────────────────────────────────────────────────────────
+// data is a list of objects like { _id: "2026-06-20", count: 5 }
 
 const MiniBarChart = ({ data, colorVar = '--snap-forest' }) => {
   if (!data || data.length === 0) {
-    return <p style={{ color: '#5c7068', fontSize: '0.85rem' }}>Aucune donnée disponible.</p>
+    return <p style={{ color: '#5c7068', fontSize: '0.85rem' }}>No data available.</p>
   }
 
-  // On cherche la plus grande valeur pour calculer la longueur des barres
   let maxCount = 1
   for (let i = 0; i < data.length; i++) {
     if (data[i].count > maxCount) {
@@ -106,13 +125,16 @@ const MiniBarChart = ({ data, colorVar = '--snap-forest' }) => {
   )
 }
 
-// ── Composant principal ───────────────────────────────────────────────────────
+// ── Helper: status pill label ───────────────────────────────────────────────
+
+const StatusPill = ({ status }) => (
+  <span className={`admin-status-pill admin-status-pill--${status}`}>{status}</span>
+)
+
+// ── Main component ───────────────────────────────────────────────────────────
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
-  const [statsData, setStatsData] = useState(null)
-  const [usersList, setUsersList] = useState([])
-  const [recipesList, setRecipesList] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -120,10 +142,28 @@ const AdminDashboard = () => {
 
   const token = localStorage.getItem('token')
 
+  // Data for each section
+  const [statsData, setStatsData] = useState(null)
+  const [usersList, setUsersList] = useState([])
+  const [recipesList, setRecipesList] = useState([])
+  const [activityLogs, setActivityLogs] = useState([])
+  const [analyticsData, setAnalyticsData] = useState(null)
+  const [systemData, setSystemData] = useState(null)
+
+  // Content Management filters
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [sortOption, setSortOption] = useState('newest')
+
+  // Product details panel
+  const [selectedRecipe, setSelectedRecipe] = useState(null)
+
   const triggerToast = (message, isError = false) => {
     setToast({ message, isError })
     setTimeout(() => setToast(null), 4000)
   }
+
+  // ── Fetch functions ────────────────────────────────────────────────────────
 
   const fetchOverviewData = async () => {
     try {
@@ -131,7 +171,7 @@ const AdminDashboard = () => {
       const res = await fetch('/api/admin/stats', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      if (!res.ok) throw new Error('Impossible de récupérer les statistiques.')
+      if (!res.ok) throw new Error('Unable to load dashboard statistics.')
       const data = await res.json()
       setStatsData(data)
       setError('')
@@ -148,7 +188,7 @@ const AdminDashboard = () => {
       const res = await fetch('/api/admin/users', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      if (!res.ok) throw new Error('Impossible de récupérer la liste des utilisateurs.')
+      if (!res.ok) throw new Error('Unable to load the user list.')
       const data = await res.json()
       setUsersList(data)
       setError('')
@@ -165,9 +205,60 @@ const AdminDashboard = () => {
       const res = await fetch('/api/admin/recipes', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      if (!res.ok) throw new Error('Impossible de récupérer les recettes.')
+      if (!res.ok) throw new Error('Unable to load products.')
       const data = await res.json()
       setRecipesList(data)
+      setError('')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchActivityLogs = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/admin/activity-logs', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error('Unable to load activity logs.')
+      const data = await res.json()
+      setActivityLogs(data)
+      setError('')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/admin/analytics', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error('Unable to load analytics.')
+      const data = await res.json()
+      setAnalyticsData(data)
+      setError('')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchSystemOverview = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/admin/system-overview', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error('Unable to load system overview.')
+      const data = await res.json()
+      setSystemData(data)
       setError('')
     } catch (err) {
       setError(err.message)
@@ -180,8 +271,13 @@ const AdminDashboard = () => {
     setSearchQuery('')
     if (activeTab === 'overview') fetchOverviewData()
     else if (activeTab === 'users') fetchUsers()
-    else if (activeTab === 'recipes') fetchRecipes()
+    else if (activeTab === 'content') fetchRecipes()
+    else if (activeTab === 'logs') fetchActivityLogs()
+    else if (activeTab === 'analytics') fetchAnalytics()
+    else if (activeTab === 'system') fetchSystemOverview()
   }, [activeTab])
+
+  // ── User Management handlers ────────────────────────────────────────────
 
   const handleRoleChange = async (userId, newRole) => {
     try {
@@ -192,9 +288,27 @@ const AdminDashboard = () => {
       })
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.message || 'Échec de la mise à jour du rôle.')
+        throw new Error(err.message || 'Failed to update role.')
       }
-      triggerToast(`Rôle mis à jour : ${newRole}`)
+      triggerToast(`Role updated to: ${newRole}`)
+      fetchUsers()
+    } catch (err) {
+      triggerToast(err.message, true)
+    }
+  }
+
+  const handleToggleUserStatus = async (userId, currentlyActive) => {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ isActive: !currentlyActive })
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.message || 'Failed to update account status.')
+      }
+      triggerToast(currentlyActive ? 'Account deactivated.' : 'Account activated.')
       fetchUsers()
     } catch (err) {
       triggerToast(err.message, true)
@@ -202,7 +316,7 @@ const AdminDashboard = () => {
   }
 
   const handleDeleteUser = async (userId, userName) => {
-    if (!window.confirm(`Supprimer "${userName}" et toutes ses recettes ? Cette action est irréversible.`)) return
+    if (!window.confirm(`Delete "${userName}" and all their products? This action is irreversible.`)) return
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
@@ -210,17 +324,38 @@ const AdminDashboard = () => {
       })
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.message || 'Échec de la suppression.')
+        throw new Error(err.message || 'Failed to delete user.')
       }
-      triggerToast('Utilisateur supprimé avec succès.')
+      triggerToast('User deleted successfully.')
       fetchUsers()
     } catch (err) {
       triggerToast(err.message, true)
     }
   }
 
+  // ── Content Management handlers ─────────────────────────────────────────
+
+  const handleRecipeStatusChange = async (recipeId, newStatus) => {
+    try {
+      const res = await fetch(`/api/admin/recipes/${recipeId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: newStatus })
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.message || 'Failed to update product status.')
+      }
+      triggerToast(`Product marked as ${newStatus}.`)
+      fetchRecipes()
+      setSelectedRecipe(null)
+    } catch (err) {
+      triggerToast(err.message, true)
+    }
+  }
+
   const handleDeleteRecipe = async (recipeId, recipeTitle) => {
-    if (!window.confirm(`Supprimer la recette "${recipeTitle}" ? Cette action est irréversible.`)) return
+    if (!window.confirm(`Delete the product "${recipeTitle}"? This action is irreversible.`)) return
     try {
       const res = await fetch(`/api/admin/recipes/${recipeId}`, {
         method: 'DELETE',
@@ -228,16 +363,18 @@ const AdminDashboard = () => {
       })
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.message || 'Échec de la suppression.')
+        throw new Error(err.message || 'Failed to delete product.')
       }
-      triggerToast('Recette supprimée par modération admin.')
+      triggerToast('Product deleted.')
       fetchRecipes()
+      setSelectedRecipe(null)
     } catch (err) {
       triggerToast(err.message, true)
     }
   }
 
-  // On compare en minuscules pour que la recherche ne soit pas sensible à la casse
+  // ── Search / filter / sort (Content Management) ────────────────────────
+
   const search = searchQuery.toLowerCase()
 
   const filteredUsers = usersList.filter(u => {
@@ -247,12 +384,29 @@ const AdminDashboard = () => {
     return name.includes(search) || surname.includes(search) || email.includes(search)
   })
 
-  const filteredRecipes = recipesList.filter(r => {
+  // Unique category list, built from the products we already have
+  const availableCategories = []
+  for (let i = 0; i < recipesList.length; i++) {
+    const category = recipesList[i].categories
+    if (category && availableCategories.indexOf(category) === -1) {
+      availableCategories.push(category)
+    }
+  }
+
+  let filteredRecipes = recipesList.filter(r => {
     const title = (r.title || '').toLowerCase()
-    const category = (r.categories || '').toLowerCase()
-    const authorName = `${r.user?.name || ''} ${r.user?.surname || ''}`.toLowerCase()
-    return title.includes(search) || category.includes(search) || authorName.includes(search)
+    const creatorName = `${r.user?.name || ''} ${r.user?.surname || ''}`.toLowerCase()
+    const matchesSearch = title.includes(search) || creatorName.includes(search)
+    const matchesStatus = statusFilter === 'all' || r.status === statusFilter
+    const matchesCategory = categoryFilter === 'all' || r.categories === categoryFilter
+    return matchesSearch && matchesStatus && matchesCategory
   })
+
+  if (sortOption === 'alphabetical') {
+    filteredRecipes = [...filteredRecipes].sort((a, b) => (a.title || '').localeCompare(b.title || ''))
+  } else {
+    filteredRecipes = [...filteredRecipes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  }
 
   const stats = statsData?.stats
 
@@ -271,18 +425,26 @@ const AdminDashboard = () => {
       <header className="admin-header">
         <div className="admin-title-area">
           <h1>Admin Control Panel</h1>
-          <p className="admin-subtitle">Gérez les utilisateurs, modérez les recettes et consultez les statistiques en temps réel.</p>
+          <p className="admin-subtitle">Manage users, content and view application insights.</p>
         </div>
       </header>
 
-      {/* Onglets */}
+      {/* Tabs */}
       <nav className="admin-tabs">
         <button
           onClick={() => setActiveTab('overview')}
           className={activeTab === 'overview' ? 'admin-tab-btn admin-tab-btn--active' : 'admin-tab-btn'}
         >
           <IconActivity />
-          Vue d'ensemble
+          Dashboard
+        </button>
+
+        <button
+          onClick={() => setActiveTab('content')}
+          className={activeTab === 'content' ? 'admin-tab-btn admin-tab-btn--active' : 'admin-tab-btn'}
+        >
+          <IconRecipe />
+          Content Management
         </button>
 
         <button
@@ -290,51 +452,66 @@ const AdminDashboard = () => {
           className={activeTab === 'users' ? 'admin-tab-btn admin-tab-btn--active' : 'admin-tab-btn'}
         >
           <IconUsers />
-          Utilisateurs
+          Users
         </button>
 
         <button
-          onClick={() => setActiveTab('recipes')}
-          className={activeTab === 'recipes' ? 'admin-tab-btn admin-tab-btn--active' : 'admin-tab-btn'}
+          onClick={() => setActiveTab('logs')}
+          className={activeTab === 'logs' ? 'admin-tab-btn admin-tab-btn--active' : 'admin-tab-btn'}
         >
-          <IconRecipe />
-          Modération
+          <IconClipboard />
+          Activity Logs
+        </button>
+
+        <button
+          onClick={() => setActiveTab('analytics')}
+          className={activeTab === 'analytics' ? 'admin-tab-btn admin-tab-btn--active' : 'admin-tab-btn'}
+        >
+          <IconChartBar />
+          Analytics
+        </button>
+
+        <button
+          onClick={() => setActiveTab('system')}
+          className={activeTab === 'system' ? 'admin-tab-btn admin-tab-btn--active' : 'admin-tab-btn'}
+        >
+          <IconServer />
+          System Overview
         </button>
       </nav>
 
-      {/* Erreur globale */}
+      {/* Global error */}
       {error && (
         <div style={{ background: '#ffebee', color: '#c62828', padding: '16px', borderRadius: '12px', marginBottom: '20px', fontWeight: 600 }}>
-          Erreur : {error}
+          Error: {error}
         </div>
       )}
 
-      {/* ── TAB 1 : Vue d'ensemble ───────────────────────────────────────── */}
+      {/* ── TAB: Dashboard ─────────────────────────────────────────────── */}
       {activeTab === 'overview' && (
         <div>
           {loading && !statsData ? (
             <div style={{ textAlign: 'center', padding: '60px', color: '#5c7068', fontWeight: 600 }}>
-              Chargement des statistiques...
+              Loading statistics...
             </div>
           ) : (
             <>
-              {/* Cartes de statistiques principales */}
               <div className="admin-stats-grid">
 
                 <div className="admin-stat-card">
                   <div className="admin-stat-content">
-                    <h3>Utilisateurs inscrits</h3>
+                    <h3>Registered Users</h3>
                     <p className="admin-stat-number">{stats?.totalUsers ?? 0}</p>
-                    <span className="admin-stat-sub">+{stats?.newUsersThisWeek ?? 0} cette semaine</span>
+                    <span className="admin-stat-sub">+{stats?.newUsersThisWeek ?? 0} this week</span>
                   </div>
                   <div className="admin-stat-icon"><IconUsers /></div>
                 </div>
 
                 <div className="admin-stat-card">
                   <div className="admin-stat-content">
-                    <h3>Administrateurs</h3>
-                    <p className="admin-stat-number">{stats?.totalAdmins ?? 0}</p>
-                    <span className="admin-stat-sub">{stats?.totalStandardUsers ?? 0} utilisateurs standard</span>
+                    <h3>Active Users</h3>
+                    <p className="admin-stat-number">{stats?.activeUsers ?? 0}</p>
+                    <span className="admin-stat-sub">{stats?.inactiveUsers ?? 0} deactivated</span>
                   </div>
                   <div className="admin-stat-icon" style={{ background: '#fff3e0', color: '#e65100' }}>
                     <IconShield />
@@ -343,40 +520,18 @@ const AdminDashboard = () => {
 
                 <div className="admin-stat-card">
                   <div className="admin-stat-content">
-                    <h3>Recettes partagées</h3>
+                    <h3>Total Products</h3>
                     <p className="admin-stat-number">{stats?.totalRecipes ?? 0}</p>
-                    <span className="admin-stat-sub">dans la communauté</span>
+                    <span className="admin-stat-sub">+{stats?.recipesAddedThisWeek ?? 0} this week</span>
                   </div>
                   <div className="admin-stat-icon"><IconRecipe /></div>
                 </div>
 
                 <div className="admin-stat-card">
                   <div className="admin-stat-content">
-                    <h3>Ingrédients</h3>
-                    <p className="admin-stat-number">{stats?.totalIngredients ?? 0}</p>
-                    <span className="admin-stat-sub">dans la base de données</span>
-                  </div>
-                  <div className="admin-stat-icon" style={{ background: '#e8f5e9', color: '#1b5e20' }}>
-                    <IconIngredient />
-                  </div>
-                </div>
-
-                <div className="admin-stat-card">
-                  <div className="admin-stat-content">
-                    <h3>Meal Plans</h3>
-                    <p className="admin-stat-number">{stats?.totalMealPlans ?? 0}</p>
-                    <span className="admin-stat-sub">planifications créées</span>
-                  </div>
-                  <div className="admin-stat-icon" style={{ background: '#e3f2fd', color: '#0d47a1' }}>
-                    <IconCalendar />
-                  </div>
-                </div>
-
-                <div className="admin-stat-card">
-                  <div className="admin-stat-content">
-                    <h3>Notifications</h3>
-                    <p className="admin-stat-number">{stats?.totalNotifications ?? 0}</p>
-                    <span className="admin-stat-sub">{stats?.unreadNotifications ?? 0} non lues</span>
+                    <h3>Total Favorites</h3>
+                    <p className="admin-stat-number">{stats?.totalFavorites ?? 0}</p>
+                    <span className="admin-stat-sub">saved by users</span>
                   </div>
                   <div className="admin-stat-icon" style={{ background: '#fce4ec', color: '#880e4f' }}>
                     <IconBell />
@@ -385,14 +540,12 @@ const AdminDashboard = () => {
 
               </div>
 
-              {/* Graphiques et listes récentes */}
               <div className="admin-recent-grid">
 
-                {/* Utilisateurs récents */}
                 <div className="admin-recent-card">
-                  <h2>Derniers inscrits</h2>
+                  <h2>Recently Registered Users</h2>
                   {!statsData?.recentUsers?.length ? (
-                    <p style={{ color: '#5c7068', fontSize: '0.9rem' }}>Aucun utilisateur récent.</p>
+                    <p style={{ color: '#5c7068', fontSize: '0.9rem' }}>No recent users.</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {statsData.recentUsers.map(u => (
@@ -408,11 +561,10 @@ const AdminDashboard = () => {
                   )}
                 </div>
 
-                {/* Recettes récentes */}
                 <div className="admin-recent-card">
-                  <h2>Recettes récentes</h2>
+                  <h2>Recent Products</h2>
                   {!statsData?.recentRecipes?.length ? (
-                    <p style={{ color: '#5c7068', fontSize: '0.9rem' }}>Aucune recette récente.</p>
+                    <p style={{ color: '#5c7068', fontSize: '0.9rem' }}>No recent products.</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {statsData.recentRecipes.map(r => (
@@ -422,7 +574,7 @@ const AdminDashboard = () => {
                             <span style={{ color: '#5c7068', marginLeft: '6px' }}>— {r.categories}</span>
                           </div>
                           <span style={{ fontSize: '0.8rem', color: '#778899', fontWeight: 600 }}>
-                            {r.user?.name || 'Inconnu'}
+                            {r.user?.name || 'Unknown'}
                           </span>
                         </div>
                       ))}
@@ -430,45 +582,37 @@ const AdminDashboard = () => {
                   )}
                 </div>
 
-                {/* Meal plans par jour */}
                 <div className="admin-recent-card">
-                  <h2>Meal Plans par jour</h2>
-                  <MiniBarChart data={statsData?.charts?.mealPlansByDay} />
-                </div>
-
-                {/* Meal plans par type */}
-                <div className="admin-recent-card">
-                  <h2>Meal Plans par type de repas</h2>
-                  <MiniBarChart data={statsData?.charts?.mealPlansByType} colorVar="--snap-sage" />
-                </div>
-
-                {/* Ingrédients par catégorie */}
-                <div className="admin-recent-card">
-                  <h2>Ingrédients par catégorie</h2>
-                  <MiniBarChart data={statsData?.charts?.ingredientsByCategory} colorVar="--snap-forest" />
-                </div>
-
-                {/* Notifications par type */}
-                <div className="admin-recent-card">
-                  <h2>Notifications par type</h2>
-                  <MiniBarChart data={statsData?.charts?.notificationsByType} colorVar="--snap-sage" />
-                </div>
-
-                {/* Ingrédients récemment ajoutés */}
-                <div className="admin-recent-card" style={{ gridColumn: '1 / -1' }}>
-                  <h2>Ingrédients récemment ajoutés</h2>
-                  {!statsData?.recentIngredients?.length ? (
-                    <p style={{ color: '#5c7068', fontSize: '0.9rem' }}>Aucun ingrédient récent.</p>
+                  <h2>Most Active Users</h2>
+                  {!statsData?.mostActiveUsers?.length ? (
+                    <p style={{ color: '#5c7068', fontSize: '0.9rem' }}>No data available.</p>
                   ) : (
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                      {statsData.recentIngredients.map(ing => (
-                        <div key={ing._id} style={{ background: '#e8f5e9', borderRadius: '20px', padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, color: '#2d6a4f' }}>
-                          {ing.name}
-                          <span style={{ color: '#778899', fontWeight: 400, marginLeft: '6px' }}>({ing.category})</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {statsData.mostActiveUsers.map(u => (
+                        <div key={u._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.88rem', borderBottom: '1px solid rgba(0,0,0,0.04)', paddingBottom: '8px' }}>
+                          <span style={{ fontWeight: 700 }}>{u.name} {u.surname}</span>
+                          <span style={{ fontSize: '0.8rem', color: '#778899', fontWeight: 600 }}>
+                            {u.productCount} product{u.productCount > 1 ? 's' : ''}
+                          </span>
                         </div>
                       ))}
                     </div>
                   )}
+                </div>
+
+                <div className="admin-recent-card">
+                  <h2>Meal Plans per Day</h2>
+                  <MiniBarChart data={statsData?.charts?.mealPlansByDay} />
+                </div>
+
+                <div className="admin-recent-card">
+                  <h2>Meal Plans per Type</h2>
+                  <MiniBarChart data={statsData?.charts?.mealPlansByType} colorVar="--snap-sage" />
+                </div>
+
+                <div className="admin-recent-card">
+                  <h2>Ingredients by Category</h2>
+                  <MiniBarChart data={statsData?.charts?.ingredientsByCategory} colorVar="--snap-forest" />
                 </div>
 
               </div>
@@ -477,13 +621,92 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ── TAB 2 : Gestion des utilisateurs ────────────────────────────── */}
+      {/* ── TAB: Content Management ───────────────────────────────────── */}
+      {activeTab === 'content' && (
+        <div>
+          <div className="admin-search-bar admin-search-bar--wrap">
+            <input
+              type="text"
+              placeholder="Search by title or creator..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="admin-search-input"
+            />
+
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="admin-select">
+              <option value="all">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+
+            <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="admin-select">
+              <option value="all">All categories</option>
+              {availableCategories.map(category => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+
+            <select value={sortOption} onChange={e => setSortOption(e.target.value)} className="admin-select">
+              <option value="newest">Newest first</option>
+              <option value="alphabetical">Alphabetical</option>
+            </select>
+          </div>
+
+          {loading && !recipesList.length ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#5c7068', fontWeight: 600 }}>
+              Loading products...
+            </div>
+          ) : (
+            <div className="admin-recipes-grid">
+              {filteredRecipes.length === 0 ? (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: '#5c7068', background: '#fff', borderRadius: '20px' }}>
+                  No products found.
+                </div>
+              ) : filteredRecipes.map(r => (
+                <div
+                  className={`admin-recipe-card admin-recipe-card--${r.accent || 'green'}`}
+                  key={r._id}
+                  onClick={() => setSelectedRecipe(r)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="admin-recipe-card__accent-bar" />
+                  <div className="admin-recipe-content">
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                        <h3 className="admin-recipe-title">{r.title}</h3>
+                        <StatusPill status={r.status || 'pending'} />
+                      </div>
+                      <p className="admin-recipe-author">
+                        By <strong>{r.user?.name || 'Unknown'} {r.user?.surname || ''}</strong>
+                      </p>
+                      <p style={{ fontSize: '0.78rem', color: '#778899', margin: '0 0 8px' }}>
+                        Submitted on {new Date(r.createdAt).toLocaleDateString('en-US')} · {r.time}
+                      </p>
+                    </div>
+                    <div className="admin-recipe-footer">
+                      <span className="snapcook-pill" style={{ background: '#e8f5e9', color: '#2d6a4f' }}>
+                        {r.categories}
+                      </span>
+                      <button onClick={(e) => { e.stopPropagation(); setSelectedRecipe(r) }} className="admin-btn admin-btn--secondary" style={{ padding: '6px 12px' }}>
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB: Users ─────────────────────────────────────────────────── */}
       {activeTab === 'users' && (
         <div>
           <div className="admin-search-bar">
             <input
               type="text"
-              placeholder="Rechercher par nom ou email..."
+              placeholder="Search by name or email..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="admin-search-input"
@@ -491,25 +714,26 @@ const AdminDashboard = () => {
           </div>
           {loading && !usersList.length ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#5c7068', fontWeight: 600 }}>
-              Chargement des utilisateurs...
+              Loading users...
             </div>
           ) : (
             <div className="admin-table-container">
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Utilisateur</th>
+                    <th>User</th>
                     <th>Email</th>
-                    <th>Inscription</th>
-                    <th>Rôle</th>
+                    <th>Registered</th>
+                    <th>Status</th>
+                    <th>Role</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#5c7068' }}>
-                        Aucun utilisateur trouvé.
+                      <td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#5c7068' }}>
+                        No users found.
                       </td>
                     </tr>
                   ) : filteredUsers.map(u => (
@@ -519,22 +743,35 @@ const AdminDashboard = () => {
                           <div className="admin-avatar">{u.name?.[0]?.toUpperCase() || 'U'}</div>
                           <div>
                             <strong style={{ display: 'block', color: 'var(--snap-forest)' }}>{u.name} {u.surname}</strong>
-                            <span style={{ fontSize: '0.75rem', color: '#778899' }}>ID : {u._id}</span>
+                            <span style={{ fontSize: '0.75rem', color: '#778899' }}>ID: {u._id}</span>
                           </div>
                         </div>
                       </td>
                       <td>{u.email}</td>
-                      <td>{new Date(u.createdAt).toLocaleDateString('fr-FR')}</td>
+                      <td>{new Date(u.createdAt).toLocaleDateString('en-US')}</td>
+                      <td>
+                        <span className={`admin-status-pill admin-status-pill--${u.isActive === false ? 'inactive' : 'active'}`}>
+                          {u.isActive === false ? 'Deactivated' : 'Active'}
+                        </span>
+                      </td>
                       <td>
                         <select value={u.role} onChange={e => handleRoleChange(u._id, e.target.value)} className="admin-select">
-                          <option value="user">Utilisateur</option>
-                          <option value="admin">Administrateur</option>
+                          <option value="user">User</option>
+                          <option value="admin">Administrator</option>
                         </select>
                       </td>
                       <td>
-                        <button onClick={() => handleDeleteUser(u._id, `${u.name} ${u.surname}`)} className="admin-btn">
-                          <IconTrash /> Supprimer
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            onClick={() => handleToggleUserStatus(u._id, u.isActive !== false)}
+                            className="admin-btn admin-btn--secondary"
+                          >
+                            {u.isActive === false ? 'Activate' : 'Deactivate'}
+                          </button>
+                          <button onClick={() => handleDeleteUser(u._id, `${u.name} ${u.surname}`)} className="admin-btn">
+                            <IconTrash /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -545,59 +782,207 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ── TAB 3 : Modération des recettes ─────────────────────────────── */}
-      {activeTab === 'recipes' && (
+      {/* ── TAB: Activity Logs ────────────────────────────────────────────── */}
+      {activeTab === 'logs' && (
         <div>
-          <div className="admin-search-bar">
-            <input
-              type="text"
-              placeholder="Rechercher par titre, catégorie, auteur..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="admin-search-input"
-            />
-          </div>
-          {loading && !recipesList.length ? (
+          {loading && !activityLogs.length ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#5c7068', fontWeight: 600 }}>
-              Chargement des recettes...
+              Loading activity logs...
             </div>
           ) : (
-            <div className="admin-recipes-grid">
-              {filteredRecipes.length === 0 ? (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: '#5c7068', background: '#fff', borderRadius: '20px' }}>
-                  Aucune recette trouvée.
-                </div>
-              ) : filteredRecipes.map(r => (
-                <div className="admin-recipe-card" key={r._id}>
-                  <img
-                    src={r.image || 'https://placehold.co/300x300?text=Recipe'}
-                    alt={r.title}
-                    className="admin-recipe-image"
-                    onError={e => {
-                      e.target.onerror = null
-                      e.target.src = 'https://placehold.co/300x300?text=Recipe'
-                    }}
-                  />
-                  <div className="admin-recipe-content">
-                    <div>
-                      <h3 className="admin-recipe-title">{r.title}</h3>
-                      <p className="admin-recipe-author">
-                        Ajouté par <strong>{r.user?.name || 'Inconnu'} {r.user?.surname || ''}</strong>
-                      </p>
-                    </div>
-                    <div className="admin-recipe-footer">
-                      <span className="snapcook-pill" style={{ background: '#e8f5e9', color: '#2d6a4f' }}>
-                        {r.categories}
-                      </span>
-                      <button onClick={() => handleDeleteRecipe(r._id, r.title)} className="admin-btn" style={{ padding: '6px 12px' }}>
-                        <IconTrash /> Supprimer
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Administrator</th>
+                    <th>Action</th>
+                    <th>Date</th>
+                    <th>Target</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activityLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" style={{ textAlign: 'center', padding: '30px', color: '#5c7068' }}>
+                        No activity recorded yet.
+                      </td>
+                    </tr>
+                  ) : activityLogs.map(log => (
+                    <tr key={log._id}>
+                      <td>{log.admin?.name || 'Unknown'} {log.admin?.surname || ''}</td>
+                      <td>{log.action}</td>
+                      <td>{new Date(log.createdAt).toLocaleString('en-US')}</td>
+                      <td>{log.details || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── TAB: Analytics ─────────────────────────────────────────────────── */}
+      {activeTab === 'analytics' && (
+        <div>
+          {loading && !analyticsData ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#5c7068', fontWeight: 600 }}>
+              Loading analytics...
+            </div>
+          ) : (
+            <>
+              <div className="admin-stats-grid">
+                <div className="admin-stat-card">
+                  <div className="admin-stat-content">
+                    <h3>Approval Rate</h3>
+                    <p className="admin-stat-number">{analyticsData?.approvalRate ?? 0}%</p>
+                    <span className="admin-stat-sub">{analyticsData?.approvedRecipes ?? 0} of {analyticsData?.totalRecipes ?? 0} products</span>
+                  </div>
+                  <div className="admin-stat-icon"><IconChartBar /></div>
+                </div>
+
+                <div className="admin-stat-card">
+                  <div className="admin-stat-content">
+                    <h3>Total Favorites</h3>
+                    <p className="admin-stat-number">{analyticsData?.favoritesStats?.totalFavorites ?? 0}</p>
+                    <span className="admin-stat-sub">{analyticsData?.favoritesStats?.averageFavoritesPerUser ?? 0} avg. per user</span>
+                  </div>
+                  <div className="admin-stat-icon" style={{ background: '#fce4ec', color: '#880e4f' }}>
+                    <IconBell />
+                  </div>
+                </div>
+              </div>
+
+              <div className="admin-recent-grid">
+                <div className="admin-recent-card">
+                  <h2>User Registrations (last 14 days)</h2>
+                  <MiniBarChart data={analyticsData?.userRegistrationsByDay} />
+                </div>
+
+                <div className="admin-recent-card">
+                  <h2>Product Submissions (last 14 days)</h2>
+                  <MiniBarChart data={analyticsData?.productSubmissionsByDay} colorVar="--snap-sage" />
+                </div>
+
+                <div className="admin-recent-card" style={{ gridColumn: '1 / -1' }}>
+                  <h2>Most Active Contributors</h2>
+                  {!analyticsData?.mostActiveContributors?.length ? (
+                    <p style={{ color: '#5c7068', fontSize: '0.9rem' }}>No data available.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {analyticsData.mostActiveContributors.map(u => (
+                        <div key={u._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.88rem', borderBottom: '1px solid rgba(0,0,0,0.04)', paddingBottom: '8px' }}>
+                          <span style={{ fontWeight: 700 }}>{u.name} {u.surname}</span>
+                          <span style={{ fontSize: '0.8rem', color: '#778899', fontWeight: 600 }}>
+                            {u.productCount} product{u.productCount > 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB: System Overview ───────────────────────────────────────────── */}
+      {activeTab === 'system' && (
+        <div>
+          {loading && !systemData ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#5c7068', fontWeight: 600 }}>
+              Loading system overview...
+            </div>
+          ) : (
+            <div className="admin-stats-grid">
+              <div className="admin-stat-card">
+                <div className="admin-stat-content">
+                  <h3>Backend Status</h3>
+                  <p className="admin-stat-number" style={{ fontSize: '1.4rem', color: '#1b5e20' }}>
+                    {systemData?.backendStatus === 'online' ? 'Online' : 'Unknown'}
+                  </p>
+                </div>
+                <div className="admin-stat-icon" style={{ background: '#e8f5e9', color: '#1b5e20' }}>
+                  <IconServer />
+                </div>
+              </div>
+
+              <div className="admin-stat-card">
+                <div className="admin-stat-content">
+                  <h3>Database Status</h3>
+                  <p className="admin-stat-number" style={{ fontSize: '1.4rem', textTransform: 'capitalize' }}>
+                    {systemData?.databaseStatus || 'Unknown'}
+                  </p>
+                </div>
+                <div className="admin-stat-icon"><IconServer /></div>
+              </div>
+
+              <div className="admin-stat-card">
+                <div className="admin-stat-content">
+                  <h3>Application Version</h3>
+                  <p className="admin-stat-number" style={{ fontSize: '1.4rem' }}>
+                    {systemData?.applicationVersion || 'N/A'}
+                  </p>
+                </div>
+                <div className="admin-stat-icon"><IconClipboard /></div>
+              </div>
+
+              <div className="admin-stat-card">
+                <div className="admin-stat-content">
+                  <h3>Environment</h3>
+                  <p className="admin-stat-number" style={{ fontSize: '1.4rem', textTransform: 'capitalize' }}>
+                    {systemData?.environment || 'N/A'}
+                  </p>
+                </div>
+                <div className="admin-stat-icon" style={{ background: '#e3f2fd', color: '#0d47a1' }}>
+                  <IconActivity />
+                </div>
+              </div>
+
+              <div className="admin-stat-card">
+                <div className="admin-stat-content">
+                  <h3>Last Database Update</h3>
+                  <p className="admin-stat-number" style={{ fontSize: '1.1rem' }}>
+                    {systemData?.lastDatabaseUpdate
+                      ? new Date(systemData.lastDatabaseUpdate).toLocaleString('en-US')
+                      : 'N/A'}
+                  </p>
+                </div>
+                <div className="admin-stat-icon" style={{ background: '#fce4ec', color: '#880e4f' }}>
+                  <IconCalendar />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Product Details panel ─────────────────────────────────────────── */}
+      {selectedRecipe && (
+        <div className="cookpal-modal-backdrop" role="presentation" onClick={() => setSelectedRecipe(null)}>
+          <div className="cookpal-modal cookpal-panel" role="dialog" aria-labelledby="recipe-details-title" onClick={(e) => e.stopPropagation()}>
+            <h2 id="recipe-details-title" className="cookpal-subtitle" style={{ marginTop: 0 }}>
+              {selectedRecipe.title}
+            </h2>
+
+            <p style={{ margin: '0 0 6px' }}><strong>Creator:</strong> {selectedRecipe.user?.name || 'Unknown'} {selectedRecipe.user?.surname || ''} ({selectedRecipe.user?.email || 'N/A'})</p>
+            <p style={{ margin: '0 0 6px' }}><strong>Category:</strong> {selectedRecipe.categories}</p>
+            <p style={{ margin: '0 0 6px' }}><strong>Preparation time:</strong> {selectedRecipe.time}</p>
+            <p style={{ margin: '0 0 6px' }}><strong>Rating:</strong> {selectedRecipe.rating != null ? Number(selectedRecipe.rating).toFixed(1) : 'N/A'} / 5</p>
+            <p style={{ margin: '0 0 6px' }}><strong>Tags:</strong> {selectedRecipe.tags?.length ? selectedRecipe.tags.join(', ') : 'None'}</p>
+            <p style={{ margin: '0 0 6px' }}><strong>Submitted on:</strong> {new Date(selectedRecipe.createdAt).toLocaleDateString('en-US')}</p>
+            <p style={{ margin: '0 0 16px' }}><strong>Status:</strong> <StatusPill status={selectedRecipe.status || 'pending'} /></p>
+
+            <div className="cookpal-modal__actions" style={{ flexWrap: 'wrap', gap: '8px' }}>
+              <button type="button" className="cookpal-modal__btn cookpal-modal__btn--ghost" onClick={() => setSelectedRecipe(null)}>Close</button>
+              <button type="button" className="cookpal-modal__btn cookpal-modal__btn--ghost" onClick={() => handleRecipeStatusChange(selectedRecipe._id, 'approved')}>Approve</button>
+              <button type="button" className="cookpal-modal__btn cookpal-modal__btn--ghost" onClick={() => handleRecipeStatusChange(selectedRecipe._id, 'rejected')}>Reject</button>
+              <button type="button" className="cookpal-modal__btn cookpal-modal__btn--primary" onClick={() => handleDeleteRecipe(selectedRecipe._id, selectedRecipe.title)}>
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
