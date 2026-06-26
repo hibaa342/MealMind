@@ -16,6 +16,7 @@ import Onboarding from './pages/Onboarding'
 import AdminDashboard from './pages/AdminDashboard'
 import SiteNavbar from './components/SiteNavbar'
 import { NotificationsProvider } from './context/NotificationsContext'
+import { UserProvider } from './context/UserContext'
 import CookPalLayout from './components/CookPalLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import RequireOnboarded from './components/RequireOnboarded'
@@ -91,9 +92,11 @@ function App() {
           <Route element={<RequireOnboarded />}>
             <Route
               element={
-                <NotificationsProvider>
-                  <CookPalLayout user={user} onLogout={handleLogout} />
-                </NotificationsProvider>
+                <UserProvider sessionUser={user}>
+                  <NotificationsProvider>
+                    <CookPalLayout user={user} onLogout={handleLogout} />
+                  </NotificationsProvider>
+                </UserProvider>
               }
             >
               <Route index element={<Navigate to="dashboard" replace />} />

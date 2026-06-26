@@ -201,10 +201,70 @@ const getFavorites = async (req, res) => {
     }
 };
 
+// @desc    Get current user's full profile
+// @route   GET /api/user/profile
+// @access  Private
+const getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json(user);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error fetching profile' });
+    }
+};
+
+// @desc    Update current user's profile
+// @route   PUT /api/user/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+    try {
+        const allowed = ['diet', 'allergies', 'cuisines', 'goals', 'nameSidebarOverride', 'name', 'surname', 'city', 'birthDate', 'onboarded'];
+        const updates = {};
+        for (const key of allowed) {
+            if (req.body[key] !== undefined) updates[key] = req.body[key];
+        }
+        const user = await User.findByIdAndUpdate(
+            req.user.id,
+            { $set: updates },
+            { new: true, runValidators: true }
+        ).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json(user);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error updating profile' });
+    }
+};
+
+// @desc    Get top/favorite recipes for current user
+// @route   GET /api/user/profile/top-recipes
+// @access  Private
+const getTopRecipes = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('favorites');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        const recipes = (user.favorites || []).slice(0, 8).map((fav, idx) => ({
+            id: fav.id || fav._id || idx,
+            title: fav.title || 'Recipe',
+            category: fav.category || 'Saved',
+            image: fav.image || null,
+        }));
+        res.json({ recipes });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error fetching top recipes' });
+    }
+};
+
 module.exports = {
     registerUser,
     loginUser,
     addFavorite,
     removeFavorite,
-    getFavorites
+    getFavorites,
+    getProfile,
+    updateProfile,
+    getTopRecipes,
 };

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useNotifications } from '../context/NotificationsContext'
-import { loadSidebarPrefs, saveSidebarPrefs } from '../utils/sidebarPrefs'
+import { useUser } from '../context/UserContext'
 import { getDisplayNameFromUser, getPreferredDisplayName, getSubtitleFromUser } from '../utils/userDisplay'
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder'
 
@@ -127,51 +127,49 @@ const PrefPill = ({ label, variant = 'diet' }) => (
   <span className={`snapcook-pref-pill snapcook-pref-pill--${variant}`}>{label}</span>
 )
 
-const PrefsSections = ({ prefs, openAdd }) => (
+const PrefsSections = ({ prefs }) => (
   <>
     <section className="cookpal-prefs snapcook-prefs">
       <h3 className="snapcook-prefs__label">DIET</h3>
       <div className="cookpal-prefs__row">
-        {prefs.diets.map((label, i) => <PrefPill key={`diet-${label}-${i}`} label={label} variant="diet" />)}
-        <button type="button" className="snapcook-prefs__add" aria-label="Add diet" onClick={() => openAdd('diet')}>+</button>
+        {prefs.diets.length > 0
+          ? prefs.diets.map((label, i) => <PrefPill key={`diet-${label}-${i}`} label={label} variant="diet" />)
+          : <span className="snapcook-prefs__empty">None selected</span>}
       </div>
     </section>
     <section className="cookpal-prefs snapcook-prefs">
       <h3 className="snapcook-prefs__label">ALLERGIES</h3>
       <div className="cookpal-prefs__row">
-        {prefs.allergies.map((label, i) => <PrefPill key={`allergy-${label}-${i}`} label={label} variant="allergy" />)}
-        <button type="button" className="snapcook-prefs__add" aria-label="Add allergy" onClick={() => openAdd('allergy')}>+</button>
+        {prefs.allergies.length > 0
+          ? prefs.allergies.map((label, i) => <PrefPill key={`allergy-${label}-${i}`} label={label} variant="allergy" />)
+          : <span className="snapcook-prefs__empty">None selected</span>}
       </div>
     </section>
     <section className="cookpal-prefs snapcook-prefs">
       <h3 className="snapcook-prefs__label">CUISINES</h3>
       <div className="cookpal-prefs__row">
-        {prefs.cuisines.map((label, i) => <PrefPill key={`cuisine-${label}-${i}`} label={label} variant="cuisine" />)}
-        <button type="button" className="snapcook-prefs__add" aria-label="Add cuisine" onClick={() => openAdd('cuisine')}>+</button>
+        {prefs.cuisines.length > 0
+          ? prefs.cuisines.map((label, i) => <PrefPill key={`cuisine-${label}-${i}`} label={label} variant="cuisine" />)
+          : <span className="snapcook-prefs__empty">None selected</span>}
       </div>
     </section>
     <section className="cookpal-prefs snapcook-prefs snapcook-prefs--goals">
       <h3 className="snapcook-prefs__label">GOALS</h3>
       <ul className="snapcook-goals-list">
-        {prefs.goals.map((label, i) => <li key={`goal-${label}-${i}`}>{label}</li>)}
+        {prefs.goals.length > 0
+          ? prefs.goals.map((label, i) => <li key={`goal-${label}-${i}`}>{label}</li>)
+          : <li className="snapcook-prefs__empty">None selected</li>}
       </ul>
-      <button type="button" className="snapcook-prefs__add snapcook-prefs__add--inline" aria-label="Add goal" onClick={() => openAdd('goal')}>+</button>
     </section>
   </>
 )
-
-const ADD_SECTION_LABEL = {
-  diet: 'diet preference',
-  allergy: 'allergy',
-  cuisine: 'cuisine',
-  goal: 'goal',
-}
 
 // ── Composant principal ───────────────────────────────────────────────────────
 
 const CookPalLayout = ({ user, onLogout }) => {
   const location = useLocation()
   const { unreadCount } = useNotifications()
+  const { sidebarPrefs, displayName: ctxDisplayName } = useUser()
   const [preferName, setPreferName] = useState(() => getPreferredDisplayName())
 
   useEffect(() => {
@@ -180,26 +178,11 @@ const CookPalLayout = ({ user, onLogout }) => {
     return () => window.removeEventListener('cookpal-display-name-changed', sync)
   }, [])
 
-  const displayName = preferName || getDisplayNameFromUser(user)
+  const displayName = ctxDisplayName || preferName || getDisplayNameFromUser(user)
   const subtitle = getSubtitleFromUser(user)
 
   const voice = useVoiceRecorder()
   const [prefsDrawer, setPrefsDrawer] = useState(false)
-  const [prefs, setPrefs] = useState(loadSidebarPrefs)
-  const [addOpen, setAddOpen] = useState(null)
-  const [addValue, setAddValue] = useState('')
-
-  useEffect(() => { saveSidebarPrefs(prefs) }, [prefs])
-
-  const openAdd = (section) => { setAddOpen(section); setAddValue('') }
-  const closeAdd = useCallback(() => { setAddOpen(null); setAddValue('') }, [])
-
-  useEffect(() => {
-    if (!addOpen) return
-    const onKey = (e) => { if (e.key === 'Escape') closeAdd() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [addOpen, closeAdd])
 
   useEffect(() => {
     if (!prefsDrawer) return
@@ -207,24 +190,6 @@ const CookPalLayout = ({ user, onLogout }) => {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [prefsDrawer])
-
-  const submitAdd = useCallback(() => {
-    const trimmed = addValue.trim()
-    if (!trimmed || !addOpen) return
-
-    // On détermine dans quelle liste de préférences ajouter la nouvelle valeur
-    let key = 'goals'
-    if (addOpen === 'diet') key = 'diets'
-    else if (addOpen === 'allergy') key = 'allergies'
-    else if (addOpen === 'cuisine') key = 'cuisines'
-
-    setPrefs((p) => {
-      const list = p[key]
-      if (list.some((x) => x.toLowerCase() === trimmed.toLowerCase())) return p
-      return { ...p, [key]: [...list, trimmed] }
-    })
-    closeAdd()
-  }, [addOpen, addValue, closeAdd])
 
   // ── Navigation dynamique selon le rôle ─────────────────────────────────────
   const isAdmin = user && user.role === 'admin'
@@ -331,7 +296,7 @@ const CookPalLayout = ({ user, onLogout }) => {
             <div className="cookpal-profile__role">{subtitle}</div>
           </div>
         </div>
-        <PrefsSections prefs={prefs} openAdd={openAdd} />
+        <PrefsSections prefs={sidebarPrefs} />
       </aside>
 
       {/* ── Navigation mobile bas ── */}
@@ -365,36 +330,12 @@ const CookPalLayout = ({ user, onLogout }) => {
               <button type="button" className="cookpal-drawer__close" onClick={() => setPrefsDrawer(false)} aria-label="Close">✕</button>
             </div>
             <div className="cookpal-drawer__body">
-              <PrefsSections prefs={prefs} openAdd={openAdd} />
+              <PrefsSections prefs={sidebarPrefs} />
             </div>
           </aside>
         </div>
       )}
 
-      {/* ── Modal ajout préférence ── */}
-      {addOpen && (
-        <div className="cookpal-modal-backdrop" role="presentation" onClick={closeAdd}>
-          <div className="cookpal-modal cookpal-panel" role="dialog" aria-labelledby="cookpal-add-pref-title" onClick={(e) => e.stopPropagation()}>
-            <h2 id="cookpal-add-pref-title" className="cookpal-subtitle" style={{ marginTop: 0 }}>
-              Add {ADD_SECTION_LABEL[addOpen]}
-            </h2>
-            <label className="cookpal-modal__label" htmlFor="cookpal-add-pref-input">Name</label>
-            <input
-              id="cookpal-add-pref-input"
-              className="cookpal-modal__input"
-              value={addValue}
-              onChange={(e) => setAddValue(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && submitAdd()}
-              placeholder="e.g. Vegan, Peanuts, Japanese…"
-              autoFocus
-            />
-            <div className="cookpal-modal__actions">
-              <button type="button" className="cookpal-modal__btn cookpal-modal__btn--ghost" onClick={closeAdd}>Cancel</button>
-              <button type="button" className="cookpal-modal__btn cookpal-modal__btn--primary" onClick={submitAdd}>Add</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
