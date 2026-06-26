@@ -134,21 +134,21 @@ const PrefsSections = ({ prefs, openAdd }) => (
       <h3 className="snapcook-prefs__label">DIET</h3>
       <div className="cookpal-prefs__row">
         {prefs.diets.map((label, i) => <PrefPill key={`diet-${label}-${i}`} label={label} variant="diet" />)}
-        <button type="button" className="snapcook-prefs__add" aria-label="Add diet" onClick={() => openAdd('diet')}>+</button>
+        {/* Le bouton + pour DIET a été supprimé d'ici */}
       </div>
     </section>
     <section className="cookpal-prefs snapcook-prefs">
       <h3 className="snapcook-prefs__label">ALLERGIES</h3>
       <div className="cookpal-prefs__row">
         {prefs.allergies.map((label, i) => <PrefPill key={`allergy-${label}-${i}`} label={label} variant="allergy" />)}
-        <button type="button" className="snapcook-prefs__add" aria-label="Add allergy" onClick={() => openAdd('allergy')}>+</button>
+        {/* Le bouton + pour ALLERGIES a été supprimé d'ici */}
       </div>
     </section>
     <section className="cookpal-prefs snapcook-prefs">
       <h3 className="snapcook-prefs__label">CUISINES</h3>
       <div className="cookpal-prefs__row">
         {prefs.cuisines.map((label, i) => <PrefPill key={`cuisine-${label}-${i}`} label={label} variant="cuisine" />)}
-        <button type="button" className="snapcook-prefs__add" aria-label="Add cuisine" onClick={() => openAdd('cuisine')}>+</button>
+        {/* Le bouton + pour CUISINES a été supprimé d'ici */}
       </div>
     </section>
     <section className="cookpal-prefs snapcook-prefs snapcook-prefs--goals">
@@ -156,7 +156,7 @@ const PrefsSections = ({ prefs, openAdd }) => (
       <ul className="snapcook-goals-list">
         {prefs.goals.map((label, i) => <li key={`goal-${label}-${i}`}>{label}</li>)}
       </ul>
-      <button type="button" className="snapcook-prefs__add snapcook-prefs__add--inline" aria-label="Add goal" onClick={() => openAdd('goal')}>+</button>
+      {/* Le bouton + pour GOALS a été supprimé d'ici */}
     </section>
   </>
 )
@@ -173,7 +173,11 @@ const ADD_SECTION_LABEL = {
 const CookPalLayout = ({ user, onLogout }) => {
   const location = useLocation()
   const { unreadCount } = useNotifications()
-  const { sidebarPrefs: userSidebarPrefs, profile } = useUser()
+  //  Utilisez directement l'objet `user` ou `profile` extrait de votre contexte global :
+const { sidebarPrefs: userSidebarPrefs, user: contextUser, profile } = useUser()
+
+// Déterminez le nom de manière réactive à chaque modification du contexte
+const currentSidebarName = profile?.sidebarCustomName || contextUser?.displayName || getPreferredDisplayName() || getDisplayNameFromUser(user)
   const [preferName, setPreferName] = useState(() => getPreferredDisplayName())
 
   useEffect(() => {
