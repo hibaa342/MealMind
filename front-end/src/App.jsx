@@ -21,6 +21,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import RequireOnboarded from './components/RequireOnboarded'
 import ErrorBoundary from './components/ErrorBoundary'
 import { getPostAuthPath } from './utils/onboardingStorage'
+import ChatbotWidget from './components/ChatbotWidget'
 
 function App() {
   // On lit la session sauvegardée dans le navigateur (localStorage)
@@ -126,6 +127,8 @@ function App() {
           element={<Navigate to={isAuthenticated ? getPostAuthPath(user) : '/login'} replace />}
         />
       </Routes>
+      {/* ── AI Chatbot Widget (floating, visible when logged in) ── */}
+      {isAuthenticated && <ChatbotWidget />}
     </div>
   )
 }

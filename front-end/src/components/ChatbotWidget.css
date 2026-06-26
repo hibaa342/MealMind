@@ -1,0 +1,336 @@
+/* ============================================================
+   ChatbotWidget.css — Dark green design + Recipe Card
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+.chatbot-root { font-family: 'Inter', sans-serif; }
+
+/* ════════════════════════════════════════════════════════════
+   FAB
+════════════════════════════════════════════════════════════ */
+.chatbot-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9998;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: #2d6a35;
+  box-shadow: 0 4px 20px rgba(45,106,53,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: fab-glow 3s ease-in-out infinite;
+}
+.chatbot-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(45,106,53,0.8);
+}
+@keyframes fab-glow {
+  0%,100% { box-shadow: 0 4px 20px rgba(45,106,53,0.6), 0 0 0 0 rgba(74,178,90,0.3); }
+  50%      { box-shadow: 0 4px 20px rgba(45,106,53,0.6), 0 0 0 10px rgba(74,178,90,0); }
+}
+.chatbot-fab svg { width:24px; height:24px; fill:#fff; transition: opacity 0.2s, transform 0.25s; position:absolute; }
+.chatbot-fab svg.icon-chat  { opacity:1; transform:scale(1); }
+.chatbot-fab svg.icon-close { opacity:0; transform:scale(0.5) rotate(90deg); }
+.chatbot-fab.is-open svg.icon-chat  { opacity:0; transform:scale(0.5) rotate(-90deg); }
+.chatbot-fab.is-open svg.icon-close { opacity:1; transform:scale(1) rotate(0deg); }
+
+/* ════════════════════════════════════════════════════════════
+   PANEL
+════════════════════════════════════════════════════════════ */
+.chatbot-panel {
+  position: fixed;
+  bottom: 96px;
+  right: 28px;
+  z-index: 9999;
+  width: 340px;
+  max-height: 560px;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #1a2e1a 0%, #152215 50%, #0f1a10 100%);
+  border: 1px solid rgba(74,178,90,0.15);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.7);
+  opacity: 0;
+  transform: scale(0.88) translateY(16px);
+  pointer-events: none;
+  transform-origin: bottom right;
+  transition: opacity 0.3s cubic-bezier(0.34,1.4,0.64,1),
+              transform 0.3s cubic-bezier(0.34,1.4,0.64,1),
+              max-height 0.4s ease;
+}
+.chatbot-panel.is-open  { opacity:1; transform:scale(1) translateY(0); pointer-events:all; }
+.chatbot-panel.has-recipe { max-height: 640px; }
+
+/* ════════════════════════════════════════════════════════════
+   TITLE BLOCK
+════════════════════════════════════════════════════════════ */
+.cb-title-block {
+  text-align: center;
+  padding: 22px 20px 0;
+  flex-shrink: 0;
+}
+.cb-app-name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #fff;
+  text-transform: uppercase;
+}
+.cb-app-sub {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 2.5px;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   ORB
+════════════════════════════════════════════════════════════ */
+.cb-orb-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.cb-ring-wrap { position:relative; width:90px; height:90px; display:flex; align-items:center; justify-content:center; }
+.cb-ring {
+  width: 78px; height: 78px;
+  border-radius: 50%;
+  border: 2.5px solid #4ab25a;
+  box-shadow: 0 0 12px rgba(74,178,90,0.7), 0 0 28px rgba(74,178,90,0.3);
+  animation: ring-idle 4s ease-in-out infinite;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.cb-ring-wrap.is-listening .cb-ring {
+  border-color: #6ddc80;
+  box-shadow: 0 0 18px rgba(109,220,128,0.9), 0 0 40px rgba(109,220,128,0.4);
+  animation: ring-listening 1.2s ease-in-out infinite;
+}
+.cb-ring-wrap.is-thinking .cb-ring {
+  border-color: rgba(74,178,90,0.5);
+  border-top-color: #4ab25a;
+  animation: ring-spin 0.9s linear infinite;
+}
+.cb-ring-wrap.is-speaking .cb-ring {
+  animation: ring-speak 1.5s ease-in-out infinite;
+}
+@keyframes ring-idle      { 0%,100% { box-shadow: 0 0 12px rgba(74,178,90,0.7),0 0 28px rgba(74,178,90,0.3); } 50% { box-shadow: 0 0 18px rgba(74,178,90,0.9),0 0 40px rgba(74,178,90,0.45); } }
+@keyframes ring-listening { 0%,100% { transform:scale(1); box-shadow: 0 0 18px rgba(109,220,128,0.9),0 0 40px rgba(109,220,128,0.4); } 50% { transform:scale(1.06); box-shadow:0 0 28px rgba(109,220,128,1),0 0 60px rgba(109,220,128,0.5); } }
+@keyframes ring-spin      { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+@keyframes ring-speak     { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.04); opacity:0.75; } }
+
+.cb-lang-badge { font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:0.5px; margin-top:10px; }
+.cb-status-text { margin-top:14px; font-size:13.5px; color:rgba(255,255,255,0.6); text-align:center; padding:0 24px; min-height:40px; line-height:1.5; }
+
+/* ════════════════════════════════════════════════════════════
+   CHAT LOG
+════════════════════════════════════════════════════════════ */
+.cb-chat-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+.cb-chat-log::-webkit-scrollbar { width: 3px; }
+.cb-chat-log::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius:4px; }
+
+.cb-bubble { font-size:13px; line-height:1.5; padding:8px 12px; border-radius:12px; color:rgba(255,255,255,0.85); animation:bubble-in 0.25s ease both; word-break:break-word; max-width:88%; }
+.cb-bubble.user { align-self:flex-end; background:rgba(74,178,90,0.2); border:1px solid rgba(74,178,90,0.3); border-bottom-right-radius:3px; }
+.cb-bubble.bot  { align-self:flex-start; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-bottom-left-radius:3px; }
+.cb-bubble.bot.typing { display:flex; gap:4px; align-items:center; padding:10px 14px; }
+@keyframes bubble-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+.cb-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.4); animation:dot-bounce 1.2s ease-in-out infinite; }
+.cb-dot:nth-child(2) { animation-delay:0.2s; }
+.cb-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes dot-bounce { 0%,80%,100% { transform:translateY(0); opacity:0.4; } 40% { transform:translateY(-5px); opacity:1; } }
+
+/* ════════════════════════════════════════════════════════════
+   MISC BAR / ERROR
+════════════════════════════════════════════════════════════ */
+.cb-lang-badge-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  font-size: 10.5px;
+  color: rgba(255,255,255,0.3);
+}
+.speaking-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #4ab25a;
+  animation: ring-speak 0.8s ease-in-out infinite;
+}
+.cb-error { font-size:11.5px; color:#f87171; text-align:center; padding:4px 16px 6px; flex-shrink:0; }
+
+/* ════════════════════════════════════════════════════════════
+   INPUT BAR
+════════════════════════════════════════════════════════════ */
+.cb-input-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  margin: 6px 12px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.cb-input-bar:focus-within { border-color: rgba(74,178,90,0.4); }
+.cb-text-input {
+  flex:1; background:transparent; border:none; outline:none;
+  padding:11px 12px; font-size:13px;
+  color:rgba(255,255,255,0.85); font-family:'Inter',sans-serif;
+  caret-color: #4ab25a;
+}
+.cb-text-input::placeholder { color:rgba(255,255,255,0.28); }
+.cb-send-btn {
+  flex-shrink:0; width:34px; height:34px; margin-right:4px;
+  background:#2d6a35; border:none; border-radius:8px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background 0.2s, opacity 0.2s;
+}
+.cb-send-btn:disabled { opacity:0.3; cursor:not-allowed; }
+.cb-send-btn:not(:disabled):hover { background:#3a8545; }
+.cb-send-btn svg { width:15px; height:15px; fill:#fff; }
+.cb-mic-btn {
+  flex-shrink:0; width:42px; height:42px; background:transparent;
+  border:none; cursor:pointer; display:flex; align-items:center;
+  justify-content:center; border-radius:0 10px 10px 0; transition:background 0.2s;
+}
+.cb-mic-btn:hover { background:rgba(74,178,90,0.1); }
+.cb-mic-btn svg { width:20px; height:20px; fill:rgba(255,255,255,0.5); transition:fill 0.2s; }
+.cb-mic-btn:hover svg { fill:#4ab25a; }
+.cb-mic-btn.is-recording svg { fill:#ef4444; animation:mic-pulse 0.8s ease-in-out infinite; }
+@keyframes mic-pulse { 0%,100% { opacity:1; } 50% { opacity:0.45; } }
+
+/* ════════════════════════════════════════════════════════════
+   RECIPE CARD
+════════════════════════════════════════════════════════════ */
+.recipe-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(74,178,90,0.2);
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%;
+  animation: bubble-in 0.35s ease both;
+  box-sizing: border-box;
+}
+
+/* Header */
+.recipe-header { margin-bottom: 14px; }
+.recipe-title-row { display:flex; align-items:flex-start; justify-content:space-between; }
+.recipe-title { font-size:16px; font-weight:700; color:#fff; margin:0 0 4px; line-height:1.3; }
+.recipe-desc { font-size:12px; color:rgba(255,255,255,0.45); margin:0 0 12px; line-height:1.4; }
+
+/* Servings control */
+.servings-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 6px 10px;
+  width: fit-content;
+}
+.servings-label { font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:0.5px; }
+.servings-btn {
+  width:24px; height:24px; border-radius:50%;
+  border:1px solid rgba(74,178,90,0.4);
+  background:rgba(74,178,90,0.12);
+  color:#4ab25a; font-size:16px; line-height:1;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition: background 0.2s;
+}
+.servings-btn:hover { background:rgba(74,178,90,0.25); }
+.servings-count { font-size:14px; font-weight:600; color:#fff; min-width:20px; text-align:center; }
+
+/* Section titles */
+.recipe-section { margin-top:14px; }
+.recipe-section-title {
+  font-size:12px; font-weight:600; color:rgba(255,255,255,0.5);
+  letter-spacing:1px; text-transform:uppercase;
+  margin:0 0 10px; display:flex; align-items:center; gap:6px;
+}
+.section-icon { font-size:14px; }
+
+/* Ingredients */
+.ingredient-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0; }
+.ingredient-item {
+  display:flex; align-items:baseline; gap:5px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size:13px; color:rgba(255,255,255,0.8);
+}
+.ingredient-item:last-child { border-bottom:none; }
+.ing-amount { font-weight:600; color:#6ddc80; min-width:28px; }
+.ing-unit   { color:rgba(255,255,255,0.4); font-size:11.5px; }
+.ing-name   { color:rgba(255,255,255,0.8); }
+
+/* Steps */
+.steps-list { display:flex; flex-direction:column; gap:12px; }
+.step-item  { display:flex; gap:10px; align-items:flex-start; }
+.step-number {
+  flex-shrink:0; width:24px; height:24px; border-radius:50%;
+  background:rgba(74,178,90,0.2); border:1px solid rgba(74,178,90,0.3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:#4ab25a;
+}
+.step-body  { flex:1; }
+.step-title { display:block; font-size:12.5px; font-weight:600; color:#fff; margin-bottom:3px; }
+.step-content { font-size:12.5px; color:rgba(255,255,255,0.6); line-height:1.5; margin:0; }
+
+/* Timers */
+.timer-row  { display:flex; align-items:center; gap:8px; margin-top:7px; flex-wrap:wrap; }
+.timer-btn  {
+  padding:4px 10px; border-radius:20px;
+  border:1px solid rgba(74,178,90,0.35);
+  background:rgba(74,178,90,0.1); color:#6ddc80;
+  font-size:11.5px; cursor:pointer; font-family:'Inter',sans-serif;
+  transition: background 0.2s;
+}
+.timer-btn:hover { background:rgba(74,178,90,0.22); }
+.timer-stop-btn {
+  padding:3px 8px; border-radius:20px;
+  border:1px solid rgba(239,68,68,0.35);
+  background:rgba(239,68,68,0.1); color:#f87171;
+  font-size:11px; cursor:pointer; font-family:'Inter',sans-serif;
+}
+.timer-display        { font-size:12px; color:rgba(255,255,255,0.5); }
+.timer-display.running{ color:#fbbf24; font-weight:600; }
+.timer-display.done   { color:#4ab25a; font-weight:600; }
+
+/* Notes */
+.recipe-notes {
+  margin-top:14px; padding:10px 12px;
+  background:rgba(251,191,36,0.07);
+  border:1px solid rgba(251,191,36,0.2);
+  border-radius:10px;
+  font-size:12px; color:rgba(255,255,255,0.55); line-height:1.5;
+}
+.notes-icon { margin-right:4px; }
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════════════════════════ */
+@media (max-width: 400px) {
+  .chatbot-panel { width:calc(100vw - 24px); right:12px; }
+  .chatbot-fab   { right:16px; bottom:18px; }
+}
