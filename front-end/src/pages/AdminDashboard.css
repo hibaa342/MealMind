@@ -43,6 +43,7 @@
 /* ── Tabs ────────────────────────────────────────────────────── */
 .admin-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 30px;
   background: rgba(232, 245, 233, 0.6);
@@ -125,7 +126,6 @@
   line-height: 1;
 }
 
-/* Sous-titre des cartes stat — NOUVEAU */
 .admin-stat-sub {
   display: block;
   font-size: 0.76rem;
@@ -218,6 +218,10 @@
   margin-bottom: 24px;
 }
 
+.admin-search-bar--wrap {
+  flex-wrap: wrap;
+}
+
 .admin-search-input {
   flex: 1;
   max-width: 420px;
@@ -254,6 +258,42 @@
 .admin-badge--user {
   background: #e3f2fd;
   color: #0d47a1;
+}
+
+/* ── Status pills (products + user accounts) ─────────────────── */
+.admin-status-pill {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.admin-status-pill--pending {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.admin-status-pill--approved {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.admin-status-pill--rejected {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.admin-status-pill--active {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.admin-status-pill--inactive {
+  background: #ffebee;
+  color: #c62828;
 }
 
 /* ── Avatar ──────────────────────────────────────────────────── */
@@ -316,6 +356,26 @@
   color: #fff;
 }
 
+.admin-btn--secondary {
+  background: rgba(45, 106, 79, 0.08);
+  color: var(--snap-forest);
+}
+
+.admin-btn--secondary:hover {
+  background: var(--snap-forest);
+  color: #fff;
+}
+
+.admin-btn--primary {
+  background: var(--snap-forest);
+  color: #fff;
+}
+
+.admin-btn--primary:hover {
+  background: #14291d;
+  color: #fff;
+}
+
 /* ── Toast ───────────────────────────────────────────────────── */
 .admin-toast {
   position: fixed;
@@ -335,7 +395,6 @@
   max-width: 360px;
 }
 
-/* Toast d'erreur — NOUVEAU */
 .admin-toast--error {
   background: #c62828;
 }
@@ -354,7 +413,7 @@
   flex-shrink: 0;
 }
 
-/* ── Recipe Grid ─────────────────────────────────────────────── */
+/* ── Product cards (no image — accent bar instead) ────────────── */
 .admin-recipes-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -377,12 +436,16 @@
   box-shadow: 0 14px 32px rgba(27, 59, 40, 0.09);
 }
 
-.admin-recipe-image {
-  height: 160px;
+.admin-recipe-card__accent-bar {
+  height: 6px;
   width: 100%;
-  object-fit: cover;
-  background: #f5f5f5;
 }
+
+.admin-recipe-card--green .admin-recipe-card__accent-bar { background: #52b788; }
+.admin-recipe-card--orange .admin-recipe-card__accent-bar { background: #e8983a; }
+.admin-recipe-card--pink .admin-recipe-card__accent-bar { background: #e07a9e; }
+.admin-recipe-card--yellow .admin-recipe-card__accent-bar { background: #e8c547; }
+.admin-recipe-card--purple .admin-recipe-card__accent-bar { background: #9a7fd1; }
 
 .admin-recipe-content {
   padding: 18px;
@@ -410,6 +473,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* ── Pill tag ────────────────────────────────────────────────── */
@@ -455,5 +519,3 @@
     font-size: 1.4rem;
   }
 }
-
-
