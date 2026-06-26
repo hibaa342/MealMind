@@ -31,7 +31,11 @@ router.put('/budget-limit', auth, async (req, res) => {
 // Add manual expense
 router.post('/expenses', auth, async (req, res) => {
   try {
-    const newExpense = new Expense({ userId: req.user.id, amount: req.body.amount });
+    const newExpense = new Expense({
+      userId: req.user.id,
+      amount: req.body.amount,
+      description: req.body.description || 'Groceries',
+    });
     const saved = await newExpense.save();
 
     // Logic to check if user went over budget
@@ -51,6 +55,19 @@ router.post('/expenses', auth, async (req, res) => {
     res.json(saved);
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+});
+
+// Delete a single expense by ID
+router.delete('/expenses/:id', auth, async (req, res) => {
+  try {
+    await Expense.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.id
+    });
+    res.json({ msg: 'Expense removed' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server Error' });
   }
 });
 

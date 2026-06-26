@@ -30,7 +30,7 @@ const PlanningPage = () => {
     if (!token) return;
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/planning/budget-data', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning/budget-data`, {
         headers: { 'x-auth-token': token }
       });
       const data = await response.json();
@@ -54,7 +54,7 @@ const PlanningPage = () => {
 
     try {
       // Fetching orders from your 'commande' part
-      const response = await fetch('http://127.0.0.1:5000/api/orders', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, {
         headers: { 'x-auth-token': token }
       });
       const orders = await response.json();
@@ -74,7 +74,7 @@ const PlanningPage = () => {
     if (!expenseInput || isNaN(expenseInput)) return;
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/planning/expenses', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning/expenses`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -99,7 +99,7 @@ const PlanningPage = () => {
 
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/planning/budget-limit', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning/budget-limit`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ const PlanningPage = () => {
     setError('');
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/planning', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning`, {
         headers: { 'x-auth-token': token }
       });
       const data = await response.json();
@@ -153,7 +153,7 @@ const PlanningPage = () => {
 
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/planning', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -182,7 +182,7 @@ const PlanningPage = () => {
   const handleRemove = async (id) => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`http://127.0.0.1:5000/api/planning/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning/${id}`, {
         method: 'DELETE',
         headers: { 'x-auth-token': token }
       });
@@ -191,6 +191,21 @@ const PlanningPage = () => {
       }
     } catch (err) {
       setError('Unable to connect to the server.');
+    }
+  };
+
+  const handleDeleteExpense = async (id) => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning/expenses/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-auth-token': token }
+      });
+      if (response.ok) {
+        setManualExpenses(prev => prev.filter(e => e._id !== id));
+      }
+    } catch (err) {
+      setError('Failed to delete expense.');
     }
   };
 
@@ -237,9 +252,6 @@ const PlanningPage = () => {
           <p className="snapcook-planning__lead">Organize your weekly nutrition and stay on track with your goals.</p>
         </div>
 
-        <button type="button" className="snapcook-planning__generate">
-          Smart Generate
-        </button>
       </div>
 
       {error && <div className="snapcook-planning__alert">{error}</div>}
@@ -324,6 +336,62 @@ const PlanningPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Expense Log */}
+      {manualExpenses.length > 0 && (
+        <section className="snapcook-budget-card" style={{ marginTop: '16px' }}>
+          <div className="snapcook-budget-card__header">
+            <div>
+              <h3 className="snapcook-budget-card__title">Expense Log</h3>
+              <p className="snapcook-budget-card__meta">All manually logged grocery expenses</p>
+            </div>
+          </div>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {manualExpenses.map((exp) => (
+              <li
+                key={exp._id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  background: 'rgba(255,255,255,0.6)',
+                  border: '1px solid rgba(88,74,45,0.10)',
+                  fontSize: '0.93rem',
+                }}
+              >
+                <span style={{ color: '#5a6b62', fontWeight: 500 }}>
+                  {exp.description || 'Groceries'}
+                  {exp.createdAt && (
+                    <span style={{ marginLeft: 8, fontSize: '0.78rem', color: '#9aa49d' }}>
+                      {new Date(exp.createdAt).toLocaleDateString()}
+                    </span>
+                  )}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <strong style={{ color: '#273d2f' }}>{exp.amount?.toFixed(2)} MAD</strong>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteExpense(exp._id)}
+                    aria-label={`Delete expense of ${exp.amount} MAD`}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: '#b42343',
+                      fontSize: '1rem',
+                      padding: '2px 6px',
+                      borderRadius: '6px',
+                      lineHeight: 1,
+                    }}
+                  >✕</button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Nice Interface: Add Meal Modal */}
       {isMealModalOpen && (

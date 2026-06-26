@@ -13,29 +13,68 @@ const ACCENT_COLORS = ['green', 'orange', 'pink', 'yellow', 'purple']
 // Helper to cycle through accent colors
 const getAccentColor = (index) => ACCENT_COLORS[index % ACCENT_COLORS.length]
 
-// Helper to fetch recipes from TheMealDB
+// Difficulty and calorie estimates per category
+const CATEGORY_META = {
+  Beef:       { difficulty: 'Medium', calories: '520 kcal' },
+  Chicken:    { difficulty: 'Easy',   calories: '380 kcal' },
+  Seafood:    { difficulty: 'Medium', calories: '310 kcal' },
+  Breakfast:  { difficulty: 'Easy',   calories: '290 kcal' },
+  Vegetarian: { difficulty: 'Easy',   calories: '240 kcal' },
+  Pasta:      { difficulty: 'Easy',   calories: '420 kcal' },
+  Dessert:    { difficulty: 'Hard',   calories: '460 kcal' },
+  Side:       { difficulty: 'Easy',   calories: '180 kcal' },
+  Lamb:       { difficulty: 'Hard',   calories: '490 kcal' },
+  Pork:       { difficulty: 'Medium', calories: '430 kcal' },
+}
+
+// Estimated cooking times per category
+const CATEGORY_TIMES = {
+  Beef:       '45 min',
+  Chicken:    '35 min',
+  Seafood:    '25 min',
+  Breakfast:  '15 min',
+  Vegetarian: '30 min',
+  Pasta:      '25 min',
+  Dessert:    '50 min',
+  Side:       '20 min',
+  Lamb:       '60 min',
+  Pork:       '40 min',
+}
+
+// Helper to fetch recipes from TheMealDB — fetches up to 20 recipes across 8 categories
 const fetchTheMealDBRecipes = async () => {
   try {
     const recipes = []
     const fetchedIds = new Set()
 
-    const categories = ['Seafood', 'Breakfast', 'Vegetarian', 'Pasta', 'Dessert']
-    
+    const categories = [
+      'Beef', 'Chicken', 'Seafood', 'Breakfast',
+      'Vegetarian', 'Pasta', 'Dessert', 'Side'
+    ]
+    const PER_CATEGORY = 3
+    const MAX_RECIPES = 20
+
     for (const category of categories) {
-      if (recipes.length >= 10) break
+      if (recipes.length >= MAX_RECIPES) break
       try {
         const res = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category}`)
         const data = await res.json()
         if (data.meals) {
-          for (const meal of data.meals.slice(0, 2)) {
-            if (!fetchedIds.has(meal.idMeal) && recipes.length < 10) {
+          // Shuffle slightly to get variety
+          const shuffled = [...data.meals].sort(() => Math.random() - 0.5)
+          for (const meal of shuffled.slice(0, PER_CATEGORY)) {
+            if (!fetchedIds.has(meal.idMeal) && recipes.length < MAX_RECIPES) {
+              const meta = CATEGORY_META[category] || { difficulty: 'Medium', calories: 'N/A' }
               recipes.push({
                 id: meal.idMeal,
                 title: meal.strMeal,
                 image: meal.strMealThumb,
-                time: '30 min',
+                time: CATEGORY_TIMES[category] || '30 min',
                 categories: category,
-                rating: 4.2 + Math.random() * 0.7,
+                category,
+                difficulty: meta.difficulty,
+                calories: meta.calories,
+                rating: parseFloat((4.0 + Math.random() * 0.9).toFixed(1)),
                 accent: getAccentColor(recipes.length),
               })
               fetchedIds.add(meal.idMeal)
@@ -296,9 +335,25 @@ const Recipes = () => {
   if (loading) {
     return (
       <div className="recipes-page">
-        <h1 className="recipes-page__title">Explore recipes</h1>
-        <p className="recipes-page__lead">Loading delicious meals...</p>
-        <div className="recipes-page__loading">Loading...</div>
+        <div className="recipes-page__header">
+          <div className="recipes-page__utensils" aria-hidden>
+            <span /><span /><span /><span />
+          </div>
+          <h1 className="recipes-page__title">Explore recipes</h1>
+          <p className="recipes-page__lead">Discovering delicious meals for you…</p>
+        </div>
+        <h2 className="recipes-page__section-title">All recipes</h2>
+        <div className="recipes-page__grid">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="recipes-page__skeleton">
+              <div className="recipes-page__skeleton-img" />
+              <div className="recipes-page__skeleton-body">
+                <div className="recipes-page__skeleton-line" />
+                <div className="recipes-page__skeleton-line recipes-page__skeleton-line--short" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

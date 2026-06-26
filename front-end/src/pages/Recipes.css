@@ -1,5 +1,5 @@
 .recipes-page {
-  width: min(100%, 640px);
+  width: min(100%, 1100px);
   margin: 0 auto;
   padding: 0 0 32px;
   color: #223227;
@@ -113,8 +113,48 @@
 
 .recipes-page__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px 18px;
+}
+
+/* Skeleton loader cards */
+.recipes-page__skeleton {
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f8f5ea;
+  box-shadow: 0 7px 14px rgba(69, 58, 35, 0.14);
+  min-height: 286px;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+.recipes-page__skeleton-img {
+  width: 100%;
+  aspect-ratio: 1.1 / 0.82;
+  background: linear-gradient(90deg, #ede8d8 25%, #f5f0e0 50%, #ede8d8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s infinite;
+}
+
+.recipes-page__skeleton-body {
+  padding: 30px 14px 14px;
+}
+
+.recipes-page__skeleton-line {
+  height: 14px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #ede8d8 25%, #f5f0e0 50%, #ede8d8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s infinite;
+  margin-bottom: 10px;
+}
+
+.recipes-page__skeleton-line--short {
+  width: 55%;
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .recipes-page__card-wrapper {
@@ -419,6 +459,12 @@
 
 .recipes-page__modal-btn:hover {
   filter: brightness(1.06);
+}
+
+@media (max-width: 1200px) {
+  .recipes-page__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 900px) {
