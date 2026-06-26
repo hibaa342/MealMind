@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { useNotifications } from '../context/NotificationsContext'
 import { useUser } from '../context/UserContext'
 import { getDisplayNameFromUser, getPreferredDisplayName, getSubtitleFromUser } from '../utils/userDisplay'
 import { useVoiceRecorder } from '../hooks/useVoiceRecorder'
@@ -56,12 +55,6 @@ const IconCart = () => (
     <path d="M3 4h2l2.4 10.5a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H7" />
   </svg>
 )
-const IconBell = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-  </svg>
-)
 const IconFridge = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <rect x="4" y="3" width="16" height="18" rx="2" />
@@ -110,15 +103,14 @@ const IconShield = () => (
 
 // ── Navigation de base — tous les utilisateurs ────────────────────────────────
 const baseNavItems = [
-  { to: '/dashboard',      label: 'Home',          Icon: IconHome },
-  { to: '/recipes',        label: 'Recipes',        Icon: IconRecipe },
-  { to: '/scanner',        label: 'Scanner',        Icon: IconCamera },
-  { to: '/order',          label: 'Order',          Icon: IconCart },
-  { to: '/community',      label: 'Community',      Icon: IconUsers },
-  { to: '/planning',       label: 'Planning',       Icon: IconCalendar },
-  { to: '/favorites',      label: 'Favorites',      Icon: IconHeart },
-  { to: '/notifications',  label: 'Notifications',  Icon: IconBell },
-  { to: '/help',           label: 'Help',           Icon: IconHelp },
+  { to: '/dashboard',  label: 'Home',       Icon: IconHome },
+  { to: '/recipes',    label: 'Recipes',    Icon: IconRecipe },
+  { to: '/scanner',    label: 'Scanner',    Icon: IconCamera },
+  { to: '/order',      label: 'Order',      Icon: IconCart },
+  { to: '/community',  label: 'Community',  Icon: IconUsers },
+  { to: '/planning',   label: 'Planning',   Icon: IconCalendar },
+  { to: '/favorites',  label: 'Favorites',  Icon: IconHeart },
+  { to: '/help',       label: 'Help',       Icon: IconHelp },
 ]
 
 // ── Composants internes ───────────────────────────────────────────────────────
@@ -168,21 +160,15 @@ const PrefsSections = ({ prefs }) => (
 
 const CookPalLayout = ({ user, onLogout }) => {
   const location = useLocation()
-  const { unreadCount } = useNotifications()
   const { sidebarPrefs, displayName: ctxDisplayName } = useUser()
   const [preferName, setPreferName] = useState(() => getPreferredDisplayName())
+  const [prefsDrawer, setPrefsDrawer] = useState(false)
 
   useEffect(() => {
     const sync = () => setPreferName(getPreferredDisplayName())
     window.addEventListener('cookpal-display-name-changed', sync)
     return () => window.removeEventListener('cookpal-display-name-changed', sync)
   }, [])
-
-  const displayName = ctxDisplayName || preferName || getDisplayNameFromUser(user)
-  const subtitle = getSubtitleFromUser(user)
-
-  const voice = useVoiceRecorder()
-  const [prefsDrawer, setPrefsDrawer] = useState(false)
 
   useEffect(() => {
     if (!prefsDrawer) return
@@ -198,6 +184,11 @@ const CookPalLayout = ({ user, onLogout }) => {
   if (isAdmin) {
     navItems.push({ to: '/admin/dashboard', label: 'Admin', Icon: IconShield })
   }
+
+  const displayName = ctxDisplayName || preferName || getDisplayNameFromUser(user)
+  const subtitle = getSubtitleFromUser(user)
+
+  const voice = useVoiceRecorder()
 
   return (
     <div className="cookpal-shell cookpal-shell--snapcook">
@@ -224,12 +215,6 @@ const CookPalLayout = ({ user, onLogout }) => {
             >
               <span className="snapcook-nav__icon-wrap">
                 <Icon />
-                {to === '/notifications' && unreadCount > 0 && (
-                  <span
-                    className="cookpal-nav__badge"
-                    aria-label={`${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`}
-                  />
-                )}
               </span>
               <span>{label}</span>
             </NavLink>
@@ -262,10 +247,6 @@ const CookPalLayout = ({ user, onLogout }) => {
           </div>
         </div>
         <div className="cookpal-mobile-header__actions">
-          <NavLink to="/notifications" className="cookpal-mobile-header__icon-btn" aria-label="Notifications">
-            <IconBell />
-            {unreadCount > 0 && <span className="cookpal-mobile-header__dot" />}
-          </NavLink>
           <button
             type="button"
             className="cookpal-mobile-header__icon-btn"
