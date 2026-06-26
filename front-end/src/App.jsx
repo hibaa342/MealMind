@@ -14,7 +14,7 @@ import Order from './pages/Order'
 import Onboarding from './pages/Onboarding'
 import AdminDashboard from './pages/AdminDashboard'
 // ── Suppression de l'import de SiteNavbar ici ──
-import { NotificationsProvider } from './context/NotificationsContext'
+/*import { NotificationsProvider } from './context/NotificationsContext'*/
 import { UserProvider } from './context/UserContext'
 import CookPalLayout from './components/CookPalLayout'
 import ProtectedRoute from './components/ProtectedRoute'
