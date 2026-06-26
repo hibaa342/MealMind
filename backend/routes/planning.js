@@ -2,9 +2,7 @@ const express = require('express');
 const router = express.Router();
 const MealPlan = require('../models/MealPlan');
 const Expense = require('../models/Expense');
-const Notification = require('../models/Notification');
 const User = require('../models/UserModels');
-// Assuming you have an auth middleware like in your other routes
 const auth = require('../middleware/auth'); 
 
 // Get user budget and manual expenses
@@ -34,21 +32,13 @@ router.post('/expenses', auth, async (req, res) => {
     const newExpense = new Expense({ userId: req.user.id, amount: req.body.amount });
     const saved = await newExpense.save();
 
-    // Logic to check if user went over budget
+    // Check if user went over budget (no notification sent — feature removed)
     const user = await User.findById(req.user.id);
     const allExpenses = await Expense.find({ userId: req.user.id });
     const total = allExpenses.reduce((sum, e) => sum + e.amount, 0);
 
-    if (total > user.budgetLimit) {
-      await Notification.create({
-        userId: req.user.id,
-        text: `Attention ! Vous avez dépassé votre budget mensuel (${total} MAD / ${user.budgetLimit} MAD).`,
-        type: 'warning',
-        link: '/planning'
-      });
-    }
-
-    res.json(saved);
+    // Budget status is returned in the response so the frontend can handle it
+    res.json({ ...saved.toObject(), overBudget: total > user.budgetLimit, total });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }

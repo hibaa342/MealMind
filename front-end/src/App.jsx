@@ -11,11 +11,9 @@ import Profile from './pages/Profile'
 import Help from './pages/Help'
 import Favorites from './pages/Favorites'
 import Order from './pages/Order'
-import Notifications from './pages/Notifications'
 import Onboarding from './pages/Onboarding'
 import AdminDashboard from './pages/AdminDashboard'
 import SiteNavbar from './components/SiteNavbar'
-import { NotificationsProvider } from './context/NotificationsContext'
 import { UserProvider } from './context/UserContext'
 import CookPalLayout from './components/CookPalLayout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -94,9 +92,7 @@ function App() {
             <Route
               element={
                 <UserProvider sessionUser={user}>
-                  <NotificationsProvider>
-                    <CookPalLayout user={user} onLogout={handleLogout} />
-                  </NotificationsProvider>
+                  <CookPalLayout user={user} onLogout={handleLogout} />
                 </UserProvider>
               }
             >
@@ -110,7 +106,6 @@ function App() {
               <Route path="profile" element={<Profile user={user} onLogout={handleLogout} />} />
               <Route path="help" element={<Help />} />
               <Route path="favorites" element={<Favorites />} />
-              <Route path="notifications" element={<Notifications />} />
 
               {/* ── Route admin — intégrée dans le layout utilisateur ── */}
               <Route

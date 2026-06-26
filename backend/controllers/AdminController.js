@@ -3,7 +3,6 @@ const appPackageJson = require('../package.json');
 const User = require('../models/UserModels');
 const Product = require('../models/ProductModel');
 const MealPlan = require('../models/MealPlan');
-const Notification = require('../models/Notification');
 const Ingredient = require('../models/ingredients');
 const ActivityLog = require('../models/ActivityLog');
 
@@ -73,11 +72,9 @@ const getDashboardStats = async (req, res) => {
             }
         }
 
-        // ── Other existing collections (unchanged, already global) ─────
+        // ── Other existing collections ─────────────────────────────────
         const totalIngredients = await Ingredient.countDocuments({});
         const totalMealPlans = await MealPlan.countDocuments({});
-        const totalNotifications = await Notification.countDocuments({});
-        const unreadNotifications = await Notification.countDocuments({ isRead: false });
 
         const mealPlansByDay = await MealPlan.aggregate([
             { $group: { _id: '$dayOfWeek', count: { $sum: 1 } } },
@@ -119,8 +116,6 @@ const getDashboardStats = async (req, res) => {
                 totalFavorites,
                 totalIngredients,
                 totalMealPlans,
-                totalNotifications,
-                unreadNotifications,
             },
             charts: {
                 mealPlansByDay,
