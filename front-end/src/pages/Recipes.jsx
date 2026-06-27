@@ -7,146 +7,207 @@ import { getScannedIngredients, saveScannedRecipes } from '../utils/scannedIngre
 import MissingIngredientsPanel from '../components/MissingIngredientsPanel'
 import './Recipes.css'
 
-// Color accent cycling for recipes
+// ── Color accent cycling ──────────────────────────────────────────────────────
 const ACCENT_COLORS = ['green', 'orange', 'pink', 'yellow', 'purple']
-
-// Helper to cycle through accent colors
 const getAccentColor = (index) => ACCENT_COLORS[index % ACCENT_COLORS.length]
 
-// Difficulty and calorie estimates per category
+// ── Per-category metadata ─────────────────────────────────────────────────────
 const CATEGORY_META = {
-  Beef:       { difficulty: 'Medium', calories: '520 kcal' },
-  Chicken:    { difficulty: 'Easy',   calories: '380 kcal' },
-  Seafood:    { difficulty: 'Medium', calories: '310 kcal' },
-  Breakfast:  { difficulty: 'Easy',   calories: '290 kcal' },
-  Vegetarian: { difficulty: 'Easy',   calories: '240 kcal' },
-  Pasta:      { difficulty: 'Easy',   calories: '420 kcal' },
-  Dessert:    { difficulty: 'Hard',   calories: '460 kcal' },
-  Side:       { difficulty: 'Easy',   calories: '180 kcal' },
-  Lamb:       { difficulty: 'Hard',   calories: '490 kcal' },
-  Pork:       { difficulty: 'Medium', calories: '430 kcal' },
+  Beef:       { difficulty: 'Medium', calories: '520 kcal', time: '45 min' },
+  Chicken:    { difficulty: 'Easy',   calories: '380 kcal', time: '35 min' },
+  Seafood:    { difficulty: 'Medium', calories: '310 kcal', time: '25 min' },
+  Breakfast:  { difficulty: 'Easy',   calories: '290 kcal', time: '15 min' },
+  Vegetarian: { difficulty: 'Easy',   calories: '240 kcal', time: '30 min' },
+  Pasta:      { difficulty: 'Easy',   calories: '420 kcal', time: '25 min' },
+  Dessert:    { difficulty: 'Hard',   calories: '460 kcal', time: '50 min' },
+  Side:       { difficulty: 'Easy',   calories: '180 kcal', time: '20 min' },
+  Lamb:       { difficulty: 'Hard',   calories: '490 kcal', time: '60 min' },
+  Pork:       { difficulty: 'Medium', calories: '430 kcal', time: '40 min' },
+  Vegan:      { difficulty: 'Easy',   calories: '220 kcal', time: '25 min' },
+  Goat:       { difficulty: 'Hard',   calories: '410 kcal', time: '55 min' },
 }
 
-// Estimated cooking times per category
-const CATEGORY_TIMES = {
-  Beef:       '45 min',
-  Chicken:    '35 min',
-  Seafood:    '25 min',
-  Breakfast:  '15 min',
-  Vegetarian: '30 min',
-  Pasta:      '25 min',
-  Dessert:    '50 min',
-  Side:       '20 min',
-  Lamb:       '60 min',
-  Pork:       '40 min',
+const CATEGORIES = [
+  'Beef', 'Chicken', 'Seafood', 'Breakfast',
+  'Vegetarian', 'Pasta', 'Dessert', 'Side',
+  'Lamb', 'Pork', 'Vegan', 'Goat',
+  'Miscellaneous', 'Starter',
+]
+const PER_CATEGORY = 20
+
+// ── Deterministic rating from meal ID ────────────────────────────────────────
+// Produces a stable number in [4.0, 4.9] for any given ID string.
+// The same meal always gets the same rating; no Math.random() involved.
+function deterministicRating(id) {
+  const str = String(id)
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 31 + str.charCodeAt(i)) >>> 0
+  }
+  return parseFloat((4.0 + (hash % 10) * 0.09).toFixed(1))
 }
 
-// Helper to fetch recipes from TheMealDB — fetches up to 20 recipes across 8 categories
-const fetchTheMealDBRecipes = async () => {
-  try {
+// ── Module-level catalog cache ────────────────────────────────────────────────
+// Lives outside the component so it survives navigation (component unmount/remount).
+// Populated on first load; reused on every subsequent visit during the same session.
+let catalogCache = null
+let catalogFetchPromise = null
+
+const fetchCatalog = async () => {
+  // If already cached, return immediately — zero network requests
+  if (catalogCache) return catalogCache
+
+  // If a fetch is already in flight (e.g. two components mounting simultaneously),
+  // wait for the same promise instead of firing duplicate requests
+  if (catalogFetchPromise) return catalogFetchPromise
+
+  catalogFetchPromise = (async () => {
     const recipes = []
     const fetchedIds = new Set()
 
-    const categories = [
-      'Beef', 'Chicken', 'Seafood', 'Breakfast',
-      'Vegetarian', 'Pasta', 'Dessert', 'Side'
-    ]
-    const PER_CATEGORY = 3
-    const MAX_RECIPES = 20
-
-    for (const category of categories) {
-      if (recipes.length >= MAX_RECIPES) break
+    for (const category of CATEGORIES) {
       try {
-        const res = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category}`)
+        const res = await fetch(
+          `https://www.themealdb.com/api/json/v1/1/filter.php?c=${category}`
+        )
         const data = await res.json()
+
         if (data.meals) {
-          // Shuffle slightly to get variety
-          const shuffled = [...data.meals].sort(() => Math.random() - 0.5)
-          for (const meal of shuffled.slice(0, PER_CATEGORY)) {
-            if (!fetchedIds.has(meal.idMeal) && recipes.length < MAX_RECIPES) {
-              const meta = CATEGORY_META[category] || { difficulty: 'Medium', calories: 'N/A' }
-              recipes.push({
-                id: meal.idMeal,
-                title: meal.strMeal,
-                image: meal.strMealThumb,
-                time: CATEGORY_TIMES[category] || '30 min',
-                categories: category,
-                category,
-                difficulty: meta.difficulty,
-                calories: meta.calories,
-                rating: parseFloat((4.0 + Math.random() * 0.9).toFixed(1)),
-                accent: getAccentColor(recipes.length),
-              })
-              fetchedIds.add(meal.idMeal)
-            }
+          // Sort by meal ID (stable, deterministic) instead of random shuffle
+          const sorted = [...data.meals].sort((a, b) =>
+            a.idMeal.localeCompare(b.idMeal)
+          )
+
+          const meta = CATEGORY_META[category] || {
+            difficulty: 'Medium',
+            calories: 'N/A',
+            time: '30 min',
+          }
+
+          let taken = 0
+          for (const meal of sorted) {
+            if (taken >= PER_CATEGORY) break
+            if (fetchedIds.has(meal.idMeal)) continue
+
+            recipes.push({
+              id: meal.idMeal,
+              title: meal.strMeal,
+              image: meal.strMealThumb,
+              time: meta.time,
+              categories: category,
+              category,
+              difficulty: meta.difficulty,
+              calories: meta.calories,
+              // Deterministic rating — same value every time for this meal ID
+              rating: deterministicRating(meal.idMeal),
+              accent: getAccentColor(recipes.length),
+            })
+            fetchedIds.add(meal.idMeal)
+            taken++
           }
         }
       } catch (err) {
         console.error(`Failed to fetch ${category} meals:`, err)
+        // Continue with remaining categories; don't abort the whole catalog
       }
     }
 
+    catalogCache = recipes
+    catalogFetchPromise = null
     return recipes
-  } catch (error) {
-    console.error('Failed to fetch recipes from TheMealDB:', error)
-    return []
-  }
+  })()
+
+  return catalogFetchPromise
 }
 
+// ── Component ─────────────────────────────────────────────────────────────────
 const Recipes = () => {
   const location = useLocation()
-  const [recipes, setRecipes] = useState([])
-  const [loading, setLoading] = useState(true)
+
+  // Base catalog — loaded once, cached for the session
+  const [recipes, setRecipes] = useState(() => catalogCache || [])
+  const [loading, setLoading] = useState(() => !catalogCache)
+
+  // AI scan recommendations
   const [scanRecipes, setScanRecipes] = useState([])
   const [scanIngredients, setScanIngredients] = useState(() => getScannedIngredients())
   const [scanLoading, setScanLoading] = useState(false)
+
+  // User-created recipes (localStorage)
   const [userRecipes, setUserRecipes] = useState(() => getUserRecipes())
+
+  // Favorites
   const [favorites, setFavorites] = useState([])
   const [userId, setUserId] = useState(null)
 
-  // Fetch user favorites from backend using native FETCH and a direct ID parameter
+  // Detail modal
+  const [selectedRecipeId, setSelectedRecipeId] = useState(null)
+  const [recipeDetail, setRecipeDetail] = useState(null)
+  const [loadingDetail, setLoadingDetail] = useState(false)
+  const [detailError, setDetailError] = useState('')
+
+  // ── Load base catalog (uses cache after first load) ───────────────────────
+  useEffect(() => {
+    if (catalogCache) {
+      // Already cached — set immediately, no loading state needed
+      setRecipes(catalogCache)
+      setLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setLoading(true)
+
+    fetchCatalog().then((meals) => {
+      if (!cancelled) {
+        setRecipes(meals)
+        setLoading(false)
+      }
+    }).catch((err) => {
+      console.error('Error loading recipe catalog:', err)
+      if (!cancelled) setLoading(false)
+    })
+
+    return () => { cancelled = true }
+  }, [])
+
+  // ── Favorites ─────────────────────────────────────────────────────────────
   const fetchFavorites = async (currentUserId) => {
     if (!currentUserId) return
     try {
-      const token = localStorage.getItem('token') 
-      
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/${currentUserId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      const token = localStorage.getItem('token')
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/users/favorites/${currentUserId}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
         }
-      })
-
+      )
       if (res.ok) {
         const data = await res.json()
-        // Handles both plain arrays or object-wrapped payloads safely
         setFavorites(data.favorites || data || [])
-      } else {
-        console.error('Failed to fetch favorites, status:', res.status)
       }
     } catch (err) {
-      console.error("Error fetching favorites:", err)
+      console.error('Error fetching favorites:', err)
     }
   }
 
-  // Get userId from localStorage and immediately feed it to your fetch call
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser)
         setUserId(user._id)
-        
-        if (user._id) {
-          fetchFavorites(user._id)
-        }
+        if (user._id) fetchFavorites(user._id)
       } catch (err) {
         console.error('Error parsing user from localStorage:', err)
       }
     }
   }, [])
 
+  // ── AI scan suggestions ───────────────────────────────────────────────────
   const refreshScanSuggestions = useCallback(async () => {
     const ingredients = getScannedIngredients()
     setScanIngredients(ingredients)
@@ -154,14 +215,14 @@ const Recipes = () => {
       setScanRecipes([])
       return
     }
-
     setScanLoading(true)
     try {
-      const { recipes, needMoreIngredients } = await fetchRecipesByIngredients(ingredients)
-      setScanRecipes(recipes)
-      saveScannedRecipes(recipes, ingredients)
+      const { recipes: aiRecipes, needMoreIngredients } = await fetchRecipesByIngredients(ingredients)
       if (needMoreIngredients) {
         setScanRecipes([])
+      } else {
+        setScanRecipes(aiRecipes)
+        saveScannedRecipes(aiRecipes, ingredients)
       }
     } catch (error) {
       console.error('Error loading scan suggestions:', error)
@@ -173,34 +234,15 @@ const Recipes = () => {
 
   useEffect(() => {
     refreshScanSuggestions()
-    const onScanUpdate = () => refreshScanSuggestions()
-    window.addEventListener('mealmind-scan-updated', onScanUpdate)
-    return () => window.removeEventListener('mealmind-scan-updated', onScanUpdate)
+    window.addEventListener('mealmind-scan-updated', refreshScanSuggestions)
+    return () => window.removeEventListener('mealmind-scan-updated', refreshScanSuggestions)
   }, [refreshScanSuggestions])
 
   useEffect(() => {
-    if (location.state?.fromScan) {
-      refreshScanSuggestions()
-    }
+    if (location.state?.fromScan) refreshScanSuggestions()
   }, [location.state, refreshScanSuggestions])
 
-  // Fetch recipes from TheMealDB on mount
-  useEffect(() => {
-    const loadRecipes = async () => {
-      try {
-        setLoading(true)
-        const meals = await fetchTheMealDBRecipes()
-        setRecipes(meals)
-      } catch (error) {
-        console.error('Error loading recipes:', error)
-        setRecipes([])
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadRecipes()
-  }, [])
-
+  // ── User-created recipes ──────────────────────────────────────────────────
   useEffect(() => {
     const sync = () => setUserRecipes(getUserRecipes())
     sync()
@@ -208,21 +250,30 @@ const Recipes = () => {
     return () => window.removeEventListener('cookpal-user-recipes-changed', sync)
   }, [])
 
-  const samples = useMemo(() => {
-    const scanIds = new Set(scanRecipes.map((r) => r.id))
-    const general = recipes.filter((r) => !scanIds.has(r.id))
-    return [...scanRecipes, ...general, ...userRecipes]
-  }, [recipes, scanRecipes, userRecipes])
+  // ── Combined list for the detail modal lookup ────────────────────────────
+  // Scan recipes + full base catalog + user recipes.
+  // We keep ALL base catalog recipes here so the modal can look up any of them.
+  const allRecipes = useMemo(
+    () => [...scanRecipes, ...recipes, ...userRecipes],
+    [recipes, scanRecipes, userRecipes]
+  )
 
+  // ── "All recipes" grid — base catalog is ALWAYS complete ─────────────────
+  // Scan recipes appear in their own section; they do NOT remove entries from
+  // the base catalog grid below. User-created recipes are appended at the end.
   const scanIds = useMemo(() => new Set(scanRecipes.map((r) => r.id)), [scanRecipes])
 
-  const [selectedRecipeId, setSelectedRecipeId] = useState(null)
-  const selectedRecipe = samples.find((r) => r.id === selectedRecipeId)
-  const [recipeDetail, setRecipeDetail] = useState(null)
-  const [loadingDetail, setLoadingDetail] = useState(false)
-  const [detailError, setDetailError] = useState('')
+  const catalogGrid = useMemo(
+    () => [...recipes, ...userRecipes],
+    [recipes, userRecipes]
+  )
 
-  // Fetch detailed recipe info when a recipe is selected
+  // ── Detail modal ──────────────────────────────────────────────────────────
+  const selectedRecipe = useMemo(
+    () => allRecipes.find((r) => r.id === selectedRecipeId),
+    [allRecipes, selectedRecipeId]
+  )
+
   useEffect(() => {
     if (!selectedRecipeId) {
       setRecipeDetail(null)
@@ -230,7 +281,7 @@ const Recipes = () => {
       return
     }
 
-    const selected = samples.find((r) => r.id === selectedRecipeId)
+    const selected = allRecipes.find((r) => r.id === selectedRecipeId)
     if (!selected) {
       setRecipeDetail(null)
       setDetailError('Recipe not found.')
@@ -243,7 +294,6 @@ const Recipes = () => {
       setLoadingDetail(true)
       setDetailError('')
       setRecipeDetail(null)
-
       try {
         const detail = await fetchRecipeDetail(selected)
         if (cancelled) return
@@ -263,75 +313,64 @@ const Recipes = () => {
     }
 
     loadDetail()
-    return () => {
-      cancelled = true
-    }
-  }, [selectedRecipeId, samples])
+    return () => { cancelled = true }
+  }, [selectedRecipeId]) // intentionally omit allRecipes — see note below
+  // Note: allRecipes is excluded from the dep array deliberately.
+  // Including it would re-fire the detail fetch every time scanRecipes updates,
+  // which closes and reopens the modal mid-read. selectedRecipeId changing is
+  // the only event that should trigger a new detail fetch.
 
-  // Handle adding favorite with complete authorization headers
+  // ── Favorites helpers ─────────────────────────────────────────────────────
+  const isFavorited = (recipeId) =>
+    favorites.some((fav) => String(fav.id) === String(recipeId))
+
   const handleAddFavorite = async (recipeId, title, image) => {
-    if (!userId) {
-      alert('Please log in to add favorites')
-      return
-    }
-
+    if (!userId) { alert('Please log in to add favorites'); return }
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/add/${userId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          recipeId,
-          title,
-          image,
-        }),
-      })
-
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/users/favorites/add/${userId}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ recipeId, title, image }),
+        }
+      )
       if (res.ok) {
         const data = await res.json()
         setFavorites(data.favorites || [])
-      } else {
-        const error = await res.json()
-        console.error('Error adding favorite:', error.message)
       }
     } catch (err) {
       console.error('Error adding favorite:', err)
     }
   }
 
-  // Handle removing favorite with complete authorization headers
   const handleRemoveFavorite = async (recipeId) => {
     if (!userId) return
-
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/${userId}/${recipeId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/users/favorites/${userId}/${recipeId}`,
+        { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }
+      )
       if (res.ok) {
         const data = await res.json()
         setFavorites(data.favorites || [])
-      } else {
-        const error = await res.json()
-        console.error('Error removing favorite:', error.message)
       }
     } catch (err) {
       console.error('Error removing favorite:', err)
     }
   }
 
-  // Check if recipe is favorited
-  const isFavorited = (recipeId) => {
-    return favorites.some(fav => String(fav.id) === String(recipeId))
+  const toggleFavorite = (r) => {
+    if (isFavorited(r.id)) {
+      handleRemoveFavorite(r.id)
+    } else {
+      handleAddFavorite(r.id, r.title, r.image)
+    }
   }
 
+  // ── Skeleton loader ───────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="recipes-page">
@@ -358,19 +397,18 @@ const Recipes = () => {
     )
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="recipes-page">
       <div className="recipes-page__header">
         <div className="recipes-page__utensils" aria-hidden>
-          <span />
-          <span />
-          <span />
-          <span />
+          <span /><span /><span /><span />
         </div>
         <h1 className="recipes-page__title">Explore recipes</h1>
         <p className="recipes-page__lead">Discover dishes that match your tastes.</p>
       </div>
 
+      {/* ── AI scan recommendations — shown above the base catalog ── */}
       {scanIngredients.length > 0 && (
         <section className="recipes-page__scan-section">
           <div className="recipes-page__scan-head">
@@ -403,13 +441,7 @@ const Recipes = () => {
                   <RecipeCard
                     recipe={r}
                     isFavorited={isFavorited(r.id)}
-                    onFavoriteToggle={() => {
-                      if (isFavorited(r.id)) {
-                        handleRemoveFavorite(r.id)
-                      } else {
-                        handleAddFavorite(r.id, r.title, r.image)
-                      }
-                    }}
+                    onFavoriteToggle={() => toggleFavorite(r)}
                   />
                 </div>
               ))}
@@ -422,11 +454,19 @@ const Recipes = () => {
         </section>
       )}
 
-      <h2 className="recipes-page__section-title">All recipes</h2>
+      {/* ── Base catalog — always complete, never filtered by scan results ── */}
+      <h2 className="recipes-page__section-title">
+        All recipes
+        {catalogGrid.length > 0 && (
+          <span style={{ fontSize: '0.85rem', fontWeight: 500, color: '#79877f', marginLeft: '10px' }}>
+            {catalogGrid.length} recipes
+          </span>
+        )}
+      </h2>
 
       <div className="recipes-page__grid">
-        {samples.filter((r) => !scanIds.has(r.id)).length > 0 ? (
-          samples.filter((r) => !scanIds.has(r.id)).map((r) => (
+        {catalogGrid.length > 0 ? (
+          catalogGrid.map((r) => (
             <div
               key={r.id}
               className="recipes-page__card-wrapper"
@@ -441,16 +481,10 @@ const Recipes = () => {
               tabIndex={0}
               aria-label={`Open ${r.title}`}
             >
-              <RecipeCard 
+              <RecipeCard
                 recipe={r}
                 isFavorited={isFavorited(r.id)}
-                onFavoriteToggle={() => {
-                  if (isFavorited(r.id)) {
-                    handleRemoveFavorite(r.id)
-                  } else {
-                    handleAddFavorite(r.id, r.title, r.image)
-                  }
-                }}
+                onFavoriteToggle={() => toggleFavorite(r)}
               />
             </div>
           ))
@@ -460,9 +494,14 @@ const Recipes = () => {
           </div>
         )}
       </div>
+
+      {/* ── Detail modal ── */}
       {selectedRecipeId && selectedRecipe && (
         <div className="recipes-page__modal-overlay" onClick={() => setSelectedRecipeId(null)}>
-          <section className="recipes-page__modal-content" onClick={(e) => e.stopPropagation()}>
+          <section
+            className="recipes-page__modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               type="button"
               className="recipes-page__modal-close"
@@ -487,17 +526,18 @@ const Recipes = () => {
               </div>
               <div className="recipes-page__meta-item">
                 <span className="recipes-page__meta-label">⭐ Rating</span>
-                <p>{selectedRecipe.rating != null ? Number(selectedRecipe.rating).toFixed(1) : 'N/A'}/5</p>
+                <p>
+                  {selectedRecipe.rating != null
+                    ? Number(selectedRecipe.rating).toFixed(1)
+                    : 'N/A'}
+                  /5
+                </p>
               </div>
               <div className="recipes-page__meta-item">
                 <button
                   onClick={(e) => {
                     e.preventDefault()
-                    if (isFavorited(selectedRecipeId)) {
-                      handleRemoveFavorite(selectedRecipeId)
-                    } else {
-                      handleAddFavorite(selectedRecipeId, selectedRecipe.title, selectedRecipe.image)
-                    }
+                    toggleFavorite(selectedRecipe)
                   }}
                   style={{
                     background: 'none',
@@ -506,7 +546,11 @@ const Recipes = () => {
                     cursor: 'pointer',
                     padding: '8px',
                   }}
-                  aria-label={isFavorited(selectedRecipeId) ? 'Remove from favorites' : 'Add to favorites'}
+                  aria-label={
+                    isFavorited(selectedRecipeId)
+                      ? 'Remove from favorites'
+                      : 'Add to favorites'
+                  }
                 >
                   {isFavorited(selectedRecipeId) ? '❤️' : '🤍'}
                 </button>
@@ -528,11 +572,9 @@ const Recipes = () => {
                         ))
                       : Array.from({ length: 20 })
                           .map((_, idx) => {
-                            const ingredientKey = `strIngredient${idx + 1}`
-                            const measureKey = `strMeasure${idx + 1}`
-                            const ingredient = recipeDetail[ingredientKey]
-                            const measure = recipeDetail[measureKey]
-                            return ingredient && ingredient.trim() ? (
+                            const ingredient = recipeDetail[`strIngredient${idx + 1}`]
+                            const measure = recipeDetail[`strMeasure${idx + 1}`]
+                            return ingredient?.trim() ? (
                               <li key={idx} className="recipes-page__ingredient-item">
                                 {measure?.trim() || ''} {ingredient}
                               </li>
@@ -564,16 +606,18 @@ const Recipes = () => {
               </p>
             )}
 
-            {!selectedRecipe?.isLocal && !String(selectedRecipeId).startsWith('user-') && recipeDetail && (
-              <a
-                href={recipeDetail?.strSource || '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="recipes-page__modal-btn"
-              >
-                View Full Recipe
-              </a>
-            )}
+            {!selectedRecipe?.isLocal &&
+              !String(selectedRecipeId).startsWith('user-') &&
+              recipeDetail && (
+                <a
+                  href={recipeDetail?.strSource || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="recipes-page__modal-btn"
+                >
+                  View Full Recipe
+                </a>
+              )}
           </section>
         </div>
       )}
