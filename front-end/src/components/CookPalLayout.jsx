@@ -63,11 +63,37 @@ const IconFridge = () => (
     <circle cx="9" cy="16" r="1" fill="currentColor" />
   </svg>
 )
+const IconMeals = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M8 2v7c0 1.1-.9 2-2 2H4a2 2 0 0 1-2-2V2" />
+    <path d="M5 2v20" />
+    <path d="M20 15V2s-5 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" />
+  </svg>
+)
+const IconCommunity = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+  </svg>
+)
 const IconMicFab = () => (
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
     <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
     <line x1="12" y1="19" x2="12" y2="22" />
+  </svg>
+)
+const IconApron = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M8 4l-1.5-2" />
+    <path d="M16 4l1.5-2" />
+    <path d="M6 8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8h0a2 2 0 0 0 2-2V8z" />
+    <path d="M9 12h6v4H9z" />
+  </svg>
+)
+const IconGear = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
   </svg>
 )
 const IconSliders = () => (
@@ -235,29 +261,21 @@ const CookPalLayout = ({ user, onLogout }) => {
       {/* ── Header mobile ── */}
       <header className="cookpal-mobile-header">
         <div className="cookpal-mobile-header__brand">
-          <span className="cookpal-mobile-header__logo" aria-hidden>
-            <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 14c0-4 2.5-7 8-7s8 3 8 7v2h2v8c0 4-3.5 7-10 7s-10-3-10-7v-8h2v-2z" fill="#2d6a4f" />
-              <ellipse cx="16" cy="12" rx="10" ry="4" fill="#52b788" />
-            </svg>
-          </span>
-          <div>
-            <div className="cookpal-mobile-header__title">SnapCook</div>
-            <p className="cookpal-mobile-header__tagline">Smarter meals, less waste</p>
-          </div>
+          <div className="cookpal-mobile-header__title">SnapCook</div>
+          <IconChefHat />
         </div>
-        <div className="cookpal-mobile-header__actions">
-          <button
-            type="button"
-            className="cookpal-mobile-header__icon-btn"
-            aria-label="Diet and allergies"
-            onClick={() => setPrefsDrawer(true)}
-          >
-            <IconSliders />
-          </button>
+        <div className="cookpal-mobile-header__actions-pill">
           <NavLink to="/profile" className="cookpal-mobile-header__avatar" aria-label="Profile">
             {displayName.charAt(0).toUpperCase()}
           </NavLink>
+          <button
+            type="button"
+            className="cookpal-mobile-header__icon-btn"
+            aria-label="Settings"
+            onClick={() => setPrefsDrawer(true)}
+          >
+            <IconGear />
+          </button>
         </div>
       </header>
 
@@ -282,23 +300,25 @@ const CookPalLayout = ({ user, onLogout }) => {
 
       {/* ── Navigation mobile bas ── */}
       <nav className="cookpal-bottom-nav" aria-label="Primary mobile">
+        <NavLink to="/recipes" className={({ isActive }) => `cookpal-bottom-nav__item${isActive ? ' cookpal-bottom-nav__item--active' : ''}`}>
+          <IconMeals /><span>Meals</span>
+        </NavLink>
         <NavLink to="/dashboard" end className={({ isActive }) => `cookpal-bottom-nav__item${isActive ? ' cookpal-bottom-nav__item--active' : ''}`}>
           <IconHome /><span>Home</span>
         </NavLink>
-        <NavLink to="/scanner" className={({ isActive }) => `cookpal-bottom-nav__item${isActive ? ' cookpal-bottom-nav__item--active' : ''}`}>
-          <IconFridge /><span>Fridge</span>
-        </NavLink>
         <button
           type="button"
-          className={`cookpal-bottom-nav__fab ${voice.isRecording || voice.isTranscribing ? 'cookpal-bottom-nav__fab--rec' : ''}`}
-          onClick={voice.toggleRecording}
-          disabled={voice.isTranscribing}
-          aria-label={voice.isTranscribing ? 'Transcription en cours' : voice.isRecording ? 'Arrêter et transcrire' : 'Dicter une recherche'}
+          className="cookpal-bottom-nav__fab"
+          onClick={() => window.dispatchEvent(new Event('toggle-chatbot'))}
+          aria-label="Open AI Assistant"
         >
           <IconMicFab />
         </button>
-        <NavLink to="/profile" className={({ isActive }) => `cookpal-bottom-nav__item${isActive ? ' cookpal-bottom-nav__item--active' : ''}`}>
-          <IconUsers /><span>Profile</span>
+        <NavLink to="/scanner" className={({ isActive }) => `cookpal-bottom-nav__item${isActive ? ' cookpal-bottom-nav__item--active' : ''}`}>
+          <IconFridge /><span>Fridge</span>
+        </NavLink>
+        <NavLink to="/community" className={({ isActive }) => `cookpal-bottom-nav__item${isActive ? ' cookpal-bottom-nav__item--active' : ''}`}>
+          <IconCommunity /><span>Community</span>
         </NavLink>
       </nav>
 

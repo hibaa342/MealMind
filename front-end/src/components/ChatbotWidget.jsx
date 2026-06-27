@@ -219,6 +219,12 @@ export default function ChatbotWidget() {
     }
   }, [isOpen, isRecording, isThinking, isSpeaking, messages.length]);
 
+  useEffect(() => {
+    const handleToggle = () => toggleOpen();
+    window.addEventListener('toggle-chatbot', handleToggle);
+    return () => window.removeEventListener('toggle-chatbot', handleToggle);
+  }, []);
+
   useEffect(() => { logEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isThinking]);
 
   /* ── TTS ─────────────────────────────────────────────────── */
@@ -358,7 +364,7 @@ export default function ChatbotWidget() {
   return (
     <div className="chatbot-root">
 
-      {/* ── FAB ── */}
+      {/* ── FAB (Desktop only) ── */}
       <button
         id="chatbot-fab-btn"
         className={`chatbot-fab${isOpen ? ' is-open' : ''}`}

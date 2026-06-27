@@ -500,8 +500,7 @@
 
   .community-grid--chefs,
   .community-chef-list,
-  .community-challenge-grid,
-  .community-stats {
+  .community-challenge-grid {
     grid-template-columns: 1fr;
   }
 
