@@ -334,3 +334,10 @@
   .chatbot-panel { width:calc(100vw - 24px); right:12px; }
   .chatbot-fab   { right:16px; bottom:18px; }
 }
+
+@media (max-width: 1023px) {
+  /* Hide the standalone FAB on mobile, because it's triggered from the bottom nav bar */
+  .chatbot-fab {
+    display: none !important;
+  }
+}

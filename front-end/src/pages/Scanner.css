@@ -598,10 +598,6 @@
     padding: 24px 16px;
   }
 
-  .scanner-stepbar {
-    grid-template-columns: 1fr;
-  }
-
   .scanner-results__header {
     flex-direction: column;
     align-items: stretch;
