@@ -14,7 +14,7 @@ const fridgeRoutes = require('./routes/fridgeRoutes');
 const adminRoutes = require('./routes/AdminRoutes');
 const ingredientRoutes = require('./routes/ingredientRoutes');
 const stripeRoutes = require('./routes/stripeRoutes');
-const chatRoutes   = require('./routes/chatRoutes');
+//const chatRoutes   = require('./routes/chatRoutes');
 
 const app = express();
 
@@ -46,7 +46,7 @@ app.use('/api/fridge', fridgeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/stripe', stripeRoutes);
-app.use('/api/chat',   chatRoutes);
+//app.use('/api/chat',   chatRoutes);
 
 // Route temporaire pour éviter des erreurs de fetch sur la page Planning
 app.get('/api/orders', (req, res) => res.json([]));

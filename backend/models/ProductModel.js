@@ -9,6 +9,10 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Le titre est requis']
     },
+    description: {
+        type: String,
+        default: ''
+    },
     time: {
         type: String,
         required: [true, 'Le temps est requis']
@@ -32,6 +36,19 @@ const productSchema = new mongoose.Schema({
     accent: {
         type: String,
         default: 'green'
+    },
+    ingredients: {
+        type: [
+            {
+                amount: { type: String, default: '' },
+                name:   { type: String, default: '' },
+            }
+        ],
+        default: []
+    },
+    instructions: {
+        type: String,
+        default: ''
     },
     status: {
         type: String,
