@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import './Community.css'
 
 const topChefs = [
@@ -132,21 +132,33 @@ const Community = () => {
   const [completedChallenges, setCompletedChallenges] = useState([])
   const [toast, setToast] = useState('Welcome back to the community.')
 
+  const [statsData, setStatsData] = useState({ members: 0, sharedRecipes: 0, comments: 0 })
+  const [loading, setLoading] = useState(true)
+
   const userXP = 320 + completedChallenges.length * 80 + joinedChallenges.length * 20
   const nextLevelXP = 500
   const progress = Math.min(100, Math.round((userXP / nextLevelXP) * 100))
   const selectedChef = topChefs.find((chef) => chef.id === selectedChefId) || topChefs[0]
 
-  const communityStats = useMemo(
-    () => [
-      { value: '2,847', label: 'Active Members' },
-      { value: '1,234', label: 'Shared Recipes' },
-      { value: '15,602', label: 'Comments' },
-      { value: String(joinedChallenges.length + completedChallenges.length), label: 'Your Challenges' },
-    ],
-    [completedChallenges.length, joinedChallenges.length]
-  )
+   useEffect(() => {
+    fetch('/api/community/stats')
+      .then(res => res.json())
+      .then(data => { setStatsData(data); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
 
+  const communityStats = useMemo(
+  () => [
+    { value: statsData.members.toLocaleString(), label: 'Active Members' },
+    { value: statsData.sharedRecipes.toLocaleString(), label: 'Shared Recipes' },
+    { value: statsData.comments.toLocaleString(), label: 'Comments' },
+    {
+      value: String(joinedChallenges.length + completedChallenges.length),
+      label: 'Your Challenges',
+    },
+  ],
+  [statsData, joinedChallenges.length, completedChallenges.length]
+)
   const toggleFollow = (chef) => {
     setFollowedChefs((current) => {
       const isFollowing = current.includes(chef.id)
