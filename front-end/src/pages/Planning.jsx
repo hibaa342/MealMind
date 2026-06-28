@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './Planning.css'; // Ensure you create this for specific layout tweaks
+import './Planning.css';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner'];
@@ -12,7 +12,6 @@ const PlanningPage = () => {
   const [budgetLimit, setBudgetLimit] = useState(500);
   const [error, setError] = useState('');
 
-  // Modal States
   const [isMealModalOpen, setIsMealModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [activeSlot, setActiveSlot] = useState({ day: '', type: '' });
@@ -28,13 +27,11 @@ const PlanningPage = () => {
   const fetchBudgetData = async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
-
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning/budget-data`, {
         headers: { 'x-auth-token': token }
       });
       const data = await response.json();
-      
       if (response.ok) {
         setBudgetLimit(data.budgetLimit || 500);
         setManualExpenses(data.expenses || []);
@@ -46,14 +43,9 @@ const PlanningPage = () => {
 
   const fetchSpending = async () => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    if (!token) { setLoading(false); return; }
     setError('');
-
     try {
-      // Fetching orders from your 'commande' part
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, {
         headers: { 'x-auth-token': token }
       });
@@ -72,13 +64,12 @@ const PlanningPage = () => {
     e.preventDefault();
     const token = localStorage.getItem('token');
     if (!expenseInput || isNaN(expenseInput)) return;
-
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning/expenses`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'x-auth-token': token 
+          'x-auth-token': token
         },
         body: JSON.stringify({ amount: parseFloat(expenseInput) })
       });
@@ -96,14 +87,13 @@ const PlanningPage = () => {
   const handleUpdateBudget = async () => {
     const newLimit = prompt("Set your monthly budget limit (MAD):", budgetLimit);
     if (!newLimit || isNaN(newLimit)) return;
-
     const token = localStorage.getItem('token');
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning/budget-limit`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'x-auth-token': token 
+          'x-auth-token': token
         },
         body: JSON.stringify({ limit: parseFloat(newLimit) })
       });
@@ -117,25 +107,19 @@ const PlanningPage = () => {
   const budgetPercent = Math.min((totalSpent / budgetLimit) * 100, 100);
 
   const fetchPlans = async () => {
-    const token = localStorage.getItem('token'); // Get your auth token
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    const token = localStorage.getItem('token');
+    if (!token) { setLoading(false); return; }
     setError('');
-
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning`, {
         headers: { 'x-auth-token': token }
       });
       const data = await response.json();
-      
       if (response.status === 401) {
         setError('Session expired or access denied. Log in again from your profile if the problem persists.');
         setPlans([]);
         return;
       }
-
       if (response.ok) setPlans(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch meal plans", err);
@@ -150,19 +134,18 @@ const PlanningPage = () => {
     e.preventDefault();
     if (!modalInput.trim()) return;
     setError('');
-
     const token = localStorage.getItem('token');
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/planning`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'x-auth-token': token 
+          'x-auth-token': token
         },
-        body: JSON.stringify({ 
-          dayOfWeek: activeSlot.day, 
-          mealType: activeSlot.type, 
-          recipeTitle: modalInput.trim() 
+        body: JSON.stringify({
+          dayOfWeek: activeSlot.day,
+          mealType: activeSlot.type,
+          recipeTitle: modalInput.trim()
         })
       });
       const data = await response.json();
@@ -187,7 +170,7 @@ const PlanningPage = () => {
         headers: { 'x-auth-token': token }
       });
       if (response.ok) {
-        setPlans(prev => prev.filter(p => p._id !== id)); // Use functional update
+        setPlans(prev => prev.filter(p => p._id !== id));
       }
     } catch (err) {
       setError('Unable to connect to the server.');
@@ -218,6 +201,8 @@ const PlanningPage = () => {
 
   return (
     <div className="snapcook-planning fade-in">
+
+      {/* Header — search bar only, + Recipe button removed */}
       <div className="snapcook-planning__search-row">
         <div className="cookpal-search snapcook-planning__search">
           <span className="cookpal-search__icon" aria-hidden>
@@ -241,9 +226,6 @@ const PlanningPage = () => {
             </svg>
           </span>
         </div>
-        <button type="button" className="snapcook-planning__recipe-btn">
-          + Recipe
-        </button>
       </div>
 
       <div className="snapcook-planning__head">
@@ -251,7 +233,6 @@ const PlanningPage = () => {
           <h1 className="snapcook-planning__title">Meal Planning</h1>
           <p className="snapcook-planning__lead">Organize your weekly nutrition and stay on track with your goals.</p>
         </div>
-
       </div>
 
       {error && <div className="snapcook-planning__alert">{error}</div>}
@@ -260,20 +241,18 @@ const PlanningPage = () => {
         {DAYS.map(day => (
           <section key={day} className="snapcook-day-card">
             <h3 className="snapcook-day-card__title">{day}</h3>
-            
             <div className="snapcook-day-card__meals">
               {MEAL_TYPES.map(type => {
                 const meal = (plans || []).find(p => p.dayOfWeek === day && p.mealType === type);
-                
                 return (
                   <div key={type} className="snapcook-meal-slot">
                     <span className="snapcook-meal-slot__label">{type}</span>
                     {meal ? (
                       <div className="snapcook-meal-item fade-in">
                         <span className="snapcook-meal-item__name">{meal.recipeTitle}</span>
-                        <button 
+                        <button
                           type="button"
-                          className="snapcook-meal-item__remove" 
+                          className="snapcook-meal-item__remove"
                           onClick={() => handleRemove(meal._id)}
                           aria-label={`Remove ${meal.recipeTitle}`}
                         >✕</button>
@@ -291,7 +270,7 @@ const PlanningPage = () => {
         ))}
       </div>
 
-      {/* Monthly Budget Graph Section */}
+      {/* Monthly Budget */}
       <section className="snapcook-budget-card">
         <div className="snapcook-budget-card__header">
           <div>
@@ -307,7 +286,6 @@ const PlanningPage = () => {
             </button>
           </div>
         </div>
-
         <div className="snapcook-budget-card__visualizer">
           <div className="snapcook-budget-card__stats">
             <div className="snapcook-budget-card__stat">
@@ -321,10 +299,9 @@ const PlanningPage = () => {
               <strong>{Math.max(budgetLimit - totalSpent, 0).toFixed(2)} MAD</strong>
             </div>
           </div>
-
           <div className="snapcook-budget-card__progress-wrap">
             <div className="snapcook-budget-card__progress">
-              <div 
+              <div
                 className={`snapcook-budget-card__fill ${totalSpent > budgetLimit ? 'snapcook-budget-card__fill--over' : ''}`}
                 style={{ width: `${budgetPercent}%` }}
               />
@@ -393,7 +370,7 @@ const PlanningPage = () => {
         </section>
       )}
 
-      {/* Nice Interface: Add Meal Modal */}
+      {/* Add Meal Modal */}
       {isMealModalOpen && (
         <div className="modal-overlay fade-in">
           <div className="modal-content glass-panel">
@@ -401,9 +378,9 @@ const PlanningPage = () => {
             <p className="modal-subtitle">What are you cooking on {activeSlot.day}?</p>
             <form className="modal-form" onSubmit={submitMeal}>
               <div className="modal-form__group">
-                <input 
-                  type="text" 
-                  placeholder="e.g. Grilled Chicken Salad" 
+                <input
+                  type="text"
+                  placeholder="e.g. Grilled Chicken Salad"
                   value={modalInput}
                   onChange={(e) => setModalInput(e.target.value)}
                   autoFocus
@@ -419,7 +396,7 @@ const PlanningPage = () => {
         </div>
       )}
 
-      {/* Nice Interface: Log Expense Modal */}
+      {/* Log Expense Modal */}
       {isExpenseModalOpen && (
         <div className="modal-overlay fade-in">
           <div className="modal-content glass-panel">
@@ -429,10 +406,10 @@ const PlanningPage = () => {
               <div className="modal-form__group">
                 <div className="input-with-currency">
                   <span className="currency-prefix" style={{ left: 12, width: 40 }}>MAD</span>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     step="0.01"
-                    placeholder="0.00" 
+                    placeholder="0.00"
                     value={expenseInput}
                     onChange={(e) => setExpenseInput(e.target.value)}
                     autoFocus

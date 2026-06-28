@@ -12,7 +12,6 @@ const Favorites = () => {
   const toggleRecording = () => voice?.toggleRecording?.()
   const playRecording = () => voice?.playRecording?.()
 
-  // Get userId from localStorage and fetch favorites securely
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
@@ -29,20 +28,17 @@ const Favorites = () => {
     }
   }, [])
 
-  // Fetch user favorites with native FETCH and Auth verification headers
   const fetchFavorites = async (uid) => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token') // Grab fresh token
-
+      const token = localStorage.getItem('token')
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/${uid}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Pass standard validation token
+          'Authorization': `Bearer ${token}`
         }
       })
-      
       if (res.ok) {
         const data = await res.json()
         setFavorites(data.favorites || data || [])
@@ -58,20 +54,14 @@ const Favorites = () => {
     }
   }
 
-  // Remove recipe from favorites securely sending Auth headers
   const removeFromFavorites = async (recipeId) => {
     if (!userId) return
-
     try {
-      const token = localStorage.getItem('token') // Grab fresh token
-
+      const token = localStorage.getItem('token')
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/favorites/${userId}/${recipeId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}` // Protect custom routes
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       })
-
       if (res.ok) {
         const data = await res.json()
         setFavorites(data.favorites || [])
@@ -83,15 +73,14 @@ const Favorites = () => {
     }
   }
 
-  // Filter favorites based on search query
   const filteredFavorites = favorites.filter(fav =>
     fav.title?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
     <div className="cookpal-home cookpal-home--grocio">
-      
-      {/* 1. Unified header (Copy of home) */}
+
+      {/* Header — search bar only, + Recipe button removed */}
       <div className="grocio-search-row">
         <div className="cookpal-search grocio-search">
           <span className="cookpal-search__icon" aria-hidden>
@@ -121,23 +110,25 @@ const Favorites = () => {
               <line x1="8" y1="23" x2="16" y2="23" />
             </svg>
           </button>
-          <button type="button" className="cookpal-search__ai" onClick={playRecording} aria-label="Play recording" title="Play last recording">
+          <button
+            type="button"
+            className="cookpal-search__ai"
+            onClick={playRecording}
+            aria-label="Play recording"
+            title="Play last recording"
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--grocio-green)" strokeWidth="1.75">
               <polygon points="5 3 19 12 5 21 5 3" fill="var(--grocio-green)" stroke="none" />
             </svg>
           </button>
         </div>
-        <button type="button" className="grocio-pill-btn">
-          + Recipe
-        </button>
       </div>
 
-      {/* Consistent recipe containers & Active icons */}
       <section className="grocio-section" style={{ marginTop: '36px' }}>
         <div className="grocio-section__head">
           <h2 className="grocio-section__title">Your Favorite Recipes</h2>
         </div>
-        
+
         {loading ? (
           <p className="cookpal-empty">Loading...</p>
         ) : filteredFavorites.length === 0 ? (
@@ -151,16 +142,14 @@ const Favorites = () => {
                   <span className="grocio-quick-tile__name">{r.title}</span>
                   <span className="grocio-quick-tile__time">Saved</span>
                 </div>
-                
-                {/* Active heart icon overlay to remove from favorites */}
                 <button
                   type="button"
                   className="cookpal-recipe-card__heart cookpal-recipe-card__heart--on"
                   onClick={() => removeFromFavorites(r.id)}
-                  style={{ 
-                    position: 'absolute', 
-                    top: '12px', 
-                    right: '12px', 
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
                     zIndex: 10,
                     width: '32px',
                     height: '32px',
@@ -184,7 +173,6 @@ const Favorites = () => {
           </div>
         )}
       </section>
-
     </div>
   )
 }
