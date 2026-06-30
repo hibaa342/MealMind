@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import './AdminDashboard.css'
+import {
+  adminFetchChallenges,
+  adminCreateChallenge,
+  adminUpdateChallenge,
+  adminDeleteChallenge,
+} from '../api/community'
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 
@@ -81,8 +87,14 @@ const IconServer = () => (
   </svg>
 )
 
+const IconTrophy = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z" />
+    <path d="M5 4H3v2a4 4 0 0 0 4 4M19 4h2v2a4 4 0 0 1-4 4" />
+  </svg>
+)
+
 // ── Mini bar chart ─────────────────────────────────────────────────────────
-// data is a list of objects like { _id: "2026-06-20", count: 5 }
 
 const MiniBarChart = ({ data, colorVar = '--snap-forest' }) => {
   if (!data || data.length === 0) {
@@ -131,6 +143,18 @@ const StatusPill = ({ status }) => (
   <span className={`admin-status-pill admin-status-pill--${status}`}>{status}</span>
 )
 
+// ── Challenge form defaults ─────────────────────────────────────────────────
+
+const emptyChallengeForm = {
+  title: '',
+  description: '',
+  difficulty: 'Medium',
+  reward: 50,
+  icon: '',
+  status: 'active',
+  endDate: '',
+}
+
 // ── Main component ───────────────────────────────────────────────────────────
 
 const AdminDashboard = () => {
@@ -142,21 +166,25 @@ const AdminDashboard = () => {
 
   const token = localStorage.getItem('token')
 
-  // Data for each section
   const [statsData, setStatsData] = useState(null)
   const [usersList, setUsersList] = useState([])
   const [recipesList, setRecipesList] = useState([])
   const [activityLogs, setActivityLogs] = useState([])
   const [analyticsData, setAnalyticsData] = useState(null)
   const [systemData, setSystemData] = useState(null)
+  const [challengesList, setChallengesList] = useState([])
 
-  // Content Management filters
   const [statusFilter, setStatusFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [sortOption, setSortOption] = useState('newest')
 
-  // Product details panel
   const [selectedRecipe, setSelectedRecipe] = useState(null)
+
+  // Challenge form panel (null = closed, 'new' = creating, otherwise the challenge being edited)
+  const [editingChallengeId, setEditingChallengeId] = useState(null)
+  const [challengeForm, setChallengeForm] = useState(emptyChallengeForm)
+  const [savingChallenge, setSavingChallenge] = useState(false)
+  const [deletingChallengeId, setDeletingChallengeId] = useState(null)
 
   const triggerToast = (message, isError = false) => {
     setToast({ message, isError })
@@ -267,6 +295,25 @@ const AdminDashboard = () => {
     }
   }
 
+  /**
+   * Fetches ALL challenges (active, upcoming, completed) for admin management.
+   * Uses the existing /api/community/admin/challenges endpoint, which is
+   * already protected by the same `auth` + `admin` middleware used everywhere
+   * else in this dashboard.
+   */
+  const fetchChallengesAdmin = async () => {
+    try {
+      setLoading(true)
+      const { challenges } = await adminFetchChallenges()
+      setChallengesList(challenges)
+      setError('')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     setSearchQuery('')
     if (activeTab === 'overview') fetchOverviewData()
@@ -275,6 +322,7 @@ const AdminDashboard = () => {
     else if (activeTab === 'logs') fetchActivityLogs()
     else if (activeTab === 'analytics') fetchAnalytics()
     else if (activeTab === 'system') fetchSystemOverview()
+    else if (activeTab === 'challenges') fetchChallengesAdmin()
   }, [activeTab])
 
   // ── User Management handlers ────────────────────────────────────────────
@@ -373,6 +421,100 @@ const AdminDashboard = () => {
     }
   }
 
+  // ── Challenge Management handlers ───────────────────────────────────────
+  // All changes are stored in MongoDB via /api/community/admin/challenges
+  // and are immediately visible to every user on the Community → Challenges tab.
+
+  const openCreateChallengeForm = () => {
+    setChallengeForm(emptyChallengeForm)
+    setEditingChallengeId('new')
+  }
+
+  const openEditChallengeForm = (challenge) => {
+    setChallengeForm({
+      title: challenge.title,
+      description: challenge.description,
+      difficulty: challenge.difficulty,
+      reward: challenge.reward,
+      icon: challenge.icon,
+      status: challenge.status,
+      endDate: challenge.endDate ? challenge.endDate.slice(0, 10) : '',
+    })
+    setEditingChallengeId(challenge._id)
+  }
+
+  const closeChallengeForm = () => {
+    setEditingChallengeId(null)
+    setChallengeForm(emptyChallengeForm)
+  }
+
+  const handleChallengeFormChange = (field, value) => {
+    setChallengeForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleChallengeSubmit = async (e) => {
+    e.preventDefault()
+    if (!challengeForm.title.trim() || !challengeForm.description.trim()) {
+      triggerToast('Title and description are required.', true)
+      return
+    }
+    setSavingChallenge(true)
+    try {
+      const payload = {
+        title: challengeForm.title.trim(),
+        description: challengeForm.description.trim(),
+        difficulty: challengeForm.difficulty,
+        reward: Number(challengeForm.reward) || 0,
+        icon: challengeForm.icon.trim() || '?',
+        status: challengeForm.status,
+        endDate: challengeForm.endDate || undefined,
+      }
+
+      if (editingChallengeId === 'new') {
+        await adminCreateChallenge(payload)
+        triggerToast('Challenge created.')
+      } else {
+        await adminUpdateChallenge(editingChallengeId, payload)
+        triggerToast('Challenge updated.')
+      }
+
+      closeChallengeForm()
+      fetchChallengesAdmin()
+    } catch (err) {
+      triggerToast(err.message, true)
+    } finally {
+      setSavingChallenge(false)
+    }
+  }
+
+  const handleDeleteChallenge = async (challenge) => {
+    if (!window.confirm(`Delete "${challenge.title}"? This cannot be undone. Existing participation records will be removed.`)) return
+    setDeletingChallengeId(challenge._id)
+    try {
+      await adminDeleteChallenge(challenge._id)
+      triggerToast('Challenge deleted.')
+      setChallengesList((prev) => prev.filter((c) => c._id !== challenge._id))
+    } catch (err) {
+      triggerToast(err.message, true)
+    } finally {
+      setDeletingChallengeId(null)
+    }
+  }
+
+  /** Toggle active <-> completed directly from the table without opening the form */
+  const handleToggleChallengeStatus = async (challenge) => {
+    const nextStatus = challenge.status === 'active' ? 'completed' : 'active'
+    try {
+      await adminUpdateChallenge(challenge._id, { status: nextStatus })
+      triggerToast(`Challenge marked as ${nextStatus}.`)
+      setChallengesList((prev) =>
+        prev.map((c) => (c._id === challenge._id ? { ...c, status: nextStatus } : c))
+      )
+    } catch (err) {
+      triggerToast(err.message, true)
+    }
+  }
+
   // ── Search / filter / sort (Content Management) ────────────────────────
 
   const search = searchQuery.toLowerCase()
@@ -384,7 +526,6 @@ const AdminDashboard = () => {
     return name.includes(search) || surname.includes(search) || email.includes(search)
   })
 
-  // Unique category list, built from the products we already have
   const availableCategories = []
   for (let i = 0; i < recipesList.length; i++) {
     const category = recipesList[i].categories
@@ -413,7 +554,6 @@ const AdminDashboard = () => {
   return (
     <div className="admin-dashboard">
 
-      {/* Toast */}
       {toast && (
         <div className={`admin-toast${toast.isError ? ' admin-toast--error' : ''}`}>
           <span>{toast.message}</span>
@@ -421,7 +561,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Header */}
       <header className="admin-header">
         <div className="admin-title-area">
           <h1>Admin Control Panel</h1>
@@ -429,7 +568,6 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      {/* Tabs */}
       <nav className="admin-tabs">
         <button
           onClick={() => setActiveTab('overview')}
@@ -453,6 +591,14 @@ const AdminDashboard = () => {
         >
           <IconUsers />
           Users
+        </button>
+
+        <button
+          onClick={() => setActiveTab('challenges')}
+          className={activeTab === 'challenges' ? 'admin-tab-btn admin-tab-btn--active' : 'admin-tab-btn'}
+        >
+          <IconTrophy />
+          Challenges
         </button>
 
         <button
@@ -480,14 +626,12 @@ const AdminDashboard = () => {
         </button>
       </nav>
 
-      {/* Global error */}
       {error && (
         <div style={{ background: '#ffebee', color: '#c62828', padding: '16px', borderRadius: '12px', marginBottom: '20px', fontWeight: 600 }}>
           Error: {error}
         </div>
       )}
 
-      {/* ── TAB: Dashboard ─────────────────────────────────────────────── */}
       {activeTab === 'overview' && (
         <div>
           {loading && !statsData ? (
@@ -621,7 +765,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ── TAB: Content Management ───────────────────────────────────── */}
       {activeTab === 'content' && (
         <div>
           <div className="admin-search-bar admin-search-bar--wrap">
@@ -700,7 +843,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ── TAB: Users ─────────────────────────────────────────────────── */}
       {activeTab === 'users' && (
         <div>
           <div className="admin-search-bar">
@@ -782,7 +924,203 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ── TAB: Activity Logs ────────────────────────────────────────────── */}
+      {activeTab === 'challenges' && (
+        <div>
+          <div className="admin-search-bar" style={{ justifyContent: 'space-between' }}>
+            
+            <button
+              type="button"
+              className="admin-btn admin-btn--secondary"
+              onClick={openCreateChallengeForm}
+            >
+              + New Challenge
+            </button>
+          </div>
+
+          {editingChallengeId && (
+            <form
+              onSubmit={handleChallengeSubmit}
+              className="admin-recent-card"
+              style={{ marginBottom: '20px' }}
+            >
+              <h2 style={{ marginTop: 0 }}>
+                {editingChallengeId === 'new' ? 'New Challenge' : 'Edit Challenge'}
+              </h2>
+
+              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                <label style={{ flex: 2, minWidth: '200px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', fontWeight: 700, color: '#5c7068' }}>
+                  Title
+                  <input
+                    type="text"
+                    value={challengeForm.title}
+                    onChange={e => handleChallengeFormChange('title', e.target.value)}
+                    maxLength={80}
+                    required
+                    className="admin-search-input"
+                    style={{ width: '100%' }}
+                  />
+                </label>
+                <label style={{ flex: 1, minWidth: '120px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', fontWeight: 700, color: '#5c7068' }}>
+                  Icon label
+                  <input
+                    type="text"
+                    value={challengeForm.icon}
+                    onChange={e => handleChallengeFormChange('icon', e.target.value)}
+                    maxLength={3}
+                    placeholder="e.g. 5, BM"
+                    className="admin-search-input"
+                    style={{ width: '100%' }}
+                  />
+                </label>
+              </div>
+
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', fontWeight: 700, color: '#5c7068', marginBottom: '14px' }}>
+                Description
+                <textarea
+                  value={challengeForm.description}
+                  onChange={e => handleChallengeFormChange('description', e.target.value)}
+                  rows={3}
+                  maxLength={400}
+                  required
+                  className="admin-search-input"
+                  style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
+                />
+              </label>
+
+              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                <label style={{ flex: 1, minWidth: '140px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', fontWeight: 700, color: '#5c7068' }}>
+                  Difficulty
+                  <select
+                    value={challengeForm.difficulty}
+                    onChange={e => handleChallengeFormChange('difficulty', e.target.value)}
+                    className="admin-select"
+                  >
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
+                </label>
+                <label style={{ flex: 1, minWidth: '120px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', fontWeight: 700, color: '#5c7068' }}>
+                  Reward (XP)
+                  <input
+                    type="number"
+                    min={0}
+                    max={1000}
+                    value={challengeForm.reward}
+                    onChange={e => handleChallengeFormChange('reward', e.target.value)}
+                    className="admin-search-input"
+                  />
+                </label>
+                <label style={{ flex: 1, minWidth: '140px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', fontWeight: 700, color: '#5c7068' }}>
+                  Status
+                  <select
+                    value={challengeForm.status}
+                    onChange={e => handleChallengeFormChange('status', e.target.value)}
+                    className="admin-select"
+                  >
+                    <option value="active">active</option>
+                    <option value="upcoming">upcoming</option>
+                    <option value="completed">completed</option>
+                  </select>
+                </label>
+                <label style={{ flex: 1, minWidth: '150px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', fontWeight: 700, color: '#5c7068' }}>
+                  End date (optional)
+                  <input
+                    type="date"
+                    value={challengeForm.endDate}
+                    onChange={e => handleChallengeFormChange('endDate', e.target.value)}
+                    className="admin-search-input"
+                  />
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--secondary"
+                  onClick={closeChallengeForm}
+                  disabled={savingChallenge}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="admin-btn admin-btn--secondary"
+                  disabled={savingChallenge}
+                >
+                  {savingChallenge ? 'Saving...' : editingChallengeId === 'new' ? 'Create Challenge' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {loading && !challengesList.length ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#5c7068', fontWeight: 600 }}>
+              Loading challenges...
+            </div>
+          ) : (
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Challenge</th>
+                    <th>Difficulty</th>
+                    <th>Reward</th>
+                    <th>Status</th>
+                    <th>Participants</th>
+                    <th>Completions</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {challengesList.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '30px', color: '#5c7068' }}>
+                        No challenges yet. Create the first one.
+                      </td>
+                    </tr>
+                  ) : challengesList.map(c => (
+                    <tr key={c._id}>
+                      <td>
+                        <strong style={{ color: 'var(--snap-forest)' }}>{c.icon}</strong> {c.title}
+                      </td>
+                      <td>{c.difficulty}</td>
+                      <td>{c.reward} XP</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleChallengeStatus(c)}
+                          title="Click to toggle active/completed"
+                          style={{ border: 'none', cursor: 'pointer', background: 'none', padding: 0 }}
+                        >
+                          <StatusPill status={c.status} />
+                        </button>
+                      </td>
+                      <td>{c.participantsCount}</td>
+                      <td>{c.completionsCount}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={() => openEditChallengeForm(c)} className="admin-btn admin-btn--secondary">
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteChallenge(c)}
+                            className="admin-btn"
+                            disabled={deletingChallengeId === c._id}
+                          >
+                            <IconTrash /> {deletingChallengeId === c._id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === 'logs' && (
         <div>
           {loading && !activityLogs.length ? (
@@ -822,7 +1160,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ── TAB: Analytics ─────────────────────────────────────────────────── */}
       {activeTab === 'analytics' && (
         <div>
           {loading && !analyticsData ? (
@@ -887,7 +1224,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ── TAB: System Overview ───────────────────────────────────────────── */}
       {activeTab === 'system' && (
         <div>
           {loading && !systemData ? (
@@ -958,7 +1294,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* ── Product Details panel ─────────────────────────────────────────── */}
       {selectedRecipe && (
         <div className="cookpal-modal-backdrop" role="presentation" onClick={() => setSelectedRecipe(null)}>
           <div className="cookpal-modal cookpal-panel" role="dialog" aria-labelledby="recipe-details-title" onClick={(e) => e.stopPropagation()}>

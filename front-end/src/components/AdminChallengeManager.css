@@ -1,0 +1,229 @@
+.admin-challenges {
+  width: 100%;
+}
+
+.admin-challenges__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.admin-challenges__head h2 {
+  margin: 0 0 4px;
+  color: #17251d;
+  font-size: 1.1rem;
+}
+
+.admin-challenges__head p {
+  margin: 0;
+  color: #607369;
+  font-size: 0.84rem;
+  max-width: 480px;
+}
+
+.admin-challenges__add-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: #1b3b28;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.84rem;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(27, 59, 40, 0.18);
+}
+
+.admin-challenges__error {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #ffebee;
+  color: #b42343;
+  font-size: 0.84rem;
+  margin-bottom: 14px;
+}
+
+.admin-challenges__loading,
+.admin-challenges__empty {
+  padding: 24px;
+  text-align: center;
+  color: #607369;
+  font-size: 0.88rem;
+}
+
+/* ── Form ──────────────────────────────────────────────────────────────── */
+
+.admin-challenges__form {
+  border: 1px solid rgba(45, 106, 79, 0.12);
+  border-radius: 16px;
+  background: #f8faf8;
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.admin-challenges__form h3 {
+  margin: 0 0 14px;
+  color: #17251d;
+  font-size: 1rem;
+}
+
+.admin-challenges__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #496157;
+  flex: 1;
+  min-width: 140px;
+}
+
+.admin-challenges__form input,
+.admin-challenges__form select,
+.admin-challenges__form textarea {
+  border: 1px solid rgba(45, 106, 79, 0.2);
+  border-radius: 10px;
+  padding: 9px 11px;
+  font: inherit;
+  font-size: 0.86rem;
+  color: #17251d;
+  background: #fff;
+  outline: none;
+  font-weight: 400;
+  resize: vertical;
+}
+
+.admin-challenges__form input:focus,
+.admin-challenges__form select:focus,
+.admin-challenges__form textarea:focus {
+  border-color: #2d6a4f;
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
+}
+
+.admin-challenges__form-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.admin-challenges__full {
+  display: flex;
+  margin-bottom: 14px;
+}
+
+.admin-challenges__form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.admin-challenges__cancel-btn,
+.admin-challenges__save-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 800;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.admin-challenges__cancel-btn {
+  background: #e8f5e9;
+  color: #1b3b28;
+}
+
+.admin-challenges__save-btn {
+  background: #1b3b28;
+  color: #fff;
+}
+
+.admin-challenges__cancel-btn:disabled,
+.admin-challenges__save-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── Table ─────────────────────────────────────────────────────────────── */
+
+.admin-challenges__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.admin-challenges__table th {
+  text-align: left;
+  padding: 10px 12px;
+  color: #607369;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid rgba(45, 106, 79, 0.12);
+}
+
+.admin-challenges__table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(45, 106, 79, 0.06);
+  color: #17251d;
+}
+
+.admin-challenges__status-badge {
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.admin-challenges__status-badge--active {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.admin-challenges__status-badge--upcoming {
+  background: #fff3e0;
+  color: #995a00;
+}
+
+.admin-challenges__status-badge--completed {
+  background: #eceff1;
+  color: #455a64;
+}
+
+.admin-challenges__row-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-challenges__row-actions button {
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: #e8f5e9;
+  color: #1b3b28;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-challenges__delete-btn {
+  background: #ffebee !important;
+  color: #b42343 !important;
+}
+
+.admin-challenges__delete-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 700px) {
+  .admin-challenges__table {
+    display: block;
+    overflow-x: auto;
+  }
+}

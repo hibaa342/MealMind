@@ -81,7 +81,32 @@ const userSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
-    }
+    },
+
+    // ── Community / Social fields ──────────────────────────────────────────────
+    bio: {
+        type: String,
+        default: '',
+        maxlength: 200
+    },
+    avatar: {
+        // URL to profile picture (Cloudinary or any CDN). Empty = show initials avatar.
+        type: String,
+        default: ''
+    },
+    followers: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ],
+    following: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ]
+    // ──────────────────────────────────────────────────────────────────────────
 }, {
     timestamps: true
 });

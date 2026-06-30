@@ -1,3 +1,5 @@
+/* ─── Page shell ─────────────────────────────────────────────────────────── */
+
 .community-page {
   width: min(100%, 920px);
   color: #17251d;
@@ -26,7 +28,7 @@
 }
 
 .community-status {
-  max-width: 260px;
+  max-width: 280px;
   padding: 10px 14px;
   border-radius: 999px;
   background: #e8f5e9;
@@ -34,71 +36,10 @@
   font-size: 0.8rem;
   font-weight: 600;
   box-shadow: 0 8px 24px rgba(27, 59, 40, 0.08);
+  transition: background 0.2s;
 }
 
-.community-hero {
-  padding: 18px 20px;
-  margin-bottom: 18px;
-  border-radius: 20px;
-  background:
-    radial-gradient(circle at 15% 20%, rgba(183, 228, 199, 0.16), transparent 28%),
-    linear-gradient(135deg, #1b3b28, #0d2b1b);
-  color: #fff;
-  box-shadow: 0 14px 40px rgba(27, 59, 40, 0.18);
-}
-
-.community-hero__stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-bottom: 16px;
-}
-
-.community-hero__stats div {
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  text-align: center;
-  min-width: 0;
-}
-
-.community-hero__icon {
-  width: 34px;
-  height: 34px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffd166;
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.community-hero strong {
-  font-size: 0.92rem;
-}
-
-.community-hero small {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.72rem;
-}
-
-.community-progress {
-  height: 8px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.28);
-  margin-bottom: 8px;
-}
-
-.community-progress span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #ffd166, #f9c74f);
-  transition: width 0.25s ease;
-}
+/* ─── Tabs ───────────────────────────────────────────────────────────────── */
 
 .community-tabs {
   display: inline-flex;
@@ -114,11 +55,12 @@
   border-radius: 999px;
   background: transparent;
   color: #496157;
-  padding: 9px 14px;
+  padding: 9px 16px;
   font: inherit;
   font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
 
 .community-tab--active {
@@ -127,15 +69,7 @@
   box-shadow: 0 6px 16px rgba(27, 59, 40, 0.22);
 }
 
-.community-grid {
-  display: grid;
-  gap: 18px;
-}
-
-.community-grid--chefs {
-  grid-template-columns: minmax(0, 1fr) 280px;
-  align-items: start;
-}
+/* ─── Panels ─────────────────────────────────────────────────────────────── */
 
 .community-panel,
 .community-stats {
@@ -153,46 +87,112 @@
 .community-section-head {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 16px;
   margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 
-.community-section-head h2,
-.community-detail h2 {
+.community-section-head h2 {
   margin: 0 0 5px;
   color: #17251d;
   font-size: 1.08rem;
 }
 
-.community-chef-list,
-.community-recipe-list {
+/* ─── Search ─────────────────────────────────────────────────────────────── */
+
+.community-search {
+  border: 1px solid rgba(45, 106, 79, 0.2);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.82rem;
+  color: #17251d;
+  background: #f4f9f4;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 180px;
+}
+
+.community-search:focus {
+  border-color: #2d6a4f;
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
+}
+
+/* ─── Sort bar (Trending) ────────────────────────────────────────────────── */
+
+.community-sort-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.community-sort-btn {
+  border: 1px solid rgba(45, 106, 79, 0.15);
+  border-radius: 999px;
+  background: #f4f9f4;
+  color: #496157;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.community-sort-btn--active {
+  background: #1b3b28;
+  color: #fff;
+  border-color: #1b3b28;
+}
+
+/* ─── Avatar ─────────────────────────────────────────────────────────────── */
+
+.community-avatar {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #d8f3dc, #b7e4c7);
+  color: #1b3b28;
+  font-size: 0.82rem;
+  font-weight: 800;
+  user-select: none;
+}
+
+.community-avatar--img {
+  object-fit: cover;
+  background: none;
+}
+
+.community-avatar--large {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  font-size: 1.1rem;
+}
+
+/* ─── Member cards ───────────────────────────────────────────────────────── */
+
+.community-chef-list {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
-.community-chef-list {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.community-chef-card,
-.community-recipe-card,
-.community-challenge-card {
+.community-chef-card {
   border: 1px solid rgba(45, 106, 79, 0.09);
   border-radius: 16px;
   background: #fbfdfb;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.community-chef-card:hover,
-.community-recipe-card:hover,
-.community-challenge-card:hover {
+.community-chef-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 28px rgba(27, 59, 40, 0.1);
-}
-
-.community-chef-card--selected {
-  border-color: rgba(45, 106, 79, 0.45);
-  box-shadow: inset 4px 0 0 #2d6a4f;
 }
 
 .community-chef-card__main {
@@ -209,41 +209,26 @@
   cursor: pointer;
 }
 
-.community-avatar {
-  width: 44px;
-  height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border-radius: 15px;
-  background: linear-gradient(145deg, #d8f3dc, #b7e4c7);
-  color: #1b3b28;
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.community-avatar--large {
-  width: 62px;
-  height: 62px;
-  margin-bottom: 12px;
-  border-radius: 20px;
-}
-
 .community-chef-card strong {
   display: block;
   color: #1b3b28;
   font-size: 0.92rem;
 }
 
-.community-chef-card small,
-.community-chef-card__foot,
-.community-recipe-card p,
-.community-challenge-card p,
-.community-detail p,
-.community-detail dt {
+.community-chef-card small {
   color: #607369;
   font-size: 0.78rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.community-you-badge {
+  font-style: normal;
+  color: #607369;
+  font-weight: 400;
+  font-size: 0.8rem;
 }
 
 .community-chef-card__foot {
@@ -253,7 +238,152 @@
   gap: 10px;
   padding: 10px 14px 14px;
   border-top: 1px solid rgba(45, 106, 79, 0.08);
+  color: #607369;
+  font-size: 0.78rem;
 }
+
+/* ─── Recipe cards ───────────────────────────────────────────────────────── */
+
+.community-recipe-list {
+  display: grid;
+  gap: 12px;
+}
+
+.community-recipe-card {
+  border: 1px solid rgba(45, 106, 79, 0.09);
+  border-radius: 16px;
+  background: #fbfdfb;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.community-recipe-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(27, 59, 40, 0.1);
+}
+
+.community-recipe-card__info {
+  min-width: 0;
+}
+
+.community-recipe-card h3 {
+  margin: 6px 0 4px;
+  color: #17251d;
+  font-size: 0.98rem;
+}
+
+.community-recipe-card p {
+  margin: 0;
+  color: #607369;
+  font-size: 0.78rem;
+}
+
+.community-recipe-note {
+  font-style: italic;
+  margin-top: 4px !important;
+  color: #496157 !important;
+}
+
+.community-recipe-card__img {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.community-recipe-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ─── Challenge cards ────────────────────────────────────────────────────── */
+
+.community-challenge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.community-challenge-card {
+  border: 1px solid rgba(45, 106, 79, 0.09);
+  border-radius: 16px;
+  background: #fbfdfb;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.community-challenge-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(27, 59, 40, 0.1);
+}
+
+.community-challenge-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.community-challenge-icon {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #1b3b28;
+  color: #ffd166;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.community-challenge-card h3 {
+  margin: 0 0 6px;
+  color: #17251d;
+  font-size: 0.98rem;
+}
+
+.community-challenge-card p {
+  flex: 1;
+  margin: 0 0 14px;
+  color: #607369;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.community-challenge-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: #607369;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.community-challenge-deadline {
+  font-size: 0.74rem !important;
+  color: #995a00 !important;
+  margin: 0 0 10px !important;
+  flex: none !important;
+}
+
+.community-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────────────── */
 
 .community-mini-btn,
 .community-action-btn,
@@ -264,14 +394,23 @@
   font-family: inherit;
   font-weight: 800;
   cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease, background 0.15s ease;
+  transition: transform 0.15s ease, filter 0.15s ease, background 0.15s ease, opacity 0.15s;
 }
 
-.community-mini-btn:hover,
-.community-action-btn:hover,
-.community-primary-btn:hover,
-.community-secondary-btn:hover {
+.community-mini-btn:hover:not(:disabled),
+.community-action-btn:hover:not(:disabled),
+.community-primary-btn:hover:not(:disabled),
+.community-secondary-btn:hover:not(:disabled) {
   transform: translateY(-1px);
+}
+
+.community-mini-btn:disabled,
+.community-action-btn:disabled,
+.community-primary-btn:disabled,
+.community-secondary-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
 }
 
 .community-mini-btn {
@@ -285,54 +424,17 @@
   background: #b7e4c7;
 }
 
-.community-detail {
-  position: sticky;
-  top: 28px;
-}
-
-.community-detail dl {
-  display: grid;
-  gap: 10px;
-  margin: 16px 0;
-}
-
-.community-detail div {
-  padding: 10px;
-  border-radius: 12px;
-  background: #f4f9f4;
-}
-
-.community-detail dt,
-.community-detail dd {
-  margin: 0;
-}
-
-.community-detail dd {
-  margin-top: 2px;
-  color: #17251d;
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.community-primary-btn,
-.community-secondary-btn {
+.community-primary-btn {
   padding: 10px 14px;
   font-size: 0.82rem;
-}
-
-.community-primary-btn {
   background: #1b3b28;
   color: #fff;
   box-shadow: 0 8px 20px rgba(27, 59, 40, 0.18);
 }
 
-.community-primary-btn:disabled {
-  cursor: default;
-  opacity: 0.65;
-  transform: none;
-}
-
 .community-secondary-btn {
+  padding: 10px 14px;
+  font-size: 0.82rem;
   background: #e8f5e9;
   color: #1b3b28;
 }
@@ -340,28 +442,6 @@
 .community-secondary-btn--active {
   background: #fff3e0;
   color: #995a00;
-}
-
-.community-recipe-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 14px;
-  padding: 14px;
-}
-
-.community-recipe-card h3,
-.community-challenge-card h3 {
-  margin: 8px 0 4px;
-  color: #17251d;
-  font-size: 0.98rem;
-}
-
-.community-recipe-actions,
-.community-card-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
 .community-action-btn {
@@ -381,6 +461,8 @@
   color: #1b3b28;
 }
 
+/* ─── Chips ──────────────────────────────────────────────────────────────── */
+
 .community-chip {
   display: inline-flex;
   align-items: center;
@@ -392,66 +474,11 @@
   font-weight: 800;
 }
 
-.community-chip--easy {
-  background: #e8f5e9;
-  color: #1b5e20;
-}
+.community-chip--easy { background: #e8f5e9; color: #1b5e20; }
+.community-chip--medium { background: #fff3e0; color: #995a00; }
+.community-chip--hard { background: #ffebee; color: #b42343; }
 
-.community-chip--medium {
-  background: #fff3e0;
-  color: #995a00;
-}
-
-.community-chip--hard {
-  background: #ffebee;
-  color: #b42343;
-}
-
-.community-challenge-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.community-challenge-card {
-  display: flex;
-  flex-direction: column;
-  padding: 14px;
-}
-
-.community-challenge-card__top,
-.community-challenge-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.community-challenge-icon {
-  width: 42px;
-  height: 42px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  background: #1b3b28;
-  color: #ffd166;
-  font-size: 0.9rem;
-  font-weight: 900;
-}
-
-.community-challenge-card p {
-  flex: 1;
-  margin: 0 0 14px;
-  line-height: 1.45;
-}
-
-.community-challenge-meta {
-  margin-bottom: 12px;
-  color: #607369;
-  font-size: 0.78rem;
-  font-weight: 700;
-}
+/* ─── Stats bar ──────────────────────────────────────────────────────────── */
 
 .community-stats {
   display: grid;
@@ -481,14 +508,334 @@
   font-weight: 600;
 }
 
-@media (max-width: 760px) {
-  .community-page {
-    width: 100%;
-  }
+/* ─── XP / Progress bar ──────────────────────────────────────────────────── */
 
-  .community-header,
-  .community-recipe-card {
-    grid-template-columns: 1fr;
+.community-xp-bar {
+  border: 1px solid rgba(45, 106, 79, 0.1);
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f4f9f4, #e8f5e9);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+.community-xp-bar--loading {
+  height: 92px;
+  background: linear-gradient(90deg, #f0f4f2 25%, #e8ede9 50%, #f0f4f2 75%);
+  background-size: 200% 100%;
+  animation: community-shimmer 1.4s infinite;
+}
+
+.community-xp-bar__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.community-xp-bar__level {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.community-xp-bar__level strong {
+  color: #1b3b28;
+  font-size: 1.05rem;
+}
+
+.community-xp-bar__level span {
+  color: #607369;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.community-xp-bar__counts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  color: #496157;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.community-xp-bar__track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(27, 59, 40, 0.1);
+  overflow: hidden;
+}
+
+.community-xp-bar__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2d6a4f, #52b788);
+  transition: width 0.4s ease;
+}
+
+.community-xp-bar__hint {
+  margin: 8px 0 0;
+  color: #607369;
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ─── Skeleton loader ────────────────────────────────────────────────────── */
+
+.community-skeleton-card {
+  height: 92px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #f0f4f2 25%, #e8ede9 50%, #f0f4f2 75%);
+  background-size: 200% 100%;
+  animation: community-shimmer 1.4s infinite;
+}
+
+@keyframes community-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Inline error ───────────────────────────────────────────────────────── */
+
+.community-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  color: #b42343;
+  text-align: center;
+  font-size: 0.88rem;
+}
+
+/* ─── Empty states ───────────────────────────────────────────────────────── */
+
+.community-empty {
+  padding: 32px;
+  text-align: center;
+  color: #607369;
+  font-size: 0.9rem;
+}
+
+.community-empty-trending {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.community-empty-trending p {
+  margin: 0 0 6px;
+  color: #607369;
+  font-size: 0.95rem;
+}
+
+.community-empty-sub {
+  color: #8fa89a;
+  font-size: 0.82rem !important;
+}
+
+/* ─── Spinner ────────────────────────────────────────────────────────────── */
+
+.community-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e8f5e9;
+  border-top-color: #1b3b28;
+  border-radius: 50%;
+  animation: community-spin 0.7s linear infinite;
+  margin: 0 auto 10px;
+}
+
+@keyframes community-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Profile Modal ──────────────────────────────────────────────────────── */
+
+.community-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 37, 29, 0.45);
+  backdrop-filter: blur(3px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.community-modal {
+  background: #fff;
+  border-radius: 24px;
+  padding: 28px;
+  width: min(100%, 440px);
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(27, 59, 40, 0.22);
+  animation: community-modal-in 0.22s ease;
+}
+
+@keyframes community-modal-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.community-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: 0;
+  background: #f4f9f4;
+  color: #496157;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  transition: background 0.15s;
+}
+
+.community-modal__close:hover {
+  background: #e8f5e9;
+}
+
+.community-modal__loading {
+  padding: 32px;
+  text-align: center;
+  color: #607369;
+  font-size: 0.88rem;
+}
+
+.community-modal__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-right: 32px;
+}
+
+.community-modal__head h2 {
+  margin: 0 0 4px;
+  color: #17251d;
+  font-size: 1.1rem;
+}
+
+.community-modal__city {
+  margin: 0 0 6px;
+  color: #607369;
+  font-size: 0.8rem;
+}
+
+.community-modal__bio {
+  margin: 0;
+  color: #496157;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.community-modal__counters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(45, 106, 79, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.community-modal__counters div {
+  background: #f8faf8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 12px 8px;
+}
+
+.community-modal__counters strong {
+  color: #1b3b28;
+  font-size: 1.1rem;
+}
+
+.community-modal__counters span {
+  color: #607369;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.community-modal__follow-btn {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 12px !important;
+  font-size: 0.9rem !important;
+}
+
+.community-modal__follow-btn--active {
+  background: #e8f5e9 !important;
+  color: #1b3b28 !important;
+  box-shadow: none !important;
+}
+
+.community-modal__recipes h3 {
+  margin: 0 0 12px;
+  color: #17251d;
+  font-size: 0.92rem;
+}
+
+.community-modal__recipe-list {
+  display: grid;
+  gap: 8px;
+}
+
+.community-modal__recipe-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f4f9f4;
+}
+
+.community-modal__recipe-item strong {
+  display: block;
+  color: #17251d;
+  font-size: 0.88rem;
+}
+
+.community-modal__recipe-item small {
+  color: #607369;
+  font-size: 0.74rem;
+}
+
+.community-modal__recipe-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.community-modal__joined {
+  margin: 16px 0 0;
+  color: #8fa89a;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .community-page { width: 100%; }
+
+  .community-header {
     flex-direction: column;
   }
 
@@ -498,34 +845,34 @@
     border-radius: 14px;
   }
 
-  .community-grid--chefs,
   .community-chef-list,
   .community-challenge-grid {
     grid-template-columns: 1fr;
   }
 
-  .community-detail {
-    position: static;
+  .community-recipe-card {
+    grid-template-columns: 1fr auto;
+  }
+
+  .community-recipe-card__img {
+    display: none;
+  }
+
+  .community-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .community-section-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .community-search {
+    width: 100%;
   }
 }
 
 @media (max-width: 520px) {
-  .community-hero {
-    padding: 16px;
-  }
-
-  .community-hero__stats {
-    gap: 8px;
-  }
-
-  .community-hero strong {
-    font-size: 0.78rem;
-  }
-
-  .community-hero small {
-    font-size: 0.66rem;
-  }
-
   .community-tabs {
     width: 100%;
     display: grid;
@@ -534,5 +881,10 @@
 
   .community-tab {
     padding-inline: 8px;
+    text-align: center;
+  }
+
+  .community-stats {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
