@@ -14,7 +14,8 @@ const fridgeRoutes = require('./routes/fridgeRoutes');
 const adminRoutes = require('./routes/AdminRoutes');
 const ingredientRoutes = require('./routes/ingredientRoutes');
 const stripeRoutes = require('./routes/stripeRoutes');
-//const chatRoutes   = require('./routes/chatRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+const communityRoutes = require('./routes/communityRoutes'); // ← NEW
 
 const app = express();
 
@@ -46,7 +47,8 @@ app.use('/api/fridge', fridgeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/stripe', stripeRoutes);
-//app.use('/api/chat',   chatRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/community', communityRoutes); // ← NEW
 
 // Route temporaire pour éviter des erreurs de fetch sur la page Planning
 app.get('/api/orders', (req, res) => res.json([]));
@@ -80,8 +82,7 @@ app.post('/api/transcribe', upload.single('file'), async (req, res) => {
             return res.status(400).json({ error: 'Recording too short. Please speak longer.' });
         }
 
-        // Étape 4 : déterminer le type audio (Whisper préfère les types simples,
-        // sans les détails type "codecs=opus" ajoutés par le navigateur)
+        // Étape 4 : déterminer le type audio
         let mimeType = 'audio/webm';
         if (req.file.mimetype && req.file.mimetype.startsWith('audio/')) {
             mimeType = req.file.mimetype;

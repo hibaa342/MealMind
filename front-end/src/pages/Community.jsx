@@ -1,439 +1,740 @@
-import React, { useMemo, useState, useEffect } from 'react'
+/**
+ * Community.jsx  — fully live, database-driven community page.
+ *
+ * All data comes from MongoDB via /api/community/* endpoints.
+ * No hardcoded users, recipes, or challenges remain.
+ *
+ * Tabs:
+ *   Members   → all registered users, follow/unfollow, click → profile modal
+ *   Trending  → shared recipes sorted by likes/saves/recent, like/save toggles
+ *   Challenges → real challenges from DB, join/leave/complete
+ *
+ * Stats bar at the bottom → real counts from the database.
+ */
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { useUser } from '../context/UserContext'
+import {
+    fetchCommunityStats,
+    fetchMembers,
+    fetchMemberProfile,
+    followUser,
+    unfollowUser,
+    fetchTrending,
+    fetchChallenges,
+    joinChallenge,
+    leaveChallenge,
+    completeChallenge,
+    fetchMyXP,
+} from '../api/community'
 import './Community.css'
 
-const topChefs = [
-  {
-    id: 'moroccan',
-    name: 'Chef Moroccan',
-    specialty: 'Moroccan Cuisine',
-    followers: 1240,
-    badge: 'CM',
-    level: 'Expert',
-    recipe: 'Lemon Olive Tagine',
-    note: 'Publishes family recipes and spice tips.',
-  },
-  {
-    id: 'healthy',
-    name: 'Healthy Hunter',
-    specialty: 'Healthy & Light',
-    followers: 856,
-    badge: 'HH',
-    level: 'Master',
-    recipe: 'Colorful Buddha Bowl',
-    note: 'Quick ideas for fresh eating with less waste.',
-  },
-  {
-    id: 'quick',
-    name: 'Quick Meals Pro',
-    specialty: 'Quick Recipes',
-    followers: 642,
-    badge: 'QP',
-    level: 'Expert',
-    recipe: 'Vegetable Pasta 15 min',
-    note: 'Quick meals for busy nights.',
-  },
-  {
-    id: 'veggie',
-    name: 'Veggie Vibes',
-    specialty: 'Vegetarian',
-    followers: 503,
-    badge: 'VV',
-    level: 'Advanced',
-    recipe: 'Chickpea Curry',
-    note: 'Simple, colorful and nourishing vegetarian dishes.',
-  },
-]
+// ─── Small pure helpers ───────────────────────────────────────────────────────
 
-const challenges = [
-  {
-    id: 'five',
-    title: '5 Ingredients Challenge',
-    description: 'Create a delicious meal with just 5 ingredients.',
-    participants: 127,
-    difficulty: 'Medium',
-    reward: 50,
-    icon: '5',
-  },
-  {
-    id: 'sugarfree',
-    title: 'Sugar-Free Dessert',
-    description: 'Prepare a dessert without refined sugar.',
-    participants: 89,
-    difficulty: 'Hard',
-    reward: 75,
-    icon: 'DS',
-  },
-  {
-    id: 'budget',
-    title: 'Budget Master',
-    description: 'Prepare a 3-course meal for under 30 MAD.',
-    participants: 203,
-    difficulty: 'Medium',
-    reward: 60,
-    icon: 'BM',
-  },
-  {
-    id: 'quick15',
-    title: '15 Minutes or Less',
-    description: 'A complete dinner in 15 minutes max.',
-    participants: 156,
-    difficulty: 'Easy',
-    reward: 40,
-    icon: '15',
-  },
-]
-
-const trendingRecipes = [
-  {
-    id: 'buddha',
-    title: 'Colorful Buddha Bowl',
-    chef: 'Healthy Hunter',
-    likes: 456,
-    saves: 234,
-    tag: 'Healthy',
-  },
-  {
-    id: 'tajine',
-    title: 'Traditional Moroccan Tagine',
-    chef: 'Chef Moroccan',
-    likes: 623,
-    saves: 412,
-    tag: 'Traditional',
-  },
-  {
-    id: 'pasta',
-    title: 'Vegetable Pasta 15 Minutes',
-    chef: 'Quick Meals Pro',
-    likes: 289,
-    saves: 145,
-    tag: 'Express',
-  },
-]
-
-const tabs = [
-  { id: 'chefs', label: 'Chefs' },
-  { id: 'recipes', label: 'Trending' },
-  { id: 'challenges', label: 'Challenges' },
-]
-
-const difficultyClass = {
-  Easy: 'community-chip--easy',
-  Medium: 'community-chip--medium',
-  Hard: 'community-chip--hard',
+/** Generate 2-letter initials from a user object */
+function initials(user) {
+    const n = (user?.name || '').trim()
+    const s = (user?.surname || '').trim()
+    if (n && s) return (n[0] + s[0]).toUpperCase()
+    if (n) return n.slice(0, 2).toUpperCase()
+    return '??'
 }
 
-const Community = () => {
-  const [activeTab, setActiveTab] = useState('chefs')
-  const [selectedChefId, setSelectedChefId] = useState(topChefs[0].id)
-  const [followedChefs, setFollowedChefs] = useState(['healthy'])
-  const [likedRecipes, setLikedRecipes] = useState(['tajine'])
-  const [savedRecipes, setSavedRecipes] = useState(['buddha'])
-  const [joinedChallenges, setJoinedChallenges] = useState(['five'])
-  const [completedChallenges, setCompletedChallenges] = useState([])
-  const [toast, setToast] = useState('Welcome back to the community.')
+/** Render an avatar: real image if available, else initials */
+function Avatar({ user, size = 'md', className = '' }) {
+    const sizeClass = size === 'lg' ? 'community-avatar--large' : ''
+    if (user?.avatar) {
+        return (
+            <img
+                src={user.avatar}
+                alt={`${user.name} avatar`}
+                className={`community-avatar community-avatar--img ${sizeClass} ${className}`}
+            />
+        )
+    }
+    return (
+        <span className={`community-avatar ${sizeClass} ${className}`} aria-hidden>
+            {initials(user)}
+        </span>
+    )
+}
 
-  const [statsData, setStatsData] = useState({ members: 0, sharedRecipes: 0, comments: 0 })
-  const [loading, setLoading] = useState(true)
+const difficultyClass = {
+    Easy: 'community-chip--easy',
+    Medium: 'community-chip--medium',
+    Hard: 'community-chip--hard',
+}
 
-  const userXP = 320 + completedChallenges.length * 80 + joinedChallenges.length * 20
-  const nextLevelXP = 500
-  const progress = Math.min(100, Math.round((userXP / nextLevelXP) * 100))
-  const selectedChef = topChefs.find((chef) => chef.id === selectedChefId) || topChefs[0]
+const tabs = [
+    { id: 'members', label: 'Members' },
+    { id: 'trending', label: 'Trending' },
+    { id: 'challenges', label: 'Challenges' },
+]
 
-   useEffect(() => {
-    fetch('/api/community/stats')
-      .then(res => res.json())
-      .then(data => { setStatsData(data); setLoading(false) })
-      .catch(() => setLoading(false))
-  }, [])
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
-  const communityStats = useMemo(
-  () => [
-    { value: statsData.members.toLocaleString(), label: 'Active Members' },
-    { value: statsData.sharedRecipes.toLocaleString(), label: 'Shared Recipes' },
-    { value: statsData.comments.toLocaleString(), label: 'Comments' },
-    {
-      value: String(joinedChallenges.length + completedChallenges.length),
-      label: 'Your Challenges',
-    },
-  ],
-  [statsData, joinedChallenges.length, completedChallenges.length]
-)
-  const toggleFollow = (chef) => {
-    setFollowedChefs((current) => {
-      const isFollowing = current.includes(chef.id)
-      setToast(isFollowing ? `You are no longer following ${chef.name}.` : `You are now following ${chef.name}.`)
-      return isFollowing ? current.filter((id) => id !== chef.id) : [...current, chef.id]
-    })
-  }
+/** Skeleton card shown while data is loading */
+function SkeletonCard({ count = 4 }) {
+    return Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="community-skeleton-card" aria-hidden />
+    ))
+}
 
-  const toggleLike = (recipe) => {
-    setLikedRecipes((current) => {
-      const liked = current.includes(recipe.id)
-      setToast(liked ? 'Like removed.' : `${recipe.title} added to likes.`)
-      return liked ? current.filter((id) => id !== recipe.id) : [...current, recipe.id]
-    })
-  }
-
-  const toggleSave = (recipe) => {
-    setSavedRecipes((current) => {
-      const saved = current.includes(recipe.id)
-      setToast(saved ? 'Recipe removed from favorites.' : `${recipe.title} saved.`)
-      return saved ? current.filter((id) => id !== recipe.id) : [...current, recipe.id]
-    })
-  }
-
-  const toggleChallenge = (challenge) => {
-    setJoinedChallenges((current) => {
-      const joined = current.includes(challenge.id)
-      setToast(joined ? `Challenge left: ${challenge.title}.` : `Challenge joined: +${challenge.reward} XP possible.`)
-      return joined ? current.filter((id) => id !== challenge.id) : [...current, challenge.id]
-    })
-    setCompletedChallenges((current) => current.filter((id) => id !== challenge.id))
-  }
-
-  const completeChallenge = (challenge) => {
-    setJoinedChallenges((current) => (current.includes(challenge.id) ? current : [...current, challenge.id]))
-    setCompletedChallenges((current) => {
-      if (current.includes(challenge.id)) return current
-      setToast(`${challenge.title} completed. Congrats, +${challenge.reward} XP!`)
-      return [...current, challenge.id]
-    })
-  }
-
-  return (
-    <div className="community-page">
-      <header className="community-header">
-        <div>
-          <h1 className="community-title">Community</h1>
-          <p className="community-lead">Connect, share, and learn with fellow cooking enthusiasts.</p>
+/** Inline error with retry button */
+function InlineError({ message, onRetry }) {
+    return (
+        <div className="community-error">
+            <p>{message}</p>
+            {onRetry && (
+                <button type="button" className="community-secondary-btn" onClick={onRetry}>
+                    Retry
+                </button>
+            )}
         </div>
-        <div className="community-status" role="status">
-          {toast}
-        </div>
-      </header>
+    )
+}
 
-      <section className="community-hero" aria-label="Your Progress">
-        <div className="community-hero__stats">
-          <div>
-            <span className="community-hero__icon" aria-hidden>
-              *
-            </span>
-            <strong>Beginner</strong>
-            <small>Your Level</small>
-          </div>
-          <div>
-            <span className="community-hero__icon" aria-hidden>
-              XP
-            </span>
-            <strong>{userXP} XP</strong>
-            <small>Experience Points</small>
-          </div>
-          <div>
-            <span className="community-hero__icon" aria-hidden>
-              W
-            </span>
-            <strong>{completedChallenges.length}</strong>
-            <small>Challenges Completed</small>
-          </div>
-        </div>
-        <div className="community-progress" aria-label={`${progress}% to next level`}>
-          <span style={{ width: `${progress}%` }} />
-        </div>
-        <small>{Math.max(nextLevelXP - userXP, 0)} XP until next level</small>
-      </section>
+// ─── Profile Modal ────────────────────────────────────────────────────────────
 
-      <nav className="community-tabs" aria-label="Community sections">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`community-tab${activeTab === tab.id ? ' community-tab--active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+function ProfileModal({ userId, currentUserId, onClose, onFollowToggle }) {
+    const [profile, setProfile] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [actionLoading, setActionLoading] = useState(false)
 
-      {activeTab === 'chefs' && (
-        <section className="community-grid community-grid--chefs">
-          <div className="community-panel">
-            <div className="community-section-head">
-              <div>
-                <h2>Community Chefs</h2>
-                <p>Discover the best chefs and follow their recipes.</p>
-              </div>
-            </div>
-            <div className="community-chef-list">
-              {topChefs.map((chef) => {
-                const isSelected = selectedChefId === chef.id
-                const isFollowing = followedChefs.includes(chef.id)
+    useEffect(() => {
+        let cancelled = false
+        setLoading(true)
+        setError(null)
+        fetchMemberProfile(userId)
+            .then((data) => { if (!cancelled) setProfile(data) })
+            .catch((err) => { if (!cancelled) setError(err.message) })
+            .finally(() => { if (!cancelled) setLoading(false) })
+        return () => { cancelled = true }
+    }, [userId])
 
-                return (
-                  <article
-                    key={chef.id}
-                    className={`community-chef-card${isSelected ? ' community-chef-card--selected' : ''}`}
-                  >
-                    <button
-                      type="button"
-                      className="community-chef-card__main"
-                      onClick={() => {
-                        setSelectedChefId(chef.id)
-                        setToast(`${chef.name} selected.`)
-                      }}
-                    >
-                      <span className="community-avatar" aria-hidden>
-                        {chef.badge}
-                      </span>
-                      <span>
-                        <strong>{chef.name}</strong>
-                        <small>{chef.specialty}</small>
-                      </span>
-                    </button>
-                    <div className="community-chef-card__foot">
-                      <span>{chef.followers + (isFollowing ? 1 : 0)} followers</span>
-                      <button
-                        type="button"
-                        className={`community-mini-btn${isFollowing ? ' community-mini-btn--active' : ''}`}
-                        onClick={() => toggleFollow(chef)}
-                      >
-                        {isFollowing ? 'Following' : 'Follow'}
-                      </button>
+    const handleFollowToggle = async () => {
+        if (!profile || actionLoading) return
+        setActionLoading(true)
+        try {
+            let result
+            if (profile.isFollowedByMe) {
+                result = await unfollowUser(profile._id)
+            } else {
+                result = await followUser(profile._id)
+            }
+            setProfile((prev) => ({
+                ...prev,
+                isFollowedByMe: !prev.isFollowedByMe,
+                followersCount: result.followersCount,
+            }))
+            onFollowToggle?.()
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
+    // Close on Escape
+    useEffect(() => {
+        const handler = (e) => { if (e.key === 'Escape') onClose() }
+        window.addEventListener('keydown', handler)
+        return () => window.removeEventListener('keydown', handler)
+    }, [onClose])
+
+    return (
+        <div className="community-modal-backdrop" onClick={onClose} role="dialog" aria-modal>
+            <div
+                className="community-modal"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button
+                    type="button"
+                    className="community-modal__close"
+                    onClick={onClose}
+                    aria-label="Close profile"
+                >
+                    ✕
+                </button>
+
+                {loading && (
+                    <div className="community-modal__loading">
+                        <div className="community-spinner" />
+                        <p>Loading profile…</p>
                     </div>
-                  </article>
+                )}
+
+                {error && (
+                    <InlineError message={error} onRetry={() => {
+                        setError(null)
+                        fetchMemberProfile(userId)
+                            .then(setProfile)
+                            .catch((e) => setError(e.message))
+                    }} />
+                )}
+
+                {profile && !loading && (
+                    <>
+                        <div className="community-modal__head">
+                            <Avatar user={profile} size="lg" />
+                            <div>
+                                <h2>{profile.name} {profile.surname}</h2>
+                                {profile.city && <p className="community-modal__city">📍 {profile.city}</p>}
+                                {profile.bio && <p className="community-modal__bio">{profile.bio}</p>}
+                            </div>
+                        </div>
+
+                        <div className="community-modal__counters">
+                            <div>
+                                <strong>{profile.followersCount}</strong>
+                                <span>Followers</span>
+                            </div>
+                            <div>
+                                <strong>{profile.followingCount}</strong>
+                                <span>Following</span>
+                            </div>
+                            <div>
+                                <strong>{profile.sharedRecipes?.length ?? 0}</strong>
+                                <span>Recipes</span>
+                            </div>
+                        </div>
+
+                        {/* Don't show follow button on your own profile */}
+                        {profile._id?.toString() !== currentUserId?.toString() && (
+                            <button
+                                type="button"
+                                className={`community-primary-btn community-modal__follow-btn${profile.isFollowedByMe ? ' community-modal__follow-btn--active' : ''}`}
+                                onClick={handleFollowToggle}
+                                disabled={actionLoading}
+                            >
+                                {actionLoading
+                                    ? '…'
+                                    : profile.isFollowedByMe
+                                        ? 'Unfollow'
+                                        : 'Follow'}
+                            </button>
+                        )}
+
+                        {profile.sharedRecipes?.length > 0 && (
+                            <div className="community-modal__recipes">
+                                <h3>Shared Recipes</h3>
+                                <div className="community-modal__recipe-list">
+                                    {profile.sharedRecipes.map((r) => (
+                                        <div key={r._id} className="community-modal__recipe-item">
+                                            {r.image && (
+                                                <img
+                                                    src={r.image}
+                                                    alt={r.title}
+                                                    className="community-modal__recipe-img"
+                                                />
+                                            )}
+                                            <div>
+                                                <strong>{r.title}</strong>
+                                                <small>♥ {r.likesCount} · 🔖 {r.savesCount}</small>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {profile.createdAt && (
+                            <p className="community-modal__joined">
+                                Member since {new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                            </p>
+                        )}
+                    </>
+                )}
+            </div>
+        </div>
+    )
+}
+
+// ─── Members Tab ──────────────────────────────────────────────────────────────
+
+function MembersTab({ currentUserId, onToast }) {
+    const [members, setMembers] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [selectedUserId, setSelectedUserId] = useState(null)
+    const [actionLoading, setActionLoading] = useState({}) // { [userId]: bool }
+    const [search, setSearch] = useState('')
+
+    const load = useCallback(() => {
+        setLoading(true)
+        setError(null)
+        fetchMembers()
+            .then(({ members }) => setMembers(members))
+            .catch((err) => setError(err.message))
+            .finally(() => setLoading(false))
+    }, [])
+
+    useEffect(() => { load() }, [load])
+
+    const handleFollowToggle = async (member) => {
+        if (actionLoading[member._id]) return
+        setActionLoading((prev) => ({ ...prev, [member._id]: true }))
+        try {
+            let result
+            if (member.isFollowedByMe) {
+                result = await unfollowUser(member._id)
+            } else {
+                result = await followUser(member._id)
+            }
+            // Note: no success toast here by design — follow/unfollow is silent.
+            setMembers((prev) =>
+                prev.map((m) =>
+                    m._id === member._id
+                        ? { ...m, isFollowedByMe: !m.isFollowedByMe, followersCount: result.followersCount }
+                        : m
                 )
-              })}
-            </div>
-          </div>
+            )
+        } catch (err) {
+            onToast(err.message)
+        } finally {
+            setActionLoading((prev) => ({ ...prev, [member._id]: false }))
+        }
+    }
 
-          <aside className="community-panel community-detail">
-            <span className="community-avatar community-avatar--large" aria-hidden>
-              {selectedChef.badge}
-            </span>
-            <h2>{selectedChef.name}</h2>
-            <p>{selectedChef.note}</p>
-            <dl>
-              <div>
-                <dt>Level</dt>
-                <dd>{selectedChef.level}</dd>
-              </div>
-              <div>
-                <dt>Featured Recipe</dt>
-                <dd>{selectedChef.recipe}</dd>
-              </div>
-            </dl>
-            <button type="button" className="community-primary-btn" onClick={() => toggleFollow(selectedChef)}>
-              {followedChefs.includes(selectedChef.id) ? 'Stop Following' : 'Follow this Chef'}
-            </button>
-          </aside>
-        </section>
-      )}
+    const filtered = useMemo(() => {
+        const q = search.trim().toLowerCase()
+        if (!q) return members
+        return members.filter(
+            (m) =>
+                m.name.toLowerCase().includes(q) ||
+                m.surname.toLowerCase().includes(q) ||
+                (m.bio || '').toLowerCase().includes(q)
+        )
+    }, [members, search])
 
-      {activeTab === 'recipes' && (
+    return (
+        <>
+            {selectedUserId && (
+                <ProfileModal
+                    userId={selectedUserId}
+                    currentUserId={currentUserId}
+                    onClose={() => setSelectedUserId(null)}
+                    onFollowToggle={load}
+                />
+            )}
+
+            <section className="community-panel">
+                <div className="community-section-head">
+                    <div>
+                        <h2>Community Members</h2>
+                        <p>Discover everyone in the MealMind community.</p>
+                    </div>
+                    <input
+                        type="search"
+                        className="community-search"
+                        placeholder="Search members…"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        aria-label="Search members"
+                    />
+                </div>
+
+                {loading && (
+                    <div className="community-chef-list">
+                        <SkeletonCard count={6} />
+                    </div>
+                )}
+                {error && <InlineError message={error} onRetry={load} />}
+
+                {!loading && !error && filtered.length === 0 && (
+                    <p className="community-empty">
+                        {search ? 'No members match your search.' : 'No members yet. Be the first!'}
+                    </p>
+                )}
+
+                {!loading && !error && filtered.length > 0 && (
+                    <div className="community-chef-list">
+                        {filtered.map((member) => {
+                            const isMe = member._id?.toString() === currentUserId?.toString()
+                            return (
+                                <article key={member._id} className="community-chef-card">
+                                    <button
+                                        type="button"
+                                        className="community-chef-card__main"
+                                        onClick={() => setSelectedUserId(member._id)}
+                                    >
+                                        <Avatar user={member} />
+                                        <span>
+                                            <strong>
+                                                {member.name} {member.surname}
+                                                {isMe && <em className="community-you-badge"> (you)</em>}
+                                            </strong>
+                                            <small>
+                                                {member.bio || (member.city ? `📍 ${member.city}` : 'MealMind member')}
+                                            </small>
+                                        </span>
+                                    </button>
+                                    <div className="community-chef-card__foot">
+                                        <span>
+                                            {member.followersCount} follower{member.followersCount !== 1 ? 's' : ''}
+                                            {member.sharedRecipesCount > 0 && (
+                                                <> · {member.sharedRecipesCount} recipe{member.sharedRecipesCount !== 1 ? 's' : ''}</>
+                                            )}
+                                        </span>
+                                        {!isMe && (
+                                            <button
+                                                type="button"
+                                                className={`community-mini-btn${member.isFollowedByMe ? ' community-mini-btn--active' : ''}`}
+                                                onClick={() => handleFollowToggle(member)}
+                                                disabled={!!actionLoading[member._id]}
+                                            >
+                                                {actionLoading[member._id]
+                                                    ? '…'
+                                                    : member.isFollowedByMe
+                                                        ? 'Following'
+                                                        : 'Follow'}
+                                            </button>
+                                        )}
+                                    </div>
+                                </article>
+                            )
+                        })}
+                    </div>
+                )}
+            </section>
+        </>
+    )
+}
+
+// ─── Trending Tab ─────────────────────────────────────────────────────────────
+
+function TrendingTab() {
+    const [recipes, setRecipes] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+
+    const load = useCallback(() => {
+        setLoading(true)
+        setError(null)
+        fetchTrending()
+            .then(({ recipes }) => setRecipes(recipes))
+            .catch((err) => setError(err.message))
+            .finally(() => setLoading(false))
+    }, [])
+
+    useEffect(() => { load() }, [load])
+
+    return (
         <section className="community-panel">
-          <div className="community-section-head">
-            <div>
-              <h2>Trending Recipes</h2>
-              <p>Current favorites in our community.</p>
+            <div className="community-section-head">
+                <div>
+                    <h2>Trending Recipes</h2>
+                    <p>The most liked recipes in the community right now.</p>
+                </div>
             </div>
-          </div>
-          <div className="community-recipe-list">
-            {trendingRecipes.map((recipe) => {
-              const liked = likedRecipes.includes(recipe.id)
-              const saved = savedRecipes.includes(recipe.id)
 
-              return (
-                <article key={recipe.id} className="community-recipe-card">
-                  <div>
-                    <span className="community-chip">{recipe.tag}</span>
-                    <h3>{recipe.title}</h3>
-                    <p>par {recipe.chef}</p>
-                  </div>
-                  <div className="community-recipe-actions">
-                    <button
-                      type="button"
-                      className={liked ? 'community-action-btn community-action-btn--active' : 'community-action-btn'}
-                      onClick={() => toggleLike(recipe)}
-                    >
-                      Like {recipe.likes + (liked ? 1 : 0)}
-                    </button>
-                    <button
-                      type="button"
-                      className={saved ? 'community-action-btn community-action-btn--saved' : 'community-action-btn'}
-                      onClick={() => toggleSave(recipe)}
-                    >
-                      Save {recipe.saves + (saved ? 1 : 0)}
-                    </button>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
+            {loading && (
+                <div className="community-recipe-list">
+                    <SkeletonCard count={4} />
+                </div>
+            )}
+            {error && <InlineError message={error} onRetry={load} />}
+
+            {!loading && !error && recipes.length === 0 && (
+                <div className="community-empty-trending">
+                    <p>No liked recipes yet.</p>
+                    <p className="community-empty-sub">
+                        Head to your Recipes page and add a recipe to your favorites to see it here!
+                    </p>
+                </div>
+            )}
+
+            {!loading && !error && recipes.length > 0 && (
+                <div className="community-recipe-list">
+                    {recipes.map((recipe, index) => (
+                        <article key={recipe.id} className="community-recipe-card">
+                            <div className="community-recipe-card__info">
+                                <span className="community-chip">#{index + 1}</span>
+                                <h3>{recipe.title}</h3>
+                            </div>
+                            {recipe.image && (
+                                <img
+                                    src={recipe.image}
+                                    alt={recipe.title}
+                                    className="community-recipe-card__img"
+                                />
+                            )}
+                            <div className="community-recipe-actions">
+                                <span className="community-action-btn community-action-btn--active" aria-label={`${recipe.likeCount} likes`}>
+                                    ♥ {recipe.likeCount}
+                                </span>
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            )}
         </section>
-      )}
+    )
+}
 
-      {activeTab === 'challenges' && (
+// ─── Challenges Tab ───────────────────────────────────────────────────────────
+
+function ChallengesTab({ onToast }) {
+    const [challenges, setChallenges] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [actionLoading, setActionLoading] = useState({})
+    const [xp, setXp] = useState(null)
+    const [xpLoading, setXpLoading] = useState(true)
+
+    const load = useCallback(() => {
+        setLoading(true)
+        setError(null)
+        fetchChallenges()
+            .then(({ challenges }) => setChallenges(challenges))
+            .catch((err) => setError(err.message))
+            .finally(() => setLoading(false))
+    }, [])
+
+    const loadXP = useCallback(() => {
+        setXpLoading(true)
+        fetchMyXP()
+            .then((data) => setXp(data))
+            .catch(() => {}) // XP bar is non-critical, fail silently
+            .finally(() => setXpLoading(false))
+    }, [])
+
+    useEffect(() => { load() }, [load])
+    useEffect(() => { loadXP() }, [loadXP])
+
+    const handleJoinLeave = async (challenge) => {
+        const key = challenge._id + '_join'
+        if (actionLoading[key]) return
+        setActionLoading((prev) => ({ ...prev, [key]: true }))
+        try {
+            let result
+            if (challenge.joinedByMe) {
+                result = await leaveChallenge(challenge._id)
+                onToast(`Left challenge: "${challenge.title}".`)
+                setChallenges((prev) =>
+                    prev.map((c) =>
+                        c._id === challenge._id
+                            ? { ...c, joinedByMe: false, completedByMe: false, participantsCount: result.participantsCount }
+                            : c
+                    )
+                )
+            } else {
+                result = await joinChallenge(challenge._id)
+                onToast(`Joined! +${challenge.reward} XP possible.`)
+                setChallenges((prev) =>
+                    prev.map((c) =>
+                        c._id === challenge._id
+                            ? { ...c, joinedByMe: true, participantsCount: result.participantsCount }
+                            : c
+                    )
+                )
+            }
+        } catch (err) {
+            onToast(err.message)
+        } finally {
+            setActionLoading((prev) => ({ ...prev, [key]: false }))
+        }
+    }
+
+    const handleComplete = async (challenge) => {
+        const key = challenge._id + '_complete'
+        if (actionLoading[key]) return
+        setActionLoading((prev) => ({ ...prev, [key]: true }))
+        try {
+            const result = await completeChallenge(challenge._id)
+            onToast(`🎉 "${challenge.title}" completed! +${result.reward} XP`)
+            setChallenges((prev) =>
+                prev.map((c) =>
+                    c._id === challenge._id
+                        ? { ...c, joinedByMe: true, completedByMe: true, completionsCount: result.completionsCount }
+                        : c
+                )
+            )
+            loadXP() // refresh XP bar with the real, newly-stored completion
+        } catch (err) {
+            onToast(err.message)
+        } finally {
+            setActionLoading((prev) => ({ ...prev, [key]: false }))
+        }
+    }
+
+    return (
         <section className="community-panel">
-          <div className="community-section-head">
-            <div>
-              <h2>Culinary Challenges</h2>
-              <p>Take on challenges and earn community experience.</p>
+            <div className="community-section-head">
+                <div>
+                    <h2>Culinary Challenges</h2>
+                    <p>Take on challenges and earn community experience.</p>
+                </div>
             </div>
-          </div>
-          <div className="community-challenge-grid">
-            {challenges.map((challenge) => {
-              const joined = joinedChallenges.includes(challenge.id)
-              const completed = completedChallenges.includes(challenge.id)
 
-              return (
-                <article key={challenge.id} className="community-challenge-card">
-                  <div className="community-challenge-card__top">
-                    <span className="community-challenge-icon">{challenge.icon}</span>
-                    <span className={`community-chip ${difficultyClass[challenge.difficulty]}`}>
-                      {challenge.difficulty}
-                    </span>
-                  </div>
-                  <h3>{challenge.title}</h3>
-                  <p>{challenge.description}</p>
-                  <div className="community-challenge-meta">
-                    <span>{challenge.participants + (joined ? 1 : 0)} participants</span>
-                    <span>{challenge.reward} XP</span>
-                  </div>
-                  <div className="community-card-actions">
-                    <button
-                      type="button"
-                      className={`community-secondary-btn${joined ? ' community-secondary-btn--active' : ''}`}
-                      onClick={() => toggleChallenge(challenge)}
-                    >
-                      {joined ? 'Leave' : 'Join'}
-                    </button>
-                    <button
-                      type="button"
-                      className="community-primary-btn"
-                      onClick={() => completeChallenge(challenge)}
-                      disabled={completed}
-                    >
-                      {completed ? 'Complete' : 'Finish'}
-                    </button>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
+            {/* XP / Progress bar — real values from MongoDB completions */}
+            {!xpLoading && xp && (
+                <div className="community-xp-bar">
+                    <div className="community-xp-bar__top">
+                        <div className="community-xp-bar__level">
+                            <strong>Level {xp.level}</strong>
+                            <span>{xp.levelName}</span>
+                        </div>
+                        <div className="community-xp-bar__counts">
+                            <span>{xp.totalXP} XP total</span>
+                            <span>{xp.completedCount} challenge{xp.completedCount !== 1 ? 's' : ''} completed</span>
+                        </div>
+                    </div>
+                    <div className="community-xp-bar__track" role="progressbar" aria-valuenow={xp.progressPercent} aria-valuemin={0} aria-valuemax={100}>
+                        <div
+                            className="community-xp-bar__fill"
+                            style={{ width: `${xp.progressPercent}%` }}
+                        />
+                    </div>
+                    <p className="community-xp-bar__hint">
+                        {xp.xpIntoCurrentLevel} / {xp.xpForNextLevel} XP to level {xp.level + 1}
+                    </p>
+                </div>
+            )}
+            {xpLoading && <div className="community-xp-bar community-xp-bar--loading" aria-hidden />}
+
+            {loading && (
+                <div className="community-challenge-grid">
+                    <SkeletonCard count={4} />
+                </div>
+            )}
+            {error && <InlineError message={error} onRetry={load} />}
+
+            {!loading && !error && challenges.length === 0 && (
+                <p className="community-empty">No active challenges right now. Check back soon!</p>
+            )}
+
+            {!loading && !error && challenges.length > 0 && (
+                <div className="community-challenge-grid">
+                    {challenges.map((challenge) => (
+                        <article key={challenge._id} className="community-challenge-card">
+                            <div className="community-challenge-card__top">
+                                <span className="community-challenge-icon">{challenge.icon}</span>
+                                <span className={`community-chip ${difficultyClass[challenge.difficulty] || ''}`}>
+                                    {challenge.difficulty}
+                                </span>
+                            </div>
+                            <h3>{challenge.title}</h3>
+                            <p>{challenge.description}</p>
+                            <div className="community-challenge-meta">
+                                <span>{challenge.participantsCount} participant{challenge.participantsCount !== 1 ? 's' : ''}</span>
+                                <span>{challenge.reward} XP</span>
+                            </div>
+                            {challenge.endDate && (
+                                <p className="community-challenge-deadline">
+                                    Ends {new Date(challenge.endDate).toLocaleDateString()}
+                                </p>
+                            )}
+                            <div className="community-card-actions">
+                                <button
+                                    type="button"
+                                    className={`community-secondary-btn${challenge.joinedByMe ? ' community-secondary-btn--active' : ''}`}
+                                    onClick={() => handleJoinLeave(challenge)}
+                                    disabled={!!actionLoading[challenge._id + '_join']}
+                                >
+                                    {actionLoading[challenge._id + '_join']
+                                        ? '…'
+                                        : challenge.joinedByMe
+                                            ? 'Leave'
+                                            : 'Join'}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="community-primary-btn"
+                                    onClick={() => handleComplete(challenge)}
+                                    disabled={challenge.completedByMe || !!actionLoading[challenge._id + '_complete']}
+                                >
+                                    {challenge.completedByMe
+                                        ? '✓ Completed'
+                                        : actionLoading[challenge._id + '_complete']
+                                            ? '…'
+                                            : 'Mark Complete'}
+                                </button>
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            )}
         </section>
-      )}
+    )
+}
 
-      <section className="community-stats" aria-label="Statistiques communautaires">
-        {communityStats.map((stat) => (
-          <div key={stat.label}>
-            <strong>{stat.value}</strong>
-            <span>{stat.label}</span>
-          </div>
-        ))}
-      </section>
-    </div>
-  )
+// ─── Main Community Page ──────────────────────────────────────────────────────
+
+const Community = () => {
+    const { profile } = useUser()
+    const currentUserId = profile?._id
+
+    const [activeTab, setActiveTab] = useState('members')
+    const [toast, setToast] = useState('Welcome to the community.')
+    const [stats, setStats] = useState({ members: 0, sharedRecipes: 0, activeChallenges: 0, totalLikes: 0 })
+
+    const showToast = useCallback((msg) => {
+        setToast(msg)
+    }, [])
+
+    // Load community-wide stats on mount
+    useEffect(() => {
+        fetchCommunityStats()
+            .then((data) => setStats(data))
+            .catch(() => {}) // silently fail — stats are non-critical
+    }, [])
+
+    const statsBar = [
+        { value: stats.members.toLocaleString(), label: 'Members' },
+        { value: stats.sharedRecipes.toLocaleString(), label: 'Shared Recipes' },
+        { value: stats.activeChallenges.toLocaleString(), label: 'Active Challenges' },
+        { value: stats.totalLikes.toLocaleString(), label: 'Total Likes' },
+    ]
+
+    return (
+        <div className="community-page">
+            <header className="community-header">
+                <div>
+                    <h1 className="community-title">Community</h1>
+                    <p className="community-lead">
+                        Connect, share, and cook with fellow MealMind members.
+                    </p>
+                </div>
+                <div className="community-status" role="status" aria-live="polite">
+                    {toast}
+                </div>
+            </header>
+
+            <nav className="community-tabs" aria-label="Community sections">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        type="button"
+                        className={`community-tab${activeTab === tab.id ? ' community-tab--active' : ''}`}
+                        onClick={() => setActiveTab(tab.id)}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
+            </nav>
+
+            {activeTab === 'members' && (
+                <MembersTab currentUserId={currentUserId} onToast={showToast} />
+            )}
+            {activeTab === 'trending' && (
+                <TrendingTab />
+            )}
+            {activeTab === 'challenges' && (
+                <ChallengesTab onToast={showToast} />
+            )}
+
+            <section className="community-stats" aria-label="Community statistics">
+                {statsBar.map((stat) => (
+                    <div key={stat.label}>
+                        <strong>{stat.value}</strong>
+                        <span>{stat.label}</span>
+                    </div>
+                ))}
+            </section>
+        </div>
+    )
 }
 
 export default Community
