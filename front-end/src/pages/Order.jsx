@@ -1,43 +1,80 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
 import { GROCERY_CATALOG } from '../data/groceryCatalog';
 import { loadPendingCart, clearPendingCart } from '../utils/orderCart';
+import CheckoutForm from '../components/CheckoutForm';
 import './Order.css';
+
+// Initialize Stripe Promise with the public key
+// If VITE_STRIPE_PUBLIC_KEY is undefined, loadStripe returns null and Stripe will
+// display "Unable to connect to payment provider" — check your .env file!
+if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
+  console.error('[MealMind] VITE_STRIPE_PUBLIC_KEY is missing from .env — Stripe will not load.');
+}
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const availableIngredients = GROCERY_CATALOG;
 
-const recentOrdersSeed = [
-  { id: 'ORD-2026-102', date: '24/05/2026', total: 132 },
-  { id: 'ORD-2026-097', date: '18/05/2026', total: 168 },
-  { id: 'ORD-2026-091', date: '10/05/2026', total: 96 },
-];
 
 const Order = () => {
   const [cart, setCart] = useState([]);
-  const [recentOrders, setRecentOrders] = useState(recentOrdersSeed);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
   const [selectedIngredientId, setSelectedIngredientId] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
+  const [pendingPaymentIntentId, setPendingPaymentIntentId] = useState('');
   const [checkoutAmount, setCheckoutAmount] = useState(0);
   const [checkoutError, setCheckoutError] = useState('');
 
   const isLocalhost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
-  const apiBase = isLocalhost
-    ? '/api'
-    : import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '/api';
+  const remoteBase = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
+  const apiBase = isLocalhost ? '' : remoteBase;
   const [recipeContext, setRecipeContext] = useState(null);
+
+  // ── Auth token helper ──────────────────────────────────────────────────────
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token
+      ? { Authorization: `Bearer ${token}`, 'x-auth-token': token }
+      : {};
+  };
+
+  // ── Fetch order history from backend ──────────────────────────────────────
+  const fetchOrderHistory = useCallback(async () => {
+    setOrdersLoading(true);
+    try {
+      const res = await fetch(`${apiBase}/api/orders`, {
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      });
+      if (!res.ok) throw new Error('fetch failed');
+      const data = await res.json();
+      setRecentOrders(data);
+    } catch (err) {
+      console.warn('Could not load order history:', err.message);
+      setRecentOrders([]);
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [apiBase]);
+
 
   const selectedIngredient = availableIngredients.find((ing) => ing.id === selectedIngredientId);
 
+  // Fetch order history + pending cart on mount
   useEffect(() => {
+    fetchOrderHistory();
     const pending = loadPendingCart();
     if (pending.items.length > 0) {
       setCart(pending.items);
       setRecipeContext(pending.recipeTitle);
       clearPendingCart();
     }
-  }, []);
+  }, [fetchOrderHistory]);
+
 
   const addToCart = () => {
     if (!selectedIngredient || quantity <= 0) return;
@@ -97,9 +134,7 @@ const Order = () => {
 const amountInEuro = Math.max(0.50, parseFloat((total * MAD_TO_EUR).toFixed(2)));
     setCheckoutError('');
 
-    const checkoutUrl = isLocalhost
-      ? '/api/stripe/create-payment-intent'
-      : `${apiBase}/api/stripe/create-payment-intent`;
+    const checkoutUrl = `${apiBase}/api/stripe/create-payment-intent`;
 
     try {
       const response = await fetch(checkoutUrl, {
@@ -114,34 +149,50 @@ const amountInEuro = Math.max(0.50, parseFloat((total * MAD_TO_EUR).toFixed(2)))
       }
 
       setClientSecret(data.clientSecret);
+      setPendingPaymentIntentId(data.clientSecret?.split('_secret_')[0] || '');
       setCheckoutAmount(amountInEuro);
       setShowPaymentModal(true);
+
     } catch (error) {
       setCheckoutError(error.message || 'Impossible d’initier le paiement.');
     }
   };
 
-  const finalizeOrder = () => {
+  const finalizeOrder = async () => {
     if (cart.length === 0) return;
 
     const now = new Date();
     const orderId = `ORD-${now.getFullYear()}-${String(Math.floor(Math.random() * 900) + 100)}`;
-    const orderDate = now.toLocaleDateString('en-GB');
 
-    const newOrder = {
-      id: orderId,
-      date: orderDate,
-      total,
-    };
+    // Persist to backend (best-effort — don't block the UI on failure)
+    try {
+      await fetch(`${apiBase}/api/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({
+          orderId,
+          items: cart,
+          totalMAD: total,
+          totalEUR: checkoutAmount,
+          stripePaymentIntentId: pendingPaymentIntentId,
+        }),
+      });
+    } catch (err) {
+      console.warn('Order save failed (non-blocking):', err.message);
+    }
 
-    setRecentOrders((prev) => [newOrder, ...prev].slice(0, 5));
     setCart([]);
     setRecipeContext(null);
     setOrderPlaced(true);
     setShowPaymentModal(false);
+    setPendingPaymentIntentId('');
+
+    // Refresh history from backend
+    fetchOrderHistory();
 
     setTimeout(() => setOrderPlaced(false), 3000);
   };
+
 
   const handlePaymentSuccess = () => {
     finalizeOrder();
@@ -349,17 +400,38 @@ const amountInEuro = Math.max(0.50, parseFloat((total * MAD_TO_EUR).toFixed(2)))
       <div className="order-history">
         <div className="order-card">
           <h2 className="order-card__title">Order history</h2>
-          {recentOrders.length === 0 ? (
-            <p className="order-history__empty">No orders yet</p>
+          {ordersLoading ? (
+            <div className="order-history__loading">
+              <span className="order-history__spinner" />
+              Loading orders…
+            </div>
+          ) : recentOrders.length === 0 ? (
+            <p className="order-history__empty">No orders yet — place your first order above!</p>
           ) : (
             <div className="order-history__list">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="order-history__item">
-                  <div className="order-history__id">{order.id}</div>
-                  <div className="order-history__date">{order.date}</div>
-                  <div className="order-history__total">{order.total} DH</div>
-                </div>
-              ))}
+              {recentOrders.map((order) => {
+                const date = order.createdAt
+                  ? new Date(order.createdAt).toLocaleDateString('en-GB')
+                  : order.date || '—';
+                const itemCount = order.items?.length ?? 0;
+                return (
+                  <div key={order._id || order.orderId} className="order-history__item">
+                    <div className="order-history__item-left">
+                      <span className="order-history__id">{order.orderId || order.id}</span>
+                      <span className="order-history__meta">
+                        {itemCount} item{itemCount !== 1 ? 's' : ''} · {date}
+                      </span>
+                    </div>
+                    <div className="order-history__item-right">
+                      <span className="order-history__total">{order.totalMAD ?? order.total} DH</span>
+                      {order.totalEUR != null && (
+                        <span className="order-history__eur">€{Number(order.totalEUR).toFixed(2)}</span>
+                      )}
+                      <span className="order-history__badge order-history__badge--paid">Paid</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

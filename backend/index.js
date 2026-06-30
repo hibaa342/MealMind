@@ -14,6 +14,7 @@ const fridgeRoutes = require('./routes/fridgeRoutes');
 const adminRoutes = require('./routes/AdminRoutes');
 const ingredientRoutes = require('./routes/ingredientRoutes');
 const stripeRoutes = require('./routes/stripeRoutes');
+const orderRoutes  = require('./routes/orderRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const communityRoutes = require('./routes/communityRoutes'); // ← NEW
 
@@ -47,11 +48,10 @@ app.use('/api/fridge', fridgeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/chat', chatRoutes);
-app.use('/api/community', communityRoutes); // ← NEW
+app.use('/api/community', communityRoutes);
 
-// Route temporaire pour éviter des erreurs de fetch sur la page Planning
-app.get('/api/orders', (req, res) => res.json([]));
 
 // Route de transcription audio (Whisper via Groq)
 app.post('/api/transcribe', upload.single('file'), async (req, res) => {
