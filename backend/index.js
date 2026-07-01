@@ -28,7 +28,13 @@ if (!fs.existsSync(uploadsDir)) {
 const upload = multer({ dest: uploadsDir });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://snapcook-five.vercel.app/'  // ← her actual Vercel URL
+  ],
+  credentials: true
+}));
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();
